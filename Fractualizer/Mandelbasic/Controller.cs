@@ -21,7 +21,7 @@ namespace Mandelbasic
                 AllowUserResizing = false
             };
 
-            renderer = new Renderer();
+            renderer = new Renderer(renderForm);
         }
 
         public void Run()
@@ -31,8 +31,8 @@ namespace Mandelbasic
 
         public void Dispose()
         {
-            renderForm.Dispose();
             renderer.Dispose();
+            renderForm.Dispose();
         }
     }
 }
