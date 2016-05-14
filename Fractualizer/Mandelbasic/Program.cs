@@ -12,7 +12,7 @@ namespace Mandelbasic
         {
             using (Controller controller = new Controller())
             {
-                controller.DoEventLoop();
+                controller.Run();
             }
         }
     }

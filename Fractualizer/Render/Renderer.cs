@@ -6,21 +6,8 @@ namespace Render
 {
     public class Renderer : IDisposable
     {
-        private const int width = 1280;
-        private const int height = 720;
-
-        private readonly RenderForm renderForm;
-
         public Renderer()
         {
-            renderForm = new RenderForm("Fractualizer");
-            renderForm.ClientSize = new Size(width, height);
-            renderForm.AllowUserResizing = false;
-        }
-
-        public void Run()
-        {
-            RenderLoop.Run(renderForm, Render);
         }
 
         public void Render()
@@ -30,7 +17,6 @@ namespace Render
 
         public void Dispose()
         {
-            renderForm.Dispose();
         }
     }
 }
