@@ -13,7 +13,7 @@ namespace Render
 
         public Renderer()
         {
-            renderForm = new RenderForm("My first SharpDX game");
+            renderForm = new RenderForm("Fractualizer");
             renderForm.ClientSize = new Size(width, height);
             renderForm.AllowUserResizing = false;
         }
