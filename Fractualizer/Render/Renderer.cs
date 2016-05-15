@@ -15,7 +15,12 @@ namespace Render
         private D3D11.DeviceContext d3dDeviceContext;
         private SwapChain swapChain;
         private D3D11.RenderTargetView renderTargetView;
-        private Vector3[] vertices = new Vector3[] { new Vector3(-0.5f, 0.5f, 0.0f), new Vector3(0.5f, 0.5f, 0.0f), new Vector3(0.0f, -0.5f, 0.0f) };
+        private Vector3[] vertices = new Vector3[]
+        {
+            new Vector3(-1f, -1f, 0.0f), new Vector3(-1f, 1f, 0.0f), new Vector3(1f, -1f, 0.0f),
+            new Vector3(1, -1, 0), new Vector3(-1, 1, 0), new Vector3(1, 1, 0)
+        };
+
         private D3D11.Buffer triangleVertexBuffer;
         private D3D11.VertexShader vertexShader;
         private D3D11.PixelShader pixelShader;
