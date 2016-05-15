@@ -5,7 +5,7 @@ using SharpDX.Windows;
 
 namespace Mandelbasic
 {
-    class Controller : IDisposable
+    class Controller : IDisposable, IHaveScene
     {
         private const int width = 1280;
         private const int height = 720;
@@ -13,6 +13,8 @@ namespace Mandelbasic
         private readonly RenderForm renderForm;
         private readonly Renderer renderer;
 
+        public Scene scene { get; }
+        
         public Controller()
         {
             renderForm = new RenderForm("Fractualizer")
@@ -21,7 +23,9 @@ namespace Mandelbasic
                 AllowUserResizing = false
             };
 
-            renderer = new Renderer(renderForm);
+            scene = new Scene(new Mandelbrot());
+
+            renderer = new Renderer(this, renderForm);
         }
 
         public void Run()
