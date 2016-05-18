@@ -1,32 +1,46 @@
 ﻿cbuffer Parameters
 {
-	float4 cameraPos;
-	float4 cameraView;
-	float4 cameraOrtho;
-	float nearDist;
-	float roll;
-	float2 viewDimension;
+	float4 ptCamera;
+	float4 vkCamera;
+	float4 vkCameraOrtho;
+	float2 rsScreen;
+	float2 rsViewPlane;
+	float duNear;
 }
 
-float DE(float3 p)
+float DE(float3 pos)
 {
-	float3 c = p;
-	float r = length(c);
-	float dr = 1;
-	for (int i = 0; i < 4 && r < 3; ++i)
+	float Power = 8;
+	int iterations = 10;
+	float Bailout = 5;
+
+	float3 z = pos;
+	float dr = 1.0;
+	float r = 0.0;
+	for (int i = 0; i < iterations; i++)
 	{
-		float xr = pow(r, 7);
-		dr = 6 * xr * dr + 1;
+		r = length(z);
+		if (r > Bailout)
+			break;
 
-		float theta = atan2(c.y, c.x) * 8;
-		float phi = asin(c.z / r) * 8;
-		r = xr * r;
-		c = r * float3(cos(phi) * cos(theta), cos(phi) * sin(theta), sin(phi));
+		// convert to polar coordinates
+		float theta = acos(z.z / r);
+		float phi = atan(z.y / z.x);
+		dr = pow(r, Power - 1.0) * Power * dr + 1.0;
 
-		c += p;
-		r = length(c);
+		// scale and rotate the point
+		float zr = pow(r, Power);
+		theta = theta * Power;
+		phi = phi * Power;
+
+		// convert back to cartesian coordinates
+		z = zr * float3(
+			sin(theta) * cos(phi),
+			sin(phi) * sin(theta),
+			cos(theta));
+		z += pos;
 	}
-	return 0.35 * log(r) * r / dr;
+	return 0.5 * log(r) * r / dr;
 }
 
 float4 ray_marching(float3 ro, float3 rd)
@@ -57,17 +71,31 @@ float3 normalized(float3 v)
 
 float4 main(float4 position : SV_POSITION) : SV_TARGET
 {
-	float3 planeCenter = cameraPos.xyz + cameraView.xyz * nearDist;
+	float3 ptPlaneCenter = ptCamera.xyz + vkCamera.xyz * duNear;
 
-	float3 vkDown = cross(cameraOrtho, cameraView);
-	float3 vkRight = cross(vkDown, cameraView);
+	float3 vkDown = vkCameraOrtho.xyz;
+	float3 vkRight = cross(vkDown, vkCamera);
 
-	float2 pixelPos = position.xy - viewDimension / 2;
-	float3 planePoint = planeCenter + vkRight * pixelPos.x + vkDown * pixelPos.y;
+	float2 vkFromScreenCenter = position.xy - rsScreen / 2;
+	float2 vkFromPlaneCenter = float2(vkFromScreenCenter.x * rsViewPlane.x / rsScreen.x, vkFromScreenCenter.y * rsViewPlane.y / rsScreen.y);
+	float3 planePoint = ptPlaneCenter + vkRight * vkFromPlaneCenter.x + vkDown * vkFromPlaneCenter.y;
 
-	float3 r0 = planePoint - cameraPos.xyz;
+	float3 vkRay = normalized(planePoint - ptCamera.xyz);
 
-	float4 marched = ray_marching(cameraPos.xyz, r0);
+	float4 red = float4(1, 0, 0, 1);
+	float4 green = float4(0, 1, 0, 1);
+	float4 blue = float4(0, 0, 1, 1);
+
+	//float de = DE(planePoint);
+	//if (rsScreen.x == 1280)
+	//	return red;
+	//else if (de < 3)
+	//	return blue;
+	//else if (de < 1)
+	//	return green;
+	
+	float4 marched = ray_marching(ptCamera.xyz, vkRay);
+
 	if (marched.w == -1)
 		return float4(0, 0, 0, 1);
 

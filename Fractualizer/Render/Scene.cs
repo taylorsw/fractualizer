@@ -13,36 +13,48 @@ namespace Render
 
     public class Scene : IDisposable
     {
+        private const float dxView = 1;
         private D3D11.Buffer cameraBuffer;
 
         private Camera camera;
+        public readonly Fractal fractal;
 
         private struct Camera
         {
-            private readonly Vector4 cameraPos;
-            private readonly Vector4 cameraView;
-            private readonly Vector4 cameraRoll;
-            private readonly float nearDist;
+            private readonly Vector4 ptCamera;
+            private readonly Vector4 vkCamera;
+            private readonly Vector4 vkCameraRoll;
+            private readonly Vector2 rsScreen;
+            private readonly Vector2 rsViewPlane;
+            private readonly float duNear;
             private readonly float ignore;
-            private readonly Vector2 viewDimension;
+            private readonly float ignore2;
+            private readonly float ignore3;
 
-            public Camera(Vector4 cameraPos, Vector4 cameraView, Vector4 cameraRoll, float nearDist, Vector2 viewDimension)
+            public Camera(Vector4 ptCamera, Vector4 vkCamera, Vector4 vkCameraRoll, float duNear, Vector2 rsScreen, Vector2 rsViewPlane)
             {
-                this.cameraPos = cameraPos;
-                this.cameraView = cameraView;
-                this.nearDist = nearDist;
-                this.cameraRoll = cameraRoll;
+                this.ptCamera = ptCamera;
+                this.vkCamera = vkCamera;
+                this.duNear = duNear;
+                this.vkCameraRoll = vkCameraRoll;
                 this.ignore = float.NaN;
-                this.viewDimension = viewDimension;
+                this.ignore2 = float.NaN;
+                this.ignore3 = float.NaN;
+                this.rsScreen = rsScreen;
+                this.rsViewPlane = rsViewPlane;
             }
         }
-
-        public readonly Fractal fractal;
 
         public Scene(int width, int height, Fractal fractal)
         {
             this.fractal = fractal;
-            this.camera = new Camera(new Vector4(4, 0, 0, 1), new Vector4(-1, 0, 0, 1), new Vector4(0, 1, 0, 1), 0.5f, new Vector2(width, height));
+            this.camera = new Camera(
+                ptCamera: new Vector4(4, 0, 0, 1),
+                vkCamera: new Vector4(-1, 0, 0, 1),
+                vkCameraRoll: new Vector4(0, 1, 0, 1),
+                duNear: 0.5f,
+                rsScreen: new Vector2(width, height),
+                rsViewPlane: new Vector2(dxView, dxView * height / width));
         }
 
         public void Initialize(Device device, DeviceContext deviceContext)
