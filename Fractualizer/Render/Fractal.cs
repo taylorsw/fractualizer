@@ -6,15 +6,13 @@ namespace Render
 {
     public abstract class Fractal : IDisposable
     {
-        private D3D11.PixelShader pixelShader;
+        protected D3D11.PixelShader pixelShader;
 
-        internal Fractal()
-        {
-        }
+        internal Fractal() { }
 
         public virtual void InitializeFractal(D3D11.Device d3dDevice, D3D11.DeviceContext deviceContext)
         {
-            using (var pixelShaderByteCode = ShaderBytecode.CompileFromFile("Shaders/pixelShader.hlsl", "main", "ps_4_0", ShaderFlags.Debug))
+            using (var pixelShaderByteCode = ShaderBytecode.CompileFromFile("Shaders/" + StShader(), "main", "ps_4_0", ShaderFlags.Debug))
             {
                 pixelShader = new D3D11.PixelShader(d3dDevice, pixelShaderByteCode);
             }
@@ -22,7 +20,7 @@ namespace Render
             deviceContext.PixelShader.Set(pixelShader);
         }
 
-        public abstract string Shader();
+        public abstract string StShader();
 
         public void Dispose()
         {
@@ -32,9 +30,11 @@ namespace Render
 
     public class Mandelbrot : Fractal
     {
-        public override string Shader()
-        {
-            return "mandelbrot.hlsl";
-        }
+        public override string StShader() => "mandelbrot.hlsl";
+    }
+
+    public class Mandelbulb : Fractal
+    {
+        public override string StShader() => "mandelbulb.hlsl";
     }
 }

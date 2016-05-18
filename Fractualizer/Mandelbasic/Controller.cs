@@ -23,7 +23,7 @@ namespace Mandelbasic
                 AllowUserResizing = false
             };
 
-            scene = new Scene(new Mandelbrot());
+            scene = new Scene(width, height, new Mandelbulb());
 
             renderer = new Renderer(this, renderForm);
         }
