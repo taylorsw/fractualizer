@@ -47,11 +47,13 @@ float DE(float3 pos)
 
 float4 ray_marching(float3 ro, float3 rd)
 {
+	float dTotal = 0;
 	for (int i = 0; i < cmarch; ++i)
 	{
 		float d = DE(ro);
 		ro += d * rd;
-		if (d < 0.001) return float4(ro, i);
+		dTotal += d;
+		if (d < 0.0001 * dTotal) return float4(ro, i);
 	}
 	return float4(ro, -1);
 }
