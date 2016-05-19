@@ -18,7 +18,7 @@ namespace Render
         private D3D11.Buffer cameraBuffer;
 
         public Camera camera;
-        public readonly Fractal fractal;
+        public readonly Fractal3d fractal;
 
         public struct Camera
         {
@@ -46,7 +46,7 @@ namespace Render
             }
         }
 
-        public Scene(int width, int height, Fractal fractal)
+        public Scene(int width, int height, Fractal3d fractal)
         {
             this.fractal = fractal;
             this.camera = new Camera(

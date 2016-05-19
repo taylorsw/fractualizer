@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 using System.Windows.Forms;
 using Render;
-using SharpDX;
 
 namespace Mandelbasic
 {
@@ -19,9 +14,12 @@ namespace Mandelbasic
             renderForm.KeyUp += OnKeyUp;
         }
 
-        private const float duMove = 0.1f;
+        private const double frMove = 0.1;
         public void DoEvents()
         {
+            double duFromFractal = scene.fractal.DuEstimate(scene.camera.ptCamera.Xyz());
+            float duMove = (float)(frMove * duFromFractal);
+
             if (IsKeyDown(Keys.W))
                 scene.camera.ptCamera += scene.camera.vkCamera * duMove;
 
