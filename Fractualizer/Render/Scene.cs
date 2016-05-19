@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+using System.Windows.Forms;
 using SharpDX;
 using SharpDX.Direct3D11;
 using D3D11 = SharpDX.Direct3D11;
@@ -16,16 +17,16 @@ namespace Render
         private const float dxView = 1;
         private D3D11.Buffer cameraBuffer;
 
-        private Camera camera;
+        public Camera camera;
         public readonly Fractal fractal;
 
-        private struct Camera
+        public struct Camera
         {
-            private readonly Vector4 ptCamera;
-            private readonly Vector4 vkCamera;
-            private readonly Vector4 vkCameraRoll;
-            private readonly Vector2 rsScreen;
-            private readonly Vector2 rsViewPlane;
+            public Vector4 ptCamera;
+            public Vector4 vkCamera;
+            public Vector4 vkCameraRoll;
+            public Vector2 rsScreen;
+            public Vector2 rsViewPlane;
             private readonly float duNear;
             private readonly float ignore;
             private readonly float ignore2;
@@ -63,6 +64,11 @@ namespace Render
             deviceContext.PixelShader.SetConstantBuffer(0, cameraBuffer);
 
             fractal.InitializeFractal(device, deviceContext);
+        }
+
+        public void UpdateBuffers(Device device, DeviceContext deviceContext)
+        {
+            deviceContext.UpdateSubresource(ref camera, cameraBuffer);
         }
 
         public void Dispose()

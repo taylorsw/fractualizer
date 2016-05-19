@@ -47,6 +47,9 @@ namespace Render
             deviceContext.ClearRenderTargetView(renderTargetView, new SharpDX.Color(32, 103, 178));
 
             deviceContext.InputAssembler.SetVertexBuffers(0, new D3D11.VertexBufferBinding(triangleVertexBuffer, Utilities.SizeOf<Vector3>(), 0));
+
+            scene.UpdateBuffers(device, deviceContext);
+
             deviceContext.Draw(vertices.Length, 0);
 
             swapChain.Present(1, PresentFlags.None);
@@ -81,7 +84,8 @@ namespace Render
                 Usage = Usage.RenderTargetOutput,
                 BufferCount = 1,
                 OutputHandle = renderForm.Handle,
-                IsWindowed = true
+                IsWindowed = true,
+                Flags = SwapChainFlags.AllowModeSwitch
             };
             D3D11.Device.CreateWithSwapChain(DriverType.Hardware, D3D11.DeviceCreationFlags.None, swapChainDesc, out device, out swapChain);
             deviceContext = device.ImmediateContext;

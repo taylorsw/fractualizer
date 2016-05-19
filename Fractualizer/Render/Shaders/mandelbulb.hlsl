@@ -8,6 +8,8 @@
 	float duNear;
 }
 
+static const int cmarch = 64;
+
 float DE(float3 pos)
 {
 	float Power = 8;
@@ -45,7 +47,7 @@ float DE(float3 pos)
 
 float4 ray_marching(float3 ro, float3 rd)
 {
-	for (int i = 0; i < 64; ++i)
+	for (int i = 0; i < cmarch; ++i)
 	{
 		float d = DE(ro);
 		ro += d * rd;
@@ -99,5 +101,10 @@ float4 main(float4 position : SV_POSITION) : SV_TARGET
 	if (marched.w == -1)
 		return float4(0, 0, 0, 1);
 
-	return float4(1, 1, 1, 1);
+	float4 color = float4(0.5, 0.3, 0, 1);
+
+	// ambient occlusion
+	color = color * (1 - (marched.w / cmarch));
+
+	return  color;
 }

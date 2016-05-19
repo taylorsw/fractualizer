@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Drawing;
+using System.Windows.Forms;
 using Render;
 using SharpDX.Windows;
 
 namespace Mandelbasic
 {
-    class Controller : IDisposable, IHaveScene
+    partial class Controller : IDisposable, IHaveScene
     {
         private const int width = 1280;
         private const int height = 720;
@@ -20,17 +21,27 @@ namespace Mandelbasic
             renderForm = new RenderForm("Fractualizer")
             {
                 ClientSize = new Size(width, height),
-                AllowUserResizing = false
+                AllowUserResizing = false,
+                IsFullscreen = true
             };
 
             scene = new Scene(width, height, new Mandelbulb());
+            renderForm.Show();
 
             renderer = new Renderer(this, renderForm);
+
+            InitializeEvents();
         }
 
         public void Run()
         {
-            RenderLoop.Run(renderForm, renderer.Render);
+            RenderLoop.Run(renderForm, RunI);
+        }
+
+        private void RunI()
+        {
+            DoEvents();
+            renderer.Render();
         }
 
         public void Dispose()
