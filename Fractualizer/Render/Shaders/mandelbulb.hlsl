@@ -8,7 +8,7 @@
 	float duNear;
 }
 
-static const int cmarch = 64;
+static const int cmarch = 48;
 
 float DE(float3 pos)
 {
@@ -47,13 +47,15 @@ float DE(float3 pos)
 
 float4 ray_marching(float3 ro, float3 rd)
 {
-	float dTotal = 0;
+	float duPixelRadius = rsViewPlane.x / rsScreen.x;
+	float duTotal = 0;
 	for (int i = 0; i < cmarch; ++i)
 	{
 		float d = DE(ro);
 		ro += d * rd;
-		dTotal += d;
-		if (d < 0.0001 * dTotal) return float4(ro, i);
+		duTotal += d;
+		float duEpsilon = 1 * duTotal / duNear * duPixelRadius;
+		if (d < duEpsilon) return float4(ro, i);
 	}
 	return float4(ro, -1);
 }
@@ -89,24 +91,15 @@ float4 main(float4 position : SV_POSITION) : SV_TARGET
 	float4 red = float4(1, 0, 0, 1);
 	float4 green = float4(0, 1, 0, 1);
 	float4 blue = float4(0, 0, 1, 1);
-
-	//float de = DE(planePoint);
-	//if (rsScreen.x == 1280)
-	//	return red;
-	//else if (de < 3)
-	//	return blue;
-	//else if (de < 1)
-	//	return green;
-	
 	float4 marched = ray_marching(ptCamera.xyz, vkRay);
 
 	if (marched.w == -1)
 		return float4(0, 0, 0, 1);
 
-	float4 color = float4(0.5, 0.3, 0, 1);
+	float4 color = float4(0.2, 0.6, 0.3, 1);
 
 	// ambient occlusion
 	color = color * (1 - (marched.w / cmarch));
 
-	return  color;
+	return color;
 }
