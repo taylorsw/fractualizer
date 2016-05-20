@@ -45,8 +45,8 @@ namespace Mandelbasic
                                        + scene.camera.vkCameraDown*scene.camera.rsViewPlane.Y*frScreenY
                                        + scene.camera.vkCameraRight*scene.camera.rsViewPlane.X*frScreenX;
 
-            scene.camera.vkCamera = ptPlaneCameraNew - scene.camera.ptCamera;
-            scene.camera.vkCamera.Normalize();
+            scene.camera.vkCamera = (ptPlaneCameraNew - scene.camera.ptCamera).Normalized3();
+            scene.camera.vkCameraDown = scene.camera.vkCamera.Cross3(scene.camera.vkCameraRight.Normalized3());
 
             CenterCursor();
         }

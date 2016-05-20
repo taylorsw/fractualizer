@@ -10,39 +10,22 @@
 
 static const int cmarch = 48;
 
-float DE_Bulb(float3 pos)
+float DE_Box(float3 p)
 {
-	float Power = 8;
-	int iterations = 10;
-	float Bailout = 5;
+	const float scale = 9;
+	const float3 boxfold = float3(1, 1, 1);
+	const float spherefold = 0.2;
 
-	float3 z = pos;
-	float dr = 1.0;
-	float r = 0.0;
-	for (int i = 0; i < iterations; i++)
+	float4 c0 = float4(p, 1);
+	float4 c = c0;
+	for (int i = 0; i < 4; ++i)
 	{
-		r = length(z);
-		if (r > Bailout)
-			break;
-
-		// convert to polar coordinates
-		float theta = acos(z.z / r);
-		float phi = atan(z.y / z.x);
-		dr = pow(r, Power - 1.0) * Power * dr + 1.0;
-
-		// scale and rotate the point
-		float zr = pow(r, Power);
-		theta = theta * Power;
-		phi = phi * Power;
-
-		// convert back to cartesian coordinates
-		z = zr * float3(
-			sin(theta) * cos(phi),
-			sin(phi) * sin(theta),
-			cos(theta));
-		z += pos;
+		c.xyz = clamp(c.xyz, -boxfold, boxfold) * 2 - c.xyz;
+		float rr = dot(c.xyz, c.xyz);
+		c *= saturate(max(spherefold / rr, spherefold));
+		c = c * scale + c0;
 	}
-	return 0.5 * log(r) * r / dr;
+	return ((length(c.xyz) - (scale - 1)) / c.w - pow(scale, -3));
 }
 
 float4 ray_marching(float3 pt, float3 vk)
@@ -51,7 +34,7 @@ float4 ray_marching(float3 pt, float3 vk)
 	float duTotal = 0;
 	for (int i = 0; i < cmarch; ++i)
 	{
-		float du = DE_Bulb(pt);
+		float du = DE_Box(pt);
 		pt += du * vk;
 		duTotal += du;
 		float duEpsilon = 1 * duTotal / duNear * duPixelRadius;

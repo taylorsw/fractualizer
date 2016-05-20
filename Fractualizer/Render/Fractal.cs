@@ -39,6 +39,31 @@ namespace Render
         public override string StShader() => "mandelbrot.hlsl";
     }
 
+    public class Mandelbox : Fractal3d
+    {
+        public override string StShader() => "mandelbox.hlsl";
+
+        public override double DuEstimate(Vector3 pt)
+        {
+            const float scale = 9;
+            Vector3 boxfold = new Vector3(1, 1, 1);
+            const float spherefold = 0.2f;
+
+            Vector4 c0 = new Vector4(pt, 1);
+            Vector3 c = c0.Xyz();
+            float w = c0.W;
+            for (int i = 0; i < 4; ++i)
+            {
+                c = Vector3.Clamp(c, -boxfold, boxfold) * 2 - c;
+                float rr = Vector3.Dot(c, c);
+                c *= Util.Saturate(Math.Max(spherefold / rr, spherefold));
+                c = c * scale + c0.Xyz();
+                w = w * scale + c0.W;
+            }
+            return ((c.Length() - (scale - 1)) / w - Math.Pow(scale, -3));
+        }
+    }
+
     public class Mandelbulb : Fractal3d
     {        
         public override string StShader() => "mandelbulb.hlsl";
