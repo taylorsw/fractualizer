@@ -41,7 +41,7 @@ namespace Mandelbasic
 
         private void RunI()
         {
-            DecodeKeys();
+            DecodeKeyState();
             renderer.Render();
         }
 

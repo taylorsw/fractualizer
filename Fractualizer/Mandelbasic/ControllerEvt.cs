@@ -17,6 +17,7 @@ namespace Mandelbasic
             renderForm.KeyDown += OnKeyDown;
             renderForm.KeyUp += OnKeyUp;
             renderForm.MouseMove += OnMouseMove;
+            renderForm.KeyPress += OnKeyPress;
         }
 
         private Point ptFormCenter => new Point(renderForm.Width/2, renderForm.Height/2);
@@ -50,6 +51,12 @@ namespace Mandelbasic
             CenterCursor();
         }
 
+        private void OnKeyPress(object sender, KeyPressEventArgs keyPressEventArgs)
+        {
+            if (char.ToUpper(keyPressEventArgs.KeyChar) == 'T')
+                scene.camera = Scene.Camera.Initial(renderForm.Width, renderForm.Height);
+        }
+
         private void OnKeyDown(object sender, KeyEventArgs keyEventArgs)
         {
             mpkeys.Add(keyEventArgs.KeyCode);
@@ -66,7 +73,7 @@ namespace Mandelbasic
         }
 
         private const float frMoveBase = 0.1f;
-        public void DecodeKeys()
+        public void DecodeKeyState()
         {
             float frMove = frMoveBase;
             if (IsKeyDown(Keys.ShiftKey))

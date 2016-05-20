@@ -22,6 +22,17 @@ namespace Render
 
         public struct Camera
         {
+            public static Camera Initial(int width, int height)
+            {
+                return new Camera(
+                    ptCamera: new Vector4(4, 0, 0, 1),
+                    vkCamera: new Vector4(-1, 0, 0, 1),
+                    vkCameraDown: new Vector4(0, 1, 0, 1),
+                    duNear: 0.5f,
+                    rsScreen: new Vector2(width, height),
+                    rsViewPlane: new Vector2(dxView, dxView*height/width));
+            }
+
             public Vector4 ptCamera;
             public Vector4 vkCamera;
             public Vector4 vkCameraDown;
@@ -52,13 +63,7 @@ namespace Render
         public Scene(int width, int height, Fractal3d fractal)
         {
             this.fractal = fractal;
-            this.camera = new Camera(
-                ptCamera: new Vector4(4, 0, 0, 1),
-                vkCamera: new Vector4(-1, 0, 0, 1),
-                vkCameraDown: new Vector4(0, 1, 0, 1),
-                duNear: 0.5f,
-                rsScreen: new Vector2(width, height),
-                rsViewPlane: new Vector2(dxView, dxView * height / width));
+            this.camera = Camera.Initial(width, height);
         }
 
         public void Initialize(Device device, DeviceContext deviceContext)
