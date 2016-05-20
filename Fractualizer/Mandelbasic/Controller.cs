@@ -40,7 +40,7 @@ namespace Mandelbasic
 
         private void RunI()
         {
-            DoEvents();
+            DecodeKeys();
             renderer.Render();
         }
 

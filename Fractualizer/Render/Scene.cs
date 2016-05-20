@@ -24,20 +24,23 @@ namespace Render
         {
             public Vector4 ptCamera;
             public Vector4 vkCamera;
-            public Vector4 vkCameraRoll;
+            public Vector4 vkCameraDown;
             public Vector2 rsScreen;
             public Vector2 rsViewPlane;
-            private readonly float duNear;
+            public readonly float duNear;
             private readonly float ignore;
             private readonly float ignore2;
             private readonly float ignore3;
 
-            public Camera(Vector4 ptCamera, Vector4 vkCamera, Vector4 vkCameraRoll, float duNear, Vector2 rsScreen, Vector2 rsViewPlane)
+            public Vector4 ptPlaneCenter => ptCamera + vkCamera * duNear;
+            public Vector4 vkCameraRight => vkCameraDown.Cross3(vkCamera);
+
+            public Camera(Vector4 ptCamera, Vector4 vkCamera, Vector4 vkCameraDown, float duNear, Vector2 rsScreen, Vector2 rsViewPlane)
             {
                 this.ptCamera = ptCamera;
                 this.vkCamera = vkCamera;
                 this.duNear = duNear;
-                this.vkCameraRoll = vkCameraRoll;
+                this.vkCameraDown = vkCameraDown;
                 this.ignore = float.NaN;
                 this.ignore2 = float.NaN;
                 this.ignore3 = float.NaN;
@@ -52,7 +55,7 @@ namespace Render
             this.camera = new Camera(
                 ptCamera: new Vector4(4, 0, 0, 1),
                 vkCamera: new Vector4(-1, 0, 0, 1),
-                vkCameraRoll: new Vector4(0, 1, 0, 1),
+                vkCameraDown: new Vector4(0, 1, 0, 1),
                 duNear: 0.5f,
                 rsScreen: new Vector2(width, height),
                 rsViewPlane: new Vector2(dxView, dxView * height / width));
