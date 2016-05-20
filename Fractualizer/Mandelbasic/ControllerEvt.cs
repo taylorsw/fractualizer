@@ -65,9 +65,16 @@ namespace Mandelbasic
             return mpkeys.Contains(keyCode);
         }
 
-        private const float duMove = 0.1f;
+        private const float frMoveBase = 0.1f;
         public void DecodeKeys()
         {
+            float frMove = frMoveBase;
+            if (IsKeyDown(Keys.ShiftKey))
+                frMove = frMove*2;
+
+            double duFromFractal = scene.fractal.DuEstimate(scene.camera.ptCamera.Xyz());
+            float duMove = (float)(frMove * duFromFractal);
+
             if (IsKeyDown(Keys.W))
                 scene.camera.ptCamera += scene.camera.vkCamera * duMove;
 

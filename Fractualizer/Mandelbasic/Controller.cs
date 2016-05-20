@@ -30,6 +30,7 @@ namespace Mandelbasic
 
             renderer = new Renderer(this, renderForm);
 
+            renderForm.Focus();
             InitializeEvents();
         }
 
