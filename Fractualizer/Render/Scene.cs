@@ -20,41 +20,47 @@ namespace Render
         public Camera camera;
         public readonly Fractal3d fractal;
 
+        [StructLayout(LayoutKind.Explicit, Size=80)]
         public struct Camera
         {
             public static Camera Initial(int width, int height)
             {
                 return new Camera(
-                    ptCamera: new Vector4(4, 0, 0, 1),
-                    vkCamera: new Vector4(-1, 0, 0, 1),
-                    vkCameraDown: new Vector4(0, 1, 0, 1),
+                    ptCamera: new Vector3(3, 0, 0),
+                    vkCamera: new Vector3(-1, 0, 0),
+                    vkCameraDown: new Vector3(0, 1, 0),
                     duNear: 0.5f,
                     rsScreen: new Vector2(width, height),
                     rsViewPlane: new Vector2(dxView, dxView*height/width));
             }
 
-            public Vector4 ptCamera;
-            public Vector4 vkCamera;
-            public Vector4 vkCameraDown;
+            [FieldOffset(0)]
+            public Vector3 ptCamera;
+
+            [FieldOffset(16)]
+            public Vector3 vkCamera;
+
+            [FieldOffset(32)]
+            public Vector3 vkCameraDown;
+
+            [FieldOffset(48)]
             public Vector2 rsScreen;
+
+            [FieldOffset(56)]
             public Vector2 rsViewPlane;
+
+            [FieldOffset(64)]
             public readonly float duNear;
-            private readonly float ignore;
-            private readonly float ignore2;
-            private readonly float ignore3;
 
-            public Vector4 ptPlaneCenter => ptCamera + vkCamera * duNear;
-            public Vector4 vkCameraRight => vkCameraDown.Cross3(vkCamera);
+            public Vector3 ptPlaneCenter => ptCamera + vkCamera * duNear;
+            public Vector3 vkCameraRight => Vector3.Cross(vkCameraDown, vkCamera);
 
-            public Camera(Vector4 ptCamera, Vector4 vkCamera, Vector4 vkCameraDown, float duNear, Vector2 rsScreen, Vector2 rsViewPlane)
+            public Camera(Vector3 ptCamera, Vector3 vkCamera, Vector3 vkCameraDown, float duNear, Vector2 rsScreen, Vector2 rsViewPlane)
             {
                 this.ptCamera = ptCamera;
                 this.vkCamera = vkCamera;
                 this.duNear = duNear;
                 this.vkCameraDown = vkCameraDown;
-                this.ignore = float.NaN;
-                this.ignore2 = float.NaN;
-                this.ignore3 = float.NaN;
                 this.rsScreen = rsScreen;
                 this.rsViewPlane = rsViewPlane;
             }

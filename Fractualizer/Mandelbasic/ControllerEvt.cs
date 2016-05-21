@@ -41,12 +41,12 @@ namespace Mandelbasic
             float frScreenX = (float)vkMouseDelta.X/renderForm.Width;
             float frScreenY = (float)vkMouseDelta.Y/renderForm.Height;
 
-            Vector4 ptPlaneCameraNew = scene.camera.ptPlaneCenter
+            Vector3 ptPlaneCameraNew = scene.camera.ptPlaneCenter
                                        + scene.camera.vkCameraDown*scene.camera.rsViewPlane.Y*frScreenY
                                        + scene.camera.vkCameraRight*scene.camera.rsViewPlane.X*frScreenX;
 
-            scene.camera.vkCamera = (ptPlaneCameraNew - scene.camera.ptCamera).Normalized3();
-            scene.camera.vkCameraDown = scene.camera.vkCamera.Cross3(scene.camera.vkCameraRight.Normalized3());
+            scene.camera.vkCamera = (ptPlaneCameraNew - scene.camera.ptCamera).Normalized();
+            scene.camera.vkCameraDown = Vector3.Cross(scene.camera.vkCamera, scene.camera.vkCameraRight.Normalized());
 
             CenterCursor();
         }
@@ -79,7 +79,7 @@ namespace Mandelbasic
             if (IsKeyDown(Keys.ShiftKey))
                 frMove = frMove*2;
 
-            double duFromFractal = scene.fractal.DuEstimate(scene.camera.ptCamera.Xyz());
+            double duFromFractal = scene.fractal.DuEstimate(scene.camera.ptCamera);
             float duMove = (float)(frMove * duFromFractal);
 
             if (IsKeyDown(Keys.W))
@@ -89,10 +89,10 @@ namespace Mandelbasic
                 scene.camera.ptCamera -= scene.camera.vkCamera * duMove;
 
             if (IsKeyDown(Keys.A))
-                scene.camera.ptCamera += scene.camera.vkCamera.Cross3(scene.camera.vkCameraDown) * duMove;
+                scene.camera.ptCamera += Vector3.Cross(scene.camera.vkCamera, scene.camera.vkCameraDown) * duMove;
 
             if (IsKeyDown(Keys.D))
-                scene.camera.ptCamera += scene.camera.vkCameraDown.Cross3(scene.camera.vkCamera) * duMove;
+                scene.camera.ptCamera += Vector3.Cross(scene.camera.vkCameraDown, scene.camera.vkCamera) * duMove;
         }
     }
 }

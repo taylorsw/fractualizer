@@ -1,8 +1,8 @@
 ﻿cbuffer Parameters
 {
-	float4 ptCamera;
-	float4 vkCamera;
-	float4 vkCameraOrtho;
+	float3 ptCamera;
+	float3 vkCamera;
+	float3 vkCameraOrtho;
 	float2 rsScreen;
 	float2 rsViewPlane;
 	float duNear;
@@ -61,9 +61,9 @@ float3 normalized(float3 v)
 
 float4 main(float4 position : SV_POSITION) : SV_TARGET
 {
-	float3 ptPlaneCenter = ptCamera.xyz + vkCamera.xyz * duNear;
+	float3 ptPlaneCenter = ptCamera + vkCamera * duNear;
 
-	float3 vkDown = vkCameraOrtho.xyz;
+	float3 vkDown = vkCameraOrtho;
 	float3 vkRight = cross(vkDown, vkCamera);
 
 	float2 vkFromScreenCenter = position.xy - rsScreen / 2;
@@ -75,7 +75,7 @@ float4 main(float4 position : SV_POSITION) : SV_TARGET
 	float4 red = float4(1, 0, 0, 1);
 	float4 green = float4(0, 1, 0, 1);
 	float4 blue = float4(0, 0, 1, 1);
-	float4 marched = ray_marching(ptCamera.xyz, vkRay);
+	float4 marched = ray_marching(ptCamera, vkRay);
 
 	if (marched.w == -1)
 		return float4(0, 0, 0, 1);
