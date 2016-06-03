@@ -8,9 +8,6 @@ namespace Mandelbasic
 {
     partial class Controller : IDisposable, IHaveScene
     {
-        private const int width = 1280;
-        private const int height = 720;
-
         private readonly RenderForm renderForm;
         private readonly Renderer renderer;
 
@@ -18,6 +15,8 @@ namespace Mandelbasic
         
         public Controller()
         {
+            int width = System.Windows.Forms.Screen.PrimaryScreen.Bounds.Width;
+            int height = System.Windows.Forms.Screen.PrimaryScreen.Bounds.Height;
             renderForm = new RenderForm("Fractualizer")
             {
                 ClientSize = new Size(width, height),

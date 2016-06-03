@@ -6,13 +6,15 @@
 	float2 rsScreen;
 	float2 rsViewPlane;
 	float duNear;
+	float param;
+	float param2;
 }
 
 static const int cmarch = 48;
 
 float DE_Bulb(float3 pos)
 {
-	float Power = 8;
+	float Power = param;
 	int iterations = 10;
 	float Bailout = 5;
 
@@ -26,8 +28,8 @@ float DE_Bulb(float3 pos)
 			break;
 
 		// convert to polar coordinates
-		float theta = acos(z.z / r);
-		float phi = atan(z.y / z.x);
+		float theta = acos(z.z / r) / param2;
+		float phi = atan(z.y / z.x) * param2;
 		dr = pow(r, Power - 1.0) * Power * dr + 1.0;
 
 		// scale and rotate the point
@@ -54,7 +56,7 @@ float4 ray_marching(float3 pt, float3 vk)
 		float du = DE_Bulb(pt);
 		pt += du * vk;
 		duTotal += du;
-		float duEpsilon = 1 * duTotal / duNear * duPixelRadius;
+		float duEpsilon = 0.5 * duTotal / duNear * duPixelRadius;
 		if (du < duEpsilon)
 			return float4(pt, i);
 	}
@@ -74,6 +76,26 @@ float length(float3 v)
 float3 normalized(float3 v)
 {
 	return v / length(v);
+}
+
+// Basic orbit-trapping color
+float3 ColorOT(float4 marched)
+{
+	return normalized(
+		float3(
+			length(float3(-3, 0, 0) - marched.xyz) / 4.0, 
+			length(float3(3, 0, 0) - marched.xyz) / 4.0, 
+			0.5 + length(-marched.xyz) / 2.0));
+}
+
+float3 ColorAO(float3 color, float steps)
+{
+	// ambient occlusion
+	// return color * (1 - (0.5 * (1 - (steps / cmarch)))); // cool effect
+	// float base = cmarch;
+	// float3 colorAO = color * (1 - 0.3 * (1 - (log(steps) / log(base)) / base));
+	float3 colorAO = color * (1 - (steps / cmarch));
+	return colorAO;
 }
 
 float4 main(float4 position : SV_POSITION) : SV_TARGET
@@ -97,10 +119,9 @@ float4 main(float4 position : SV_POSITION) : SV_TARGET
 	if (marched.w == -1)
 		return float4(0, 0, 0, 1);
 
-	float4 color = float4(0.2, 0.6, 0.3, 1);
+	float3 colorOT = ColorOT(marched);
 
-	// ambient occlusion
-	color = color * (1 - (marched.w / cmarch));
+	float3 colorAO = ColorAO(colorOT, marched.w);
 
-	return color;
+	return float4(colorAO.x, colorAO.y, colorAO.z, 1.0);
 }

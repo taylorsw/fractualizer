@@ -73,6 +73,8 @@ namespace Mandelbasic
         }
 
         private const float frMoveBase = 0.1f;
+//        private float du = -1;
+//        private float du2 = -1;
         public void DecodeKeyState()
         {
             float frMove = frMoveBase;
@@ -93,6 +95,26 @@ namespace Mandelbasic
 
             if (IsKeyDown(Keys.D))
                 scene.camera.ptCamera += Vector3.Cross(scene.camera.vkCameraDown, scene.camera.vkCamera) * duMove;
+
+            if (IsKeyDown(Keys.P))
+                renderForm.Close();
+
+//            scene.camera.param += du*0.008f;
+//
+//            if (scene.camera.param < 0.0)
+//                du = 1;
+//            else if (scene.camera.param > 10.0)
+//                du = -1;
+//
+//            scene.camera.param2 += du2 * 0.0003f;
+//
+//            if (scene.camera.param2 < 1.0)
+//                du2 = 1;
+//            else if (scene.camera.param2 > 3.0)
+//                du2 = -1;
+//
+//            const float dagRotate = 0.08f;
+//            scene.camera.RotateAbout(new Vector3(1, 0, 0), dagRotate);
         }
     }
 }
