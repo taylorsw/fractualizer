@@ -13,6 +13,7 @@ namespace Render
             return v;
         }
 
+        public static Vector3 PerspectiveDivide(this Vector4 v) => v.Xyz() / v.W;
         public static Vector3 Xyz(this Vector4 v) => new Vector3(v.X, v.Y, v.Z);
         public static float Saturate(float x) => Math.Max(0, Math.Min(1, x));
     }

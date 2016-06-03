@@ -3,6 +3,7 @@ using System.Windows.Forms;
 using Render;
 using SharpDX;
 using Point = System.Drawing.Point;
+using System;
 
 namespace Mandelbasic
 {
@@ -40,13 +41,11 @@ namespace Mandelbasic
 
             float frScreenX = (float)vkMouseDelta.X/renderForm.Width;
             float frScreenY = (float)vkMouseDelta.Y/renderForm.Height;
-
-            Vector3 ptPlaneCameraNew = scene.camera.ptPlaneCenter
-                                       + scene.camera.vkCameraDown*scene.camera.rsViewPlane.Y*frScreenY
-                                       + scene.camera.vkCameraRight*scene.camera.rsViewPlane.X*frScreenX;
-
-            scene.camera.vkCamera = (ptPlaneCameraNew - scene.camera.ptCamera).Normalized();
-            scene.camera.vkCameraDown = Vector3.Cross(scene.camera.vkCamera, scene.camera.vkCameraRight.Normalized());
+            float ddxScene = scene.camera.rsViewPlane.X * frScreenX;
+            float ddyScene = scene.camera.rsViewPlane.Y * frScreenY;
+            float dagrX = (float)(Math.Atan(ddxScene / scene.camera.duNear));
+            float dagrY = (float)(Math.Atan(ddyScene / scene.camera.duNear));
+            scene.camera.RotateCamera(-dagrY, dagrX);
 
             CenterCursor();
         }
@@ -99,22 +98,22 @@ namespace Mandelbasic
             if (IsKeyDown(Keys.P))
                 renderForm.Close();
 
-//            scene.camera.param += du*0.008f;
-//
-//            if (scene.camera.param < 0.0)
-//                du = 1;
-//            else if (scene.camera.param > 10.0)
-//                du = -1;
-//
-//            scene.camera.param2 += du2 * 0.0003f;
-//
-//            if (scene.camera.param2 < 1.0)
-//                du2 = 1;
-//            else if (scene.camera.param2 > 3.0)
-//                du2 = -1;
-//
-//            const float dagRotate = 0.08f;
-//            scene.camera.RotateAbout(new Vector3(1, 0, 0), dagRotate);
+            //            scene.camera.param += du*0.008f;
+            //
+            //            if (scene.camera.param < 0.0)
+            //                du = 1;
+            //            else if (scene.camera.param > 10.0)
+            //                du = -1;
+            //
+            //            scene.camera.param2 += du2 * 0.0003f;
+            //
+            //            if (scene.camera.param2 < 1.0)
+            //                du2 = 1;
+            //            else if (scene.camera.param2 > 3.0)
+            //                du2 = -1;
+            //
+            //            const float dagRotate = 0.08f;
+            //            scene.camera.RotateAbout(new Vector3(1, 0, 0), dagRotate);
         }
     }
 }

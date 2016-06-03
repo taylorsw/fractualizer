@@ -73,10 +73,25 @@ namespace Render
                 this.param2 = 1.0f;
             }
 
-            public void RotateAbout(Vector3 vkAxis, float dag)
+            public void RotateCamera(float dagrUp, float dagrRight)
+            {
+                RotateCamera(vkCameraRight, dagrUp);
+                RotateCamera(vkCameraDown, dagrRight);
+            }
+
+            public void RotateCamera(Vector3 vkAxis, float dagr)
+            {
+                var matrix = Matrix.RotationAxis(vkAxis, dagr);
+                Vector4 vkCameraRotated = Vector3.Transform(vkCamera, matrix);
+                Vector4 vkCameraDownRotated = Vector3.Transform(vkCameraDown, matrix);
+                vkCamera = vkCameraRotated.PerspectiveDivide();
+                vkCameraDown = vkCameraDownRotated.PerspectiveDivide();
+            }
+
+            public void Orbit(Vector3 vkAxis, float dag)
             {
                 Vector4 ptCamRotated = Vector3.Transform(ptCamera, Matrix.RotationAxis(vkAxis, dag * (float)Math.PI / 180f));
-                ptCamera = ptCamRotated.Xyz() / ptCamRotated.W;
+                ptCamera = ptCamRotated.PerspectiveDivide();
                 vkCamera = (Vector3.Zero - ptCamera).Normalized();
             }
         }
