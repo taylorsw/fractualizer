@@ -12,6 +12,11 @@
 
 static const int cmarch = 48;
 
+float DE_sphere(float3 pos)
+{
+	return length(pos) - 1;
+}
+
 float DE_Bulb(float3 pos)
 {
 	float Power = param;
@@ -46,7 +51,7 @@ float DE_Bulb(float3 pos)
 	}
 	return 0.5 * log(r) * r / dr;
 }
-
+ 
 float4 ray_marching(float3 pt, float3 vk)
 {
 	float duPixelRadius = rsViewPlane.x / rsScreen.x;
@@ -63,25 +68,10 @@ float4 ray_marching(float3 pt, float3 vk)
 	return float4(pt, -1);
 }
 
-float3 cross(float3 a, float3 b)
-{
-	return float3(a.y * b.z - a.z * b.x, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x);
-}
-
-float length(float3 v)
-{
-	return sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
-}
-
-float3 normalized(float3 v)
-{
-	return v / length(v);
-}
-
 // Basic orbit-trapping color
 float3 ColorOT(float4 marched)
 {
-	return normalized(
+	return normalize(
 		float3(
 			length(float3(-3, 0, 0) - marched.xyz) / 4.0, 
 			length(float3(3, 0, 0) - marched.xyz) / 4.0, 
@@ -98,22 +88,37 @@ float3 ColorAO(float3 color, float steps)
 	return colorAO;
 }
 
+float4 ColorFromVec(float3 v)
+{
+	return float4(abs(v.x), abs(v.y), abs(v.z), 1);
+}
+
 float4 main(float4 position : SV_POSITION) : SV_TARGET
 {
+	// position.x is from 0.5 to rsScreen.x + 6.5
+	float4 red = float4(1, 0, 0, 1);
+	float4 green = float4(0, 1, 0, 1);
+	float4 blue = float4(0, 0, 1, 1);
+	float4 black = float4(0, 0, 0, 1);
+
+	float2 ptScreen = position.xy - float2(0.5, 0.5);
+
 	float3 ptPlaneCenter = ptCamera + vkCamera * duNear;
 
 	float3 vkDown = vkCameraOrtho;
 	float3 vkRight = cross(vkDown, vkCamera);
 
-	float2 vkFromScreenCenter = position.xy - rsScreen / 2;
-	float2 vkFromPlaneCenter = float2(vkFromScreenCenter.x * rsViewPlane.x / rsScreen.x, vkFromScreenCenter.y * rsViewPlane.y / rsScreen.y);
-	float3 planePoint = ptPlaneCenter + vkRight * vkFromPlaneCenter.x + vkDown * vkFromPlaneCenter.y;
+	float2 vkFromScreenCenter = ptScreen - rsScreen / 2;
 
-	float3 vkRay = normalized(planePoint - ptCamera);
+	// -0.5 <= frx <= 0.5
+	float frx = vkFromScreenCenter.x / rsScreen.x;
+	float fry = vkFromScreenCenter.y / rsScreen.y;
 
-	float4 red = float4(1, 0, 0, 1);
-	float4 green = float4(0, 1, 0, 1);
-	float4 blue = float4(0, 0, 1, 1);
+	float2 vkfrFromPlaneCenter = float2(vkFromScreenCenter.x * rsViewPlane.x / rsScreen.x, vkFromScreenCenter.y * rsViewPlane.y / rsScreen.y);
+	float3 ptPlane = ptPlaneCenter + vkRight * rsViewPlane.x * frx + vkDown * rsViewPlane.y * fry;
+
+	float3 vkRay = normalize(ptPlane - ptCamera);
+
 	float4 marched = ray_marching(ptCamera, vkRay);
 
 	if (marched.w == -1)

@@ -4,6 +4,7 @@ using Render;
 using SharpDX;
 using Point = System.Drawing.Point;
 using System;
+using System.Diagnostics;
 
 namespace Mandelbasic
 {
@@ -52,8 +53,17 @@ namespace Mandelbasic
 
         private void OnKeyPress(object sender, KeyPressEventArgs keyPressEventArgs)
         {
-            if (char.ToUpper(keyPressEventArgs.KeyChar) == 'T')
-                scene.camera = Scene.Camera.Initial(renderForm.Width, renderForm.Height);
+            char charUpper = char.ToUpper(keyPressEventArgs.KeyChar);
+
+            switch (charUpper)
+            {
+                case 'T':
+                    scene.camera = Scene.Camera.Initial(renderForm.Width, renderForm.Height);
+                    break;
+                case 'G':
+                    Debug.WriteLine(scene.camera);
+                    break;
+            }
         }
 
         private void OnKeyDown(object sender, KeyEventArgs keyEventArgs)

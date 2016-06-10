@@ -15,8 +15,8 @@ namespace Mandelbasic
         
         public Controller()
         {
-            int width = System.Windows.Forms.Screen.PrimaryScreen.Bounds.Width;
-            int height = System.Windows.Forms.Screen.PrimaryScreen.Bounds.Height;
+            int width = Screen.PrimaryScreen.Bounds.Width;
+            int height = Screen.PrimaryScreen.Bounds.Height;
             renderForm = new RenderForm("Fractualizer")
             {
                 ClientSize = new Size(width, height),
@@ -43,6 +43,25 @@ namespace Mandelbasic
             DecodeKeyState();
             renderer.Render();
         }
+
+        private void CPURender()
+        {
+            int width = (int)scene.camera.rsScreen.X;
+            int height = (int)scene.camera.rsScreen.Y;
+            Bitmap bitmap = new Bitmap(width, height);
+            for (int x = 0; x < width; x++)
+            {
+                for (int y = 0; y < height; y++)
+                {
+                    var color = Raytracer.Raytrace(scene, new SharpDX.Vector2(x, y));
+                    bitmap.SetPixel(x, y, Color.FromArgb(IntComponentFromDouble(color.X), IntComponentFromDouble(color.Y), IntComponentFromDouble(color.Z)));
+                }
+            }
+
+            bitmap.Save("test.jpg");
+        }
+
+        private static int IntComponentFromDouble(double component) => (int)(255 * Util.Saturate((float)Math.Abs(component)));
 
         public void Dispose()
         {
