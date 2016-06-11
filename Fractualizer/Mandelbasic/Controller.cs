@@ -10,6 +10,7 @@ namespace Mandelbasic
     {
         private readonly RenderForm renderForm;
         private readonly Renderer renderer;
+        private readonly Evtc evtc;
 
         public Scene scene { get; }
         
@@ -30,7 +31,8 @@ namespace Mandelbasic
             renderer = new Renderer(this, renderForm);
 
             renderForm.Focus();
-            InitializeEvents();
+
+            evtc = new EvtcUser(renderForm, scene);
         }
 
         public void Run()
@@ -40,7 +42,7 @@ namespace Mandelbasic
 
         private void RunI()
         {
-            DecodeKeyState();
+            evtc.DoEvents();
             renderer.Render();
         }
 

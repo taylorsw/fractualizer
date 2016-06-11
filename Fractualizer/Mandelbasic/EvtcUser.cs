@@ -1,37 +1,39 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Windows.Forms;
 using Render;
 using SharpDX;
 using Point = System.Drawing.Point;
-using System;
-using System.Diagnostics;
 
 namespace Mandelbasic
 {
-    partial class Controller
+    public class EvtcUser : Evtc
     {
-        private HashSet<Keys> mpkeys;
-        private void InitializeEvents()
+        private readonly HashSet<Keys> mpkeys;
+
+        public EvtcUser(Form form, Scene scene) : base(form, scene)
         {
+            mpkeys = new HashSet<Keys>();
+
             Cursor.Hide();
             CenterCursor();
-            mpkeys = new HashSet<Keys>();
-            renderForm.KeyDown += OnKeyDown;
-            renderForm.KeyUp += OnKeyUp;
-            renderForm.MouseMove += OnMouseMove;
-            renderForm.KeyPress += OnKeyPress;
+            form.KeyDown += OnKeyDown;
+            form.KeyUp += OnKeyUp;
+            form.MouseMove += OnMouseMove;
+            form.KeyPress += OnKeyPress;
         }
 
-        private Point ptFormCenter => new Point(renderForm.Width/2, renderForm.Height/2);
+        private Point ptFormCenter => new Point(form.Width / 2, form.Height / 2);
         private void CenterCursor()
         {
-            Cursor.Position = renderForm.PointToScreen(ptFormCenter);
+            Cursor.Position = form.PointToScreen(ptFormCenter);
         }
 
         private const float frDamping = 1.0f;
         private void OnMouseMove(object sender, MouseEventArgs mouseEventArgs)
         {
-            Point ptMouseClient = renderForm.PointToClient(Cursor.Position);
+            Point ptMouseClient = form.PointToClient(Cursor.Position);
 
             if (ptMouseClient == ptFormCenter)
                 return;
@@ -40,8 +42,8 @@ namespace Mandelbasic
 
             vkMouseDelta *= frDamping;
 
-            float frScreenX = (float)vkMouseDelta.X/renderForm.Width;
-            float frScreenY = (float)vkMouseDelta.Y/renderForm.Height;
+            float frScreenX = (float)vkMouseDelta.X / form.Width;
+            float frScreenY = (float)vkMouseDelta.Y / form.Height;
             float ddxScene = scene.camera.rsViewPlane.X * frScreenX;
             float ddyScene = scene.camera.rsViewPlane.Y * frScreenY;
             float dagrX = (float)(Math.Atan(ddxScene / scene.camera.duNear));
@@ -58,7 +60,7 @@ namespace Mandelbasic
             switch (charUpper)
             {
                 case 'T':
-                    scene.camera = Scene.Camera.Initial(renderForm.Width, renderForm.Height);
+                    scene.camera = Scene.Camera.Initial(form.Width, form.Height);
                     break;
                 case 'G':
                     Debug.WriteLine(scene.camera);
@@ -82,13 +84,11 @@ namespace Mandelbasic
         }
 
         private const float frMoveBase = 0.1f;
-//        private float du = -1;
-//        private float du2 = -1;
-        public void DecodeKeyState()
+        public override void DoEvents()
         {
             float frMove = frMoveBase;
             if (IsKeyDown(Keys.ShiftKey))
-                frMove = frMove*2;
+                frMove = frMove * 2;
 
             double duFromFractal = scene.fractal.DuEstimate(scene.camera.ptCamera);
             float duMove = (float)(frMove * duFromFractal);
@@ -106,24 +106,7 @@ namespace Mandelbasic
                 scene.camera.ptCamera += Vector3.Cross(scene.camera.vkCameraDown, scene.camera.vkCamera) * duMove;
 
             if (IsKeyDown(Keys.P))
-                renderForm.Close();
-
-            //            scene.camera.param += du*0.008f;
-            //
-            //            if (scene.camera.param < 0.0)
-            //                du = 1;
-            //            else if (scene.camera.param > 10.0)
-            //                du = -1;
-            //
-            //            scene.camera.param2 += du2 * 0.0003f;
-            //
-            //            if (scene.camera.param2 < 1.0)
-            //                du2 = 1;
-            //            else if (scene.camera.param2 > 3.0)
-            //                du2 = -1;
-            //
-            //            const float dagRotate = 0.08f;
-            //            scene.camera.RotateAbout(new Vector3(1, 0, 0), dagRotate);
+                form.Close();
         }
     }
 }
