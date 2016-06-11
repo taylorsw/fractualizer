@@ -26,7 +26,7 @@ namespace Render
         {
             public static Camera Initial(int width, int height)
             {
-                return new Camera(
+                return new Camera( 
                     ptCamera: new Vector3(5, 0, 0),
                     vkCamera: new Vector3(-1, 0, 0),
                     vkCameraDown: new Vector3(0, 1, 0),

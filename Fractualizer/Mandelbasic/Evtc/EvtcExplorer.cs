@@ -90,7 +90,7 @@ namespace Mandelbasic
                 if (tsSinceLast > TimeSpan.FromSeconds(1))
                 {
                     dtLastB = DateTime.Now;
-                    Vector3 ptViewTopLeft = PtViewPlaneFromPtCursor(new Point(0, 0));
+                    Vector3 ptViewTopLeft = PtViewPlaneFromPtClient(new Point(0, 0));
                     Vector3 ptViewCursor = PtViewPlaneFromPtCursor();
                     Debug.Assert(scene.camera.vkCamera.IsOrthogonalTo(ptViewCursor - ptViewTopLeft));
                     scene.camera.LookAt(ptViewCursor);

@@ -74,7 +74,7 @@ namespace Mandelbasic
 
             Vector3 ptPlane = scene.camera.ptPlaneCenter
                    + scene.camera.vkCameraRight * ddxScene
-                   - scene.camera.vkCameraDown * ddyScene;
+                   + scene.camera.vkCameraDown * ddyScene;
 
             return ptPlane;
         }
