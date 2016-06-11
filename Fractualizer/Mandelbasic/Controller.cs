@@ -32,7 +32,7 @@ namespace Mandelbasic
 
             renderForm.Focus();
 
-            evtc = new EvtcLookAt(renderForm, scene);
+            evtc = new EvtcExplorer(renderForm, scene);
         }
 
         public void Run()

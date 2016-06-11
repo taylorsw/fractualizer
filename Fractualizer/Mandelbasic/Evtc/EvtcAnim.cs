@@ -38,7 +38,7 @@ namespace Mandelbasic
             scene.camera.RotateCamera(new Vector3(1, 0, 0), dagRotateX);
             scene.camera.RotateCamera(new Vector3(0, 1, 0), dagRotateY);
 
-            //scene.camera.LookAt(new Vector3(0, 0, 0));
+            scene.camera.LookAt(new Vector3(0, 0, 0));
         }
     }
 }
