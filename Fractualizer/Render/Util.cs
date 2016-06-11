@@ -15,6 +15,12 @@ namespace Render
 
         public static Vector3 PerspectiveDivide(this Vector4 v) => v.Xyz() / v.W;
         public static Vector3 Xyz(this Vector4 v) => new Vector3(v.X, v.Y, v.Z);
+
+        public static bool IsOrthogonalTo(this Vector3 v, Vector3 v2)
+        {
+            return Math.Abs(Vector3.Dot(v, v2)) < 0.0001f;
+        }
+
         public static float Saturate(float x) => Math.Max(0, Math.Min(1, x));
     }
 }

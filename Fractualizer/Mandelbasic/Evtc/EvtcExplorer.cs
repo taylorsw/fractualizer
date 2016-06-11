@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Windows.Forms;
 using Render;
@@ -8,23 +7,15 @@ using Point = System.Drawing.Point;
 
 namespace Mandelbasic
 {
-    public class EvtcUser : Evtc
+    public class EvtcExplorer : EvtcUserDecode
     {
-        private readonly HashSet<Keys> mpkeys;
-
-        public EvtcUser(Form form, Scene scene) : base(form, scene)
+        public EvtcExplorer(Form form, Scene scene) : base(form, scene)
         {
-            mpkeys = new HashSet<Keys>();
-
             Cursor.Hide();
             CenterCursor();
-            form.KeyDown += OnKeyDown;
-            form.KeyUp += OnKeyUp;
             form.MouseMove += OnMouseMove;
-            form.KeyPress += OnKeyPress;
         }
 
-        private Point ptFormCenter => new Point(form.Width / 2, form.Height / 2);
         private void CenterCursor()
         {
             Cursor.Position = form.PointToScreen(ptFormCenter);
@@ -53,36 +44,6 @@ namespace Mandelbasic
             CenterCursor();
         }
 
-        private void OnKeyPress(object sender, KeyPressEventArgs keyPressEventArgs)
-        {
-            char charUpper = char.ToUpper(keyPressEventArgs.KeyChar);
-
-            switch (charUpper)
-            {
-                case 'T':
-                    scene.camera = Scene.Camera.Initial(form.Width, form.Height);
-                    break;
-                case 'G':
-                    Debug.WriteLine(scene.camera);
-                    break;
-            }
-        }
-
-        private void OnKeyDown(object sender, KeyEventArgs keyEventArgs)
-        {
-            mpkeys.Add(keyEventArgs.KeyCode);
-        }
-
-        private void OnKeyUp(object sender, KeyEventArgs keyEventArgs)
-        {
-            mpkeys.Remove(keyEventArgs.KeyCode);
-        }
-
-        private bool IsKeyDown(Keys keyCode)
-        {
-            return mpkeys.Contains(keyCode);
-        }
-
         private const float frMoveBase = 0.1f;
         public override void DoEvents()
         {
@@ -107,6 +68,34 @@ namespace Mandelbasic
 
             if (IsKeyDown(Keys.P))
                 form.Close();
+        }
+    }
+
+    public class EvtcLookAt : EvtcUserDecode
+    {
+        public EvtcLookAt(Form form, Scene scene) : base(form, scene) { }
+
+        private DateTime dtLastB = DateTime.MinValue;
+        public override void DoEvents()
+        {
+            const float dagg = 2;
+            if (IsKeyDown(Keys.O))
+                scene.camera.RollBy(dagg);
+            if (IsKeyDown(Keys.I))
+                scene.camera.RollBy(-dagg);
+
+            if (IsKeyDown(Keys.B))
+            {
+                TimeSpan tsSinceLast = DateTime.Now - dtLastB;
+                if (tsSinceLast > TimeSpan.FromSeconds(1))
+                {
+                    dtLastB = DateTime.Now;
+                    Vector3 ptViewTopLeft = PtViewPlaneFromPtCursor(new Point(0, 0));
+                    Vector3 ptViewCursor = PtViewPlaneFromPtCursor();
+                    Debug.Assert(scene.camera.vkCamera.IsOrthogonalTo(ptViewCursor - ptViewTopLeft));
+                    scene.camera.LookAt(ptViewCursor);
+                }
+            }
         }
     }
 }
