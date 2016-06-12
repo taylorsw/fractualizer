@@ -32,7 +32,7 @@ namespace Mandelbasic
 
             renderForm.Focus();
 
-            evtc = new EvtcExplorer(renderForm, scene);
+            evtc = new EvtcAudio(renderForm, scene);
         }
 
         public void Run()
