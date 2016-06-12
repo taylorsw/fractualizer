@@ -26,20 +26,13 @@ namespace Render
         {
             public static Camera Initial(int width, int height)
             {
-                return new Camera( 
-                    ptCamera: new Vector3(5, 0, 0),
+                return new Camera(
+                    ptCamera: new Vector3(2.4f, 0, 0),
                     vkCamera: new Vector3(-1, 0, 0),
                     vkCameraDown: new Vector3(0, 1, 0),
-                    duNear: 1f,
+                    duNear: 0.5f,
                     rsScreen: new Vector2(width, height),
-                    rsViewPlane: new Vector2(dxView, dxView * height / width));
-                //                return new Camera(
-                //                    ptCamera: new Vector3(2.4f, 0, 0),
-                //                    vkCamera: new Vector3(-1, 0, 0),
-                //                    vkCameraDown: new Vector3(0, 1, 0),
-                //                    duNear: 0.5f,
-                //                    rsScreen: new Vector2(width, height),
-                //                    rsViewPlane: new Vector2(dxView, dxView*height/width));
+                    rsViewPlane: new Vector2(dxView, dxView*height/width));
             }
 
             [FieldOffset(0)]
