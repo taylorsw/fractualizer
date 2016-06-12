@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using SharpDX;
@@ -88,11 +89,51 @@ namespace Render
                 vkCameraDown = vkCameraDownRotated.PerspectiveDivide();
             }
 
-            public void Orbit(Vector3 vkAxis, float dag)
+            public void RollBy(float dagg)
             {
-                Vector4 ptCamRotated = Vector3.Transform(ptCamera, Matrix.RotationAxis(vkAxis, dag * (float)Math.PI / 180f));
-                ptCamera = ptCamRotated.PerspectiveDivide();
-                vkCamera = (Vector3.Zero - ptCamera).Normalized();
+                Matrix matRotate = Matrix.RotationAxis(vkCamera, MathUtil.DegreesToRadians(dagg));
+                vkCameraDown = Vector3.Transform(vkCameraDown, matRotate).PerspectiveDivide();
+                Debug.Assert(Math.Abs(Vector3.Dot(vkCamera, vkCameraDown)) < 0.0001);
+            }
+
+            public void LookAt(Vector3 pt)
+            {
+                // Get the vector from the eye to the target point
+                Vector3 vkToTarget = (pt - ptCamera).Normalized();
+
+                // Project that vector onto plane P with normal vkCameraUp
+                Vector3 vkCameraUp = -vkCameraDown;
+                Vector3 vkProjected = 
+                    Vector3.Cross(
+                        Vector3.Cross(vkCameraUp, vkToTarget),
+                        vkCameraUp).Normalized();
+                Debug.Assert(vkProjected.IsOrthogonalTo(vkCameraUp));
+
+                // Compute the angle between the projected vector and vkCamera (which are coplanar in P)
+                // This is the amount horizontal "swivel" that must take place to avoid roll
+                float dot = Vector3.Dot(vkProjected, vkCamera);
+                float dagrBetween = (float)Math.Acos(dot);
+
+                // Check if there is any swivel required.
+                Vector3 vkCameraRightNew;
+                if (!float.IsNaN(dagrBetween) && dagrBetween != 0)
+                {
+                    // Now rotate vkCamera around vkCameraUp by the computed angle
+                    Matrix matRotate = Matrix.RotationAxis(vkCameraUp, dagrBetween);
+                    Vector3 vkCameraSwiveled = Vector3.Transform(vkCamera, matRotate).PerspectiveDivide();
+                    Debug.Assert(vkCameraSwiveled.IsOrthogonalTo(vkCameraDown));
+
+                    // Compute a new vkCameraRight
+                    vkCameraRightNew = Vector3.Cross(vkCameraSwiveled, vkCameraDown).Normalized();
+                }
+                else
+                    vkCameraRightNew = vkCameraRight;
+                
+                // Finally, compute the new vkCameraDown by crossing the new vkCamera and the new vkCameraRight
+                Vector3 vkCameraDownNew = Vector3.Cross(vkCameraRightNew, vkToTarget);
+
+                this.vkCamera = vkToTarget.Normalized();
+                this.vkCameraDown = vkCameraDownNew.Normalized();
             }
         }
 

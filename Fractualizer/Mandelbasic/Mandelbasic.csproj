@@ -57,7 +57,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Controller.cs" />
-    <Compile Include="ControllerEvt.cs" />
+    <Compile Include="Evtc\Evtc.cs" />
+    <Compile Include="Evtc\EvtcAnim.cs" />
+    <Compile Include="Evtc\EvtcUserDecode.cs" />
+    <Compile Include="Evtc\EvtcExplorer.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
