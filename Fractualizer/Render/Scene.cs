@@ -39,9 +39,11 @@ namespace Render
             public Vector3 ptCamera;
 
             [FieldOffset(16)]
+            // Unit Vector
             public Vector3 vkCamera;
 
             [FieldOffset(32)]
+            // Unit Vector
             public Vector3 vkCameraDown;
 
             [FieldOffset(48)]
@@ -60,7 +62,9 @@ namespace Render
             public float param2;
 
             public Vector3 ptPlaneCenter => ptCamera + vkCamera * duNear;
-            public Vector3 vkCameraRight => Vector3.Cross(vkCameraDown, vkCamera);
+
+            // Unit Vector
+            public Vector3 vkCameraRight => Vector3.Cross(vkCameraDown, vkCamera).Normalized();
 
             public Camera(Vector3 ptCamera, Vector3 vkCamera, Vector3 vkCameraDown, float duNear, Vector2 rsScreen, Vector2 rsViewPlane)
             {

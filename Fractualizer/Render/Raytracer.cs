@@ -11,7 +11,7 @@ namespace Render
             var camera = scene.camera;
             Vector3 ptPlaneCenter = camera.ptCamera + camera.vkCamera * camera.duNear;
             Vector3 vkDown = camera.vkCameraDown;
-            Vector3 vkRight = Vector3.Cross(vkDown, camera.vkCamera);
+            Vector3 vkRight = Vector3.Cross(vkDown, camera.vkCamera).Normalized();
 
             Vector2 vkFromScreenCenter = ptScreen - camera.rsScreen / 2;
             Vector2 vkFromPlaneCenter = new Vector2(vkFromScreenCenter.X * camera.rsViewPlane.X / camera.rsScreen.X, vkFromScreenCenter.Y * camera.rsViewPlane.Y / camera.rsScreen.Y);
