@@ -1,15 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
+﻿using System.Windows.Forms;
 using Render;
 using Audio;
 
 namespace Mandelbasic
 {
-    class EvtcAudio : EvtcExplorer
+    class EvtcAudio : EvtcAnim
     {
         private readonly AudioProcessor processor;
 
@@ -21,8 +16,9 @@ namespace Mandelbasic
 
         public override void DoEvents()
         {
-            scene.camera.param = 100 * processor.val;
             base.DoEvents();
+            float duRange = processor.max - processor.min;
+            scene.camera.param += du * 0.03f * (processor.val - duRange / 2) / duRange;
         }
     }
 }

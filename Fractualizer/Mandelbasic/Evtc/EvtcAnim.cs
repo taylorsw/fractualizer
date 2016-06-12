@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
+﻿using System.Windows.Forms;
 using Render;
-using SharpDX;
 
 namespace Mandelbasic
 {
@@ -15,8 +9,8 @@ namespace Mandelbasic
         {
         }
 
-        private float du = -1;
-        private float du2 = -1;
+        protected float du = -1;
+        protected float du2 = -1;
         public override void DoEvents()
         {
             scene.camera.param += du*0.008f;
@@ -32,13 +26,6 @@ namespace Mandelbasic
                 du2 = 1;
             else if (scene.camera.param2 > 3.0)
                 du2 = -1;
-
-            const float dagRotateX = 0.008f;
-            const float dagRotateY = 0.2f;
-            scene.camera.RotateCamera(new Vector3(1, 0, 0), dagRotateX);
-            scene.camera.RotateCamera(new Vector3(0, 1, 0), dagRotateY);
-
-            scene.camera.LookAt(new Vector3(0, 0, 0));
         }
     }
 }
