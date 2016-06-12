@@ -55,7 +55,7 @@ namespace Render
 
         public override double DuEstimate(Vector3 pt)
         {
-            return 1
+            return 1;
         }
     }
 
