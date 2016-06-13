@@ -93,11 +93,17 @@ namespace Render
                 vkCameraDown = vkCameraDownRotated.PerspectiveDivide();
             }
 
-            public void RollBy(float dagg)
+            public void RollBy(float dagd)
             {
-                Matrix matRotate = Matrix.RotationAxis(vkCamera, MathUtil.DegreesToRadians(dagg));
+                Matrix matRotate = Matrix.RotationAxis(vkCamera, MathUtil.DegreesToRadians(dagd));
                 vkCameraDown = Vector3.Transform(vkCameraDown, matRotate).PerspectiveDivide();
                 Debug.Assert(Math.Abs(Vector3.Dot(vkCamera, vkCameraDown)) < 0.0001);
+            }
+
+            public void Orbit(Vector3 axis, float dagd)
+            {
+                Matrix matRotate = Matrix.RotationAxis(axis, MathUtil.DegreesToRadians(dagd));
+                ptCamera = Vector3.Transform(ptCamera, matRotate).PerspectiveDivide();
             }
 
             public void LookAt(Vector3 pt)
@@ -127,17 +133,19 @@ namespace Render
                     Vector3 vkCameraSwiveled = Vector3.Transform(vkCamera, matRotate).PerspectiveDivide();
                     Debug.Assert(vkCameraSwiveled.IsOrthogonalTo(vkCameraDown));
 
-                    // Compute a new vkCameraRight
-                    vkCameraRightNew = Vector3.Cross(vkCameraSwiveled, vkCameraDown).Normalized();
+                    // Compute a new vkCameraRight (swivel the old vkCameraRight the same amount as vkCamera)
+                    vkCameraRightNew = Vector3.Transform(vkCameraRight, matRotate).PerspectiveDivide();
                 }
                 else
                     vkCameraRightNew = vkCameraRight;
                 
                 // Finally, compute the new vkCameraDown by crossing the new vkCamera and the new vkCameraRight
-                Vector3 vkCameraDownNew = Vector3.Cross(vkCameraRightNew, vkToTarget);
+                // todo: does this need to cross in a different order depending on dot(target, rightNew)???
+                Vector3 vkCameraDownNew = Vector3.Cross(vkToTarget, vkCameraRightNew);
 
                 this.vkCamera = vkToTarget.Normalized();
                 this.vkCameraDown = vkCameraDownNew.Normalized();
+                Debug.WriteLine(vkCameraDown);
             }
         }
 

@@ -78,11 +78,11 @@ namespace Mandelbasic
         private DateTime dtLastB = DateTime.MinValue;
         public override void DoEvents()
         {
-            const float dagg = 2;
+            const float dagd = 2;
             if (IsKeyDown(Keys.O))
-                scene.camera.RollBy(dagg);
+                scene.camera.RollBy(dagd);
             if (IsKeyDown(Keys.I))
-                scene.camera.RollBy(-dagg);
+                scene.camera.RollBy(-dagd);
 
             if (IsKeyDown(Keys.B))
             {
