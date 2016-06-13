@@ -145,7 +145,6 @@ namespace Render
 
                 this.vkCamera = vkToTarget.Normalized();
                 this.vkCameraDown = vkCameraDownNew.Normalized();
-                Debug.WriteLine(vkCameraDown);
             }
         }
 

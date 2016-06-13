@@ -17,7 +17,7 @@ namespace Mandelbasic
         {
             scene.camera.param += du*0.008f;
             
-            if (scene.camera.param < 0.0)
+            if (scene.camera.param < 1.2)
                 du = 1;
             else if (scene.camera.param > 10.0)
                 du = -1;

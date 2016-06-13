@@ -43,6 +43,9 @@
     <Compile Include="SampleAggregator.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Resources\lovesosa.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Resources\moby.mp3">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
