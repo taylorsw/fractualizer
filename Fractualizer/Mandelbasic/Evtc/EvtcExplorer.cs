@@ -68,6 +68,13 @@ namespace Mandelbasic
 
             if (IsKeyDown(Keys.P))
                 form.Close();
+
+            float dParam = 0.01f;
+            if (IsKeyDown(Keys.Q))
+                scene.camera.param -= dParam;
+
+            if (IsKeyDown(Keys.E))
+                scene.camera.param += dParam;
         }
     }
 
