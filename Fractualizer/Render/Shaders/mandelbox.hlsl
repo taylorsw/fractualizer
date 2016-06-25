@@ -39,9 +39,9 @@ void boxFold(inout float3 z, inout float dz) {
 float DE(float3 z)
 {
 	float sf = 2;
-	float sfNormalizing = 2 * (sf + 1) / (sf - 1);
+	float sfNormalizing = 3 * (sf + 1) / (sf - 1);
 	z = z * sfNormalizing;
-	int Iterations = 10;
+	int Iterations = 20;
 	float3 offset = z;
 	float dr = 1.0;
 	for (int n = 0; n < Iterations; n++) {
@@ -65,7 +65,7 @@ float4 ray_marching(float3 pt, float3 vk)
 		float du = DE(pt);
 		pt += du * vk;
 		duTotal += du;
-		float duEpsilon = 0.25 * duTotal / duNear * duPixelRadius;
+		float duEpsilon = 0.5 * duTotal / duNear * duPixelRadius;
 		if (du < duEpsilon)
 			return float4(pt, i);
 	}
@@ -83,6 +83,7 @@ float3 ColorOT(float4 marched)
 			0.5 + length(-marched.xyz) / 2.0));
 }
 
+// Ambient Occlusion
 float3 ColorAO(float3 color, float steps)
 {
 	// ambient occlusion
@@ -91,6 +92,14 @@ float3 ColorAO(float3 color, float steps)
 	// float3 colorAO = color * (1 - 0.3 * (1 - (log(steps) / log(base)) / base));
 	float3 colorAO = color * (1 - (steps / cmarch));
 	return colorAO;
+}
+
+static const int fogB = 1.0;
+static const int fogA = 1.0;
+float3 ColorFog(float3 color, float3 fogColor, float duMarched)
+{
+	float frFog = 1.0 - fogA * exp(-duMarched / 5);
+	return lerp(color, fogColor, frFog);
 }
 
 float4 main(float4 position : SV_POSITION) : SV_TARGET
@@ -119,14 +128,17 @@ float4 main(float4 position : SV_POSITION) : SV_TARGET
 
 	float3 vkRay = normalize(ptPlane - ptCamera);
 
-	float4 marched = ray_marching(ptCamera, vkRay);
+	float4 ptMarched = ray_marching(ptCamera, vkRay);
+	float duMarched = length(ptMarched.xyz - ptCamera);
 
-	if (marched.w == -1)
+	if (ptMarched.w == -1)
 		return float4(0, 0, 0, 1);
 
-	float3 colorOT = ColorOT(marched);
+	float3 color = ColorOT(ptMarched);
 
-	float3 colorAO = ColorAO(colorOT, marched.w);
+	color = ColorAO(color, ptMarched.w);
 
-	return float4(colorAO.x, colorAO.y, colorAO.z, 1.0);
+	color = ColorFog(color, float3(0.5, 0.6, 0.7), duMarched);
+
+	return float4(color.x, color.y, color.z, 1.0);
 }
