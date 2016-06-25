@@ -17,7 +17,7 @@ float DE_sphere(float3 pos)
 	return length(pos) - 1;
 }
 
-float DE_Bulb(float3 pos)
+float DE(float3 pos)
 {
 	float Power = param;
 	int iterations = 10;
@@ -51,6 +51,14 @@ float DE_Bulb(float3 pos)
 	}
 	return 0.5 * log(r) * r / dr;
 }
+
+float3 Normal(float3 pt, float duDEPt, float duEpsilon)
+{
+	float dx = DE(pt + float3(duEpsilon, 0, 0)) - duDEPt;
+	float dy = DE(pt + float3(0, duEpsilon, 0)) - duDEPt;
+	float dz = DE(pt + float3(0, 0, duEpsilon)) - duDEPt;
+	return normalize(float3(dx, dy, dz));
+}
  
 float4 ray_marching(float3 pt, float3 vk)
 {
@@ -58,7 +66,7 @@ float4 ray_marching(float3 pt, float3 vk)
 	float duTotal = 0;
 	for (int i = 0; i < cmarch; ++i)
 	{
-		float du = DE_Bulb(pt);
+		float du = DE(pt);
 		pt += du * vk;
 		duTotal += du;
 		float duEpsilon = 0.5 * duTotal / duNear * duPixelRadius;
@@ -78,6 +86,7 @@ float3 ColorOT(float4 marched)
 			0.5 + length(-marched.xyz) / 2.0));
 }
 
+// Ambient Occlusion
 float3 ColorAO(float3 color, float steps)
 {
 	// ambient occlusion
@@ -88,9 +97,12 @@ float3 ColorAO(float3 color, float steps)
 	return colorAO;
 }
 
-float4 ColorFromVec(float3 v)
+static const int fogB = 1.0;
+static const int fogA = 1.0;
+float3 ColorFog(float3 color, float3 fogColor, float duMarched)
 {
-	return float4(abs(v.x), abs(v.y), abs(v.z), 1);
+	float frFog = 1.0 - fogA * exp(-duMarched / 5);
+	return lerp(color, fogColor, frFog);
 }
 
 float4 main(float4 position : SV_POSITION) : SV_TARGET
@@ -119,14 +131,17 @@ float4 main(float4 position : SV_POSITION) : SV_TARGET
 
 	float3 vkRay = normalize(ptPlane - ptCamera);
 
-	float4 marched = ray_marching(ptCamera, vkRay);
+	float4 ptMarched = ray_marching(ptCamera, vkRay);
+	float duMarched = length(ptMarched.xyz - ptCamera);
 
-	if (marched.w == -1)
+	if (ptMarched.w == -1)
 		return float4(0, 0, 0, 1);
 
-	float3 colorOT = ColorOT(marched);
+	float3 color = ColorOT(ptMarched);
 
-	float3 colorAO = ColorAO(colorOT, marched.w);
+	color = ColorAO(color, ptMarched.w);
 
-	return float4(colorAO.x, colorAO.y, colorAO.z, 1.0);
+	color = ColorFog(color, float3(0.5, 0.6, 0.7), duMarched);
+
+	return float4(color.x, color.y, color.z, 1.0);
 }
