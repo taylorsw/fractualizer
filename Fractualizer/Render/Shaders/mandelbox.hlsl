@@ -12,81 +12,49 @@
 
 static const int cmarch = 48;
 
-float DE_sphere(float3 pt)
-{
-	return length(pt) - 1;
+void sphereFold(inout float3 z, inout float dz) {
+	float minRadius2 = 0.25;
+	float fixedRadius2 = 1;
+
+	float r2 = dot(z, z);
+	if (r2 < minRadius2) {
+		// linear inner scaling
+		float temp = (fixedRadius2 / minRadius2);
+		z *= temp;
+		dz *= temp;
+	}
+	else if (r2 < fixedRadius2) {
+		// this is the actual sphere inversion
+		float temp = fixedRadius2 / r2;
+		z *= temp;
+		dz *= temp;
+	}
 }
 
-float smod(float a, float b)
-{
-	return sign(a) * fmod(a, b);
+void boxFold(inout float3 z, inout float dz) {
+	float foldingLimit = 1;
+	z = clamp(z, -foldingLimit, foldingLimit) * 2.0 - z;
 }
 
-float fold(float u, float du)
+float DE(float3 z)
 {
-	return abs(smod(u + du, 4 * du) - 2 * du) - du;
+	float sf = 2;
+	float sfNormalizing = 2 * (sf + 1) / (sf - 1);
+	z = z * sfNormalizing;
+	int Iterations = 10;
+	float3 offset = z;
+	float dr = 1.0;
+	for (int n = 0; n < Iterations; n++) {
+		boxFold(z, dr);       // Reflect
+		sphereFold(z, dr);    // Sphere Inversion
+
+		z = sf * z + offset;  // Scale & Translate
+		dr = dr*abs(sf) + 1.0;
+	}
+	float r = length(z);
+	return r / abs(dr) / sfNormalizing;
 }
 
-float3 fold(float3 pt, float du)
-{
-	float3 ptFolded;
-	for (int i = 0; i < 3; i++)
-		ptFolded[i] = fold(pt[i], du);
-
-	return ptFolded;
-}
-
-float3 sphereFold(float3 pt, float duRadius)
-{
-	float du = length(pt);
-	if (du < duRadius)
-		return pt * du * du / duRadius / duRadius;
-	return pt;
-}
-
-float duFromIv(float u, float2 iv)
-{
-	return max(max(u - iv.y, iv.x - u), 0);
-}
-
-float2 ivFromUCenterDu(float uCenter, float du)
-{
-	return float2(uCenter - du / 2, uCenter + du / 2);
-}
-
-float DE_box(float3 pt, float3 ptCenter, float3 rs)
-{
-	float3 vk;
-	for (int i = 0; i < 3; i++)
-		vk[i] = duFromIv(pt[i], ivFromUCenterDu(ptCenter[i], rs[i]));
-
-	return length(vk);
-}
-
-float DE_Box(float3 pt)
-{
-	return max(
-		DE_sphere(pt),
-		DE_box(fold(sphereFold(pt, 0.9), 0.1), float3(0, 0, 0), float3(0.5, 0.02, 0.02)));
-}
-
-//float DE_Box(float3 p)
-//{
-//	const float scale = 12;
-//	const float3 boxfold = float3(1, 1, 1);
-//	const float spherefold = 0.2;
-//
-//	float4 c0 = float4(p, 1);
-//	float4 c = c0;
-//	for (int i = 0; i < 4; ++i)
-//	{
-//		c.xyz = clamp(c.xyz, -boxfold, boxfold) * 2 - c.xyz;
-//		float rr = dot(c.xyz, c.xyz);
-//		c *= saturate(max(spherefold / rr, spherefold));
-//		c = c * scale + c0;
-//	}
-//	return ((length(c.xyz) - (scale - 1)) / c.w - pow(scale, -3));
-//}
 
 float4 ray_marching(float3 pt, float3 vk)
 {
@@ -94,41 +62,71 @@ float4 ray_marching(float3 pt, float3 vk)
 	float duTotal = 0;
 	for (int i = 0; i < cmarch; ++i)
 	{
-		float du = DE_Box(pt);
+		float du = DE(pt);
 		pt += du * vk;
 		duTotal += du;
-		float duEpsilon = 0.5 * duTotal / duNear * duPixelRadius;
+		float duEpsilon = 0.25 * duTotal / duNear * duPixelRadius;
 		if (du < duEpsilon)
 			return float4(pt, i);
 	}
 	return float4(pt, -1);
 }
 
+
+// Basic orbit-trapping color
+float3 ColorOT(float4 marched)
+{
+	return normalize(
+		float3(
+			length(float3(-3, 0, 0) - marched.xyz) / 4.0,
+			length(float3(3, 0, 0) - marched.xyz) / 4.0,
+			0.5 + length(-marched.xyz) / 2.0));
+}
+
+float3 ColorAO(float3 color, float steps)
+{
+	// ambient occlusion
+	// return color * (1 - (0.5 * (1 - (steps / cmarch)))); // cool effect
+	// float base = cmarch;
+	// float3 colorAO = color * (1 - 0.3 * (1 - (log(steps) / log(base)) / base));
+	float3 colorAO = color * (1 - (steps / cmarch));
+	return colorAO;
+}
+
 float4 main(float4 position : SV_POSITION) : SV_TARGET
 {
+	// position.x is from 0.5 to rsScreen.x + 6.5
+	float4 red = float4(1, 0, 0, 1);
+	float4 green = float4(0, 1, 0, 1);
+	float4 blue = float4(0, 0, 1, 1);
+	float4 black = float4(0, 0, 0, 1);
+
+	float2 ptScreen = position.xy - float2(0.5, 0.5);
+
 	float3 ptPlaneCenter = ptCamera + vkCamera * duNear;
 
 	float3 vkDown = vkCameraOrtho;
 	float3 vkRight = cross(vkDown, vkCamera);
 
-	float2 vkFromScreenCenter = position.xy - rsScreen / 2;
-	float2 vkFromPlaneCenter = float2(vkFromScreenCenter.x * rsViewPlane.x / rsScreen.x, vkFromScreenCenter.y * rsViewPlane.y / rsScreen.y);
-	float3 planePoint = ptPlaneCenter + vkRight * vkFromPlaneCenter.x + vkDown * vkFromPlaneCenter.y;
+	float2 vkFromScreenCenter = ptScreen - rsScreen / 2;
 
-	float3 vkRay = normalize(planePoint - ptCamera.xyz);
+	// -0.5 <= frx <= 0.5
+	float frx = vkFromScreenCenter.x / rsScreen.x;
+	float fry = vkFromScreenCenter.y / rsScreen.y;
 
-	float4 red = float4(1, 0, 0, 1);
-	float4 green = float4(0, 1, 0, 1);
-	float4 blue = float4(0, 0, 1, 1);
+	float2 vkfrFromPlaneCenter = float2(vkFromScreenCenter.x * rsViewPlane.x / rsScreen.x, vkFromScreenCenter.y * rsViewPlane.y / rsScreen.y);
+	float3 ptPlane = ptPlaneCenter + vkRight * rsViewPlane.x * frx + vkDown * rsViewPlane.y * fry;
+
+	float3 vkRay = normalize(ptPlane - ptCamera);
+
 	float4 marched = ray_marching(ptCamera, vkRay);
 
 	if (marched.w == -1)
 		return float4(0, 0, 0, 1);
 
-	float4 color = float4(0.2, 0.6, 0.3, 1);
+	float3 colorOT = ColorOT(marched);
 
-	// ambient occlusion
-	color = color * (1 - (marched.w / cmarch));
+	float3 colorAO = ColorAO(colorOT, marched.w);
 
-	return color;
+	return float4(colorAO.x, colorAO.y, colorAO.z, 1.0);
 }
