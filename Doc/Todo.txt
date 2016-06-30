@@ -1,0 +1,13 @@
+Fractal Tasks
+Coloring
+Lighting model
+Light sources
+Skybox
+Flight path
+Beat/spike detection
+
+
+Cool ideas
+Strobe lights
+Multiple fractals (fade in/out?)
+"Firework" burst of pointlights with movement
