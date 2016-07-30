@@ -76,7 +76,7 @@ namespace Render
 
         private void InitializeDeviceResources(RenderForm renderForm)
         {
-            ModeDescription backBufferDesc = new ModeDescription(renderForm.Width, renderForm.Height, new Rational(60, 1), Format.R8G8B8A8_UNorm);
+            ModeDescription backBufferDesc = new ModeDescription(renderForm.Width, renderForm.Height, new Rational(120, 1), Format.R8G8B8A8_UNorm);
             SwapChainDescription swapChainDesc = new SwapChainDescription
             {
                 ModeDescription = backBufferDesc,

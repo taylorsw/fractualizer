@@ -1,4 +1,9 @@
-﻿cbuffer Parameters
+﻿//#define SPHERE
+#define ACCUNORMAL
+//#define SHADOWS
+//#define LIGHTING
+
+cbuffer Parameters
 {
 	float3 ptCamera;
 	float3 vkCamera;
@@ -8,17 +13,26 @@
 	float duNear;
 	float param;
 	float param2;
+
+	float fogA;
 }
 
 static const int cmarch = 48;
 
+#ifdef SPHERE
+static const float duRadiusSphere = 1.0;
 float DE_sphere(float3 pos)
 {
-	return length(pos) - 1;
+	return length(pos) - duRadiusSphere;
 }
+#endif
 
 float DE(float3 pos)
 {
+#ifdef SPHERE
+	return DE_sphere(pos);
+#endif
+
 	float Power = param;
 	int iterations = 10;
 	float Bailout = 5;
@@ -52,16 +66,36 @@ float DE(float3 pos)
 	return 0.5 * log(r) * r / dr;
 }
 
-float3 Normal(float3 pt, float duDEPt, float duEpsilon)
+float3 VkNormalSphere(float3 pt)
 {
+	return normalize(pt);
+}
+
+float3 VkNormal(float3 pt, float duEpsilon)
+{
+#ifdef SPHERE
+	return VkNormalSphere(pt);
+#endif
+#ifdef ACCUNORMAL
+	float3 vkX = float3(duEpsilon, 0, 0);
+	float3 vkY = float3(0, duEpsilon, 0);
+	float3 vkZ = float3(0, 0, duEpsilon);
+	return normalize(float3(
+		DE(pt + vkX) - DE(pt - vkX),
+		DE(pt + vkY) - DE(pt - vkY),
+		DE(pt + vkZ) - DE(pt - vkZ)));
+#else
+	float duDEPt = DE(pt);
 	float dx = DE(pt + float3(duEpsilon, 0, 0)) - duDEPt;
 	float dy = DE(pt + float3(0, duEpsilon, 0)) - duDEPt;
 	float dz = DE(pt + float3(0, 0, duEpsilon)) - duDEPt;
 	return normalize(float3(dx, dy, dz));
+#endif
 }
  
-float4 ray_marching(float3 pt, float3 vk)
+float4 ray_marching(float3 pt, float3 vk, float sfEpsilon, out float duEpsilon)
 {
+	duEpsilon = -1;
 	float duPixelRadius = rsViewPlane.x / rsScreen.x;
 	float duTotal = 0;
 	for (int i = 0; i < cmarch; ++i)
@@ -69,7 +103,7 @@ float4 ray_marching(float3 pt, float3 vk)
 		float du = DE(pt);
 		pt += du * vk;
 		duTotal += du;
-		float duEpsilon = 0.5 * duTotal / duNear * duPixelRadius;
+		duEpsilon = sfEpsilon * 0.5 * duTotal / duNear * duPixelRadius;
 		if (du < duEpsilon)
 			return float4(pt, i);
 	}
@@ -79,6 +113,9 @@ float4 ray_marching(float3 pt, float3 vk)
 // Basic orbit-trapping color
 float3 ColorOT(float4 marched)
 {
+#ifdef SPHERE
+	return float3(1.0, 0.0, 0.0);
+#endif
 	return normalize(
 		float3(
 			length(float3(-3, 0, 0) - marched.xyz) / 4.0, 
@@ -97,12 +134,44 @@ float3 ColorAO(float3 color, float steps)
 	return colorAO;
 }
 
-static const int fogB = 1.0;
-static const int fogA = 1.0;
 float3 ColorFog(float3 color, float3 fogColor, float duMarched)
 {
 	float frFog = 1.0 - fogA * exp(-duMarched / 5);
 	return lerp(color, fogColor, frFog);
+}
+
+static const float3 ptLight = float3(1, 0, 3);
+static const float3 colorDiffuse = float3(0.5, 0.0, 0.0);
+static const float3 colorSpecular = float3(1.0, 1.0, 1.0);
+static const float shininess = 16.0;
+float3 ColorBP(float3 color, float3 ptSurface, float duEpsilon)
+{
+	float3 vkNormal = VkNormal(ptSurface, duEpsilon);
+	float3 vkLightDir = normalize(ptLight - ptSurface);
+
+	float lambertian = max(dot(vkLightDir, vkNormal), 0.0);
+	float specular = 0.0;
+
+	if (lambertian > 0.0)
+	{
+		float3 vkHalf = normalize(vkLightDir + vkCamera);
+		float agrSpecular = max(dot(vkHalf, vkNormal), 0.0);
+		specular = pow(agrSpecular, shininess);
+	}
+
+	color =
+		0.4 * color
+		+ 0.6 * lambertian * colorDiffuse
+		;// +specular * colorSpecular;
+
+#ifdef SHADOWS
+	float dummy;
+	float4 shadow = ray_marching(ptSurface, normalize(ptSurface - ptLight), 0.7, dummy);
+	if (shadow.w == -1)
+		color *= 0.4;
+#endif
+
+	return color;
 }
 
 float4 main(float4 position : SV_POSITION) : SV_TARGET
@@ -131,7 +200,9 @@ float4 main(float4 position : SV_POSITION) : SV_TARGET
 
 	float3 vkRay = normalize(ptPlane - ptCamera);
 
-	float4 ptMarched = ray_marching(ptCamera, vkRay);
+	float duEpsilon;
+	float4 ptMarched = ray_marching(ptCamera, vkRay, 1.0, duEpsilon);
+
 	float duMarched = length(ptMarched.xyz - ptCamera);
 
 	if (ptMarched.w == -1)
@@ -139,9 +210,15 @@ float4 main(float4 position : SV_POSITION) : SV_TARGET
 
 	float3 color = ColorOT(ptMarched);
 
+#ifndef SPHERE
 	color = ColorAO(color, ptMarched.w);
 
 	color = ColorFog(color, float3(0.5, 0.6, 0.7), duMarched);
+#endif
+
+#ifdef LIGHTING
+	color = ColorBP(color, ptMarched, duEpsilon);
+#endif
 
 	return float4(color.x, color.y, color.z, 1.0);
 }

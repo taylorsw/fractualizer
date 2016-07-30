@@ -61,6 +61,9 @@ namespace Render
             [FieldOffset(72)]
             public float param2;
 
+            [FieldOffset(76)]
+            public float fogA;
+
             public Vector3 ptPlaneCenter => ptCamera + vkCamera * duNear;
 
             // Unit Vector
@@ -76,6 +79,7 @@ namespace Render
                 this.rsViewPlane = rsViewPlane;
                 this.param = 8.0f;
                 this.param2 = 1.0f;
+                this.fogA = 1.0f;
             }
 
             public void RotateCamera(float dagrUp, float dagrRight)

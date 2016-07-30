@@ -16,13 +16,13 @@ namespace Mandelbasic
         
         public Controller()
         {
-            int width = Screen.PrimaryScreen.Bounds.Width;
-            int height = Screen.PrimaryScreen.Bounds.Height;
+            int width = 1920;//Screen.PrimaryScreen.Bounds.Width;
+            int height = 1080;//Screen.PrimaryScreen.Bounds.Height;
             renderForm = new RenderForm("Fractualizer")
             {
                 ClientSize = new Size(width, height),
                 AllowUserResizing = false,
-                IsFullscreen = true
+                IsFullscreen = false //true
             };
 
             scene = new Scene(width, height, new Mandelbulb());
@@ -32,7 +32,7 @@ namespace Mandelbasic
 
             renderForm.Focus();
 
-            evtc = new EvtcAudio(renderForm, scene);
+            evtc = new EvtcExplorer(renderForm, scene);
         }
 
         public void Run()
