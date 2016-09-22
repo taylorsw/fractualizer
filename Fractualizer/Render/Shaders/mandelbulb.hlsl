@@ -1,7 +1,7 @@
 ﻿//#define SPHERE
-#define ACCUNORMAL
-//#define SHADOWS
-//#define LIGHTING
+//#define ACCUNORMAL
+#define SHADOWS
+#define LIGHTING
 
 cbuffer Parameters
 {
@@ -17,13 +17,17 @@ cbuffer Parameters
 	float fogA;
 }
 
-static const int cmarch = 48;
+static const int cmarch = 148;
 
 #ifdef SPHERE
-static const float duRadiusSphere = 1.0;
+static const float duRadiusSphere = 0.3;
 float DE_sphere(float3 pos)
 {
-	return length(pos) - duRadiusSphere;
+	return
+		min(
+		length(pos) - duRadiusSphere,
+		length(pos - float3(0.7, 0.0, 2.0)) - 0.5
+		);
 }
 #endif
 
@@ -92,18 +96,23 @@ float3 VkNormal(float3 pt, float duEpsilon)
 	return normalize(float3(dx, dy, dz));
 #endif
 }
- 
-float4 ray_marching(float3 pt, float3 vk, float sfEpsilon, out float duEpsilon)
+
+static float duPixelRadius = rsViewPlane.x / rsScreen.x;
+float DuEpsilon(float sfEpsilon, float duMarched)
+{
+	return sfEpsilon * 0.5 * duMarched / duNear * duPixelRadius;
+}
+
+float4 PtMarch(float3 pt, float3 vk, float sfEpsilon, out float duEpsilon)
 {
 	duEpsilon = -1;
-	float duPixelRadius = rsViewPlane.x / rsScreen.x;
 	float duTotal = 0;
 	for (int i = 0; i < cmarch; ++i)
 	{
-		float du = DE(pt);
+		float du = 0.99 * DE(pt);
 		pt += du * vk;
 		duTotal += du;
-		duEpsilon = sfEpsilon * 0.5 * duTotal / duNear * duPixelRadius;
+		duEpsilon = DuEpsilon(sfEpsilon, duTotal);
 		if (du < duEpsilon)
 			return float4(pt, i);
 	}
@@ -140,10 +149,11 @@ float3 ColorFog(float3 color, float3 fogColor, float duMarched)
 	return lerp(color, fogColor, frFog);
 }
 
-static const float3 ptLight = float3(1, 0, 3);
+static const float3 ptLight = float3(2, 0, 3);
 static const float3 colorDiffuse = float3(0.5, 0.0, 0.0);
 static const float3 colorSpecular = float3(1.0, 1.0, 1.0);
 static const float shininess = 16.0;
+static const float sfEpsilonShadow = 2.0;
 float3 ColorBP(float3 color, float3 ptSurface, float duEpsilon)
 {
 	float3 vkNormal = VkNormal(ptSurface, duEpsilon);
@@ -166,8 +176,12 @@ float3 ColorBP(float3 color, float3 ptSurface, float duEpsilon)
 
 #ifdef SHADOWS
 	float dummy;
-	float4 shadow = ray_marching(ptSurface, normalize(ptSurface - ptLight), 0.7, dummy);
-	if (shadow.w == -1)
+	float3 vkCameraDir = normalize(ptCamera - ptSurface);
+	float3 ptShadowStart = ptSurface + vkCameraDir * 1.1 * DuEpsilon(sfEpsilonShadow, length(ptCamera - ptSurface));
+	float4 shadow = PtMarch(ptShadowStart, vkLightDir, sfEpsilonShadow, dummy);
+
+	// TODO: Should probably check if marched at least dist to light
+	if (shadow.w != -1)
 		color *= 0.4;
 #endif
 
@@ -201,7 +215,7 @@ float4 main(float4 position : SV_POSITION) : SV_TARGET
 	float3 vkRay = normalize(ptPlane - ptCamera);
 
 	float duEpsilon;
-	float4 ptMarched = ray_marching(ptCamera, vkRay, 1.0, duEpsilon);
+	float4 ptMarched = PtMarch(ptCamera, vkRay, 1.0, duEpsilon);
 
 	float duMarched = length(ptMarched.xyz - ptCamera);
 
