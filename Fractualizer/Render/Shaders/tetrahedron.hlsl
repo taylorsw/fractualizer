@@ -1,14 +1,4 @@
-﻿cbuffer Parameters
-{
-	float3 ptCamera;
-	float3 vkCamera;
-	float3 vkCameraOrtho;
-	float2 rsScreen;
-	float2 rsViewPlane;
-	float duNear;
-	float param;
-	float param2;
-}
+﻿#include "parameters.hlsl"
 
 float3x3 MxRotateX(float agr)
 {
@@ -50,7 +40,7 @@ float3x3 MxRotateZ(float agr)
 }
 
 static const float PI = 3.14159265f;
-float DE(float3 pt)
+float DE_fractal(float3 pt)
 {
 	float sf = 1.25;
 	float r = dot(pt, pt);
@@ -110,48 +100,4 @@ float DE(float3 pt)
 	return (length(pt) - 0.5) * pow(sf, float(-n));
 }
 
-static const int cmarch = 48;
-float4 ray_marching(float3 pt, float3 vk)
-{
-	float duPixelRadius = rsViewPlane.x / rsScreen.x;
-	float duTotal = 0;
-	for (int i = 0; i < cmarch; ++i)
-	{
-		float du = DE(pt);
-		pt += du * vk;
-		duTotal += du;
-		float duEpsilon = 1 * duTotal / duNear * duPixelRadius;
-		if (du < duEpsilon)
-			return float4(pt, i);
-	}
-	return float4(pt, -1);
-}
-
-float4 main(float4 position : SV_POSITION) : SV_TARGET
-{
-	float3 ptPlaneCenter = ptCamera + vkCamera * duNear;
-
-	float3 vkDown = vkCameraOrtho;
-	float3 vkRight = cross(vkDown, vkCamera);
-
-	float2 vkFromScreenCenter = position.xy - rsScreen / 2;
-	float2 vkFromPlaneCenter = float2(vkFromScreenCenter.x * rsViewPlane.x / rsScreen.x, vkFromScreenCenter.y * rsViewPlane.y / rsScreen.y);
-	float3 planePoint = ptPlaneCenter + vkRight * vkFromPlaneCenter.x + vkDown * vkFromPlaneCenter.y;
-
-	float3 vkRay = normalize(planePoint - ptCamera.xyz);
-
-	float4 red = float4(1, 0, 0, 1);
-	float4 green = float4(0, 1, 0, 1);
-	float4 blue = float4(0, 0, 1, 1);
-	float4 marched = ray_marching(ptCamera, vkRay);
-
-	if (marched.w == -1)
-		return float4(0, 0, 0, 1);
-
-	float4 color = float4(0.2, 0.6, 0.3, 1);
-
-	// ambient occlusion
-	color = color * (1 - (marched.w / cmarch));
-
-	return color;
-}
+#include "rayTracer.hlsl"

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using SharpDX.D3DCompiler;
 using D3D11 = SharpDX.Direct3D11;
 using SharpDX;
@@ -7,14 +8,38 @@ namespace Render
 {
     public abstract class Fractal : IDisposable
     {
+        public class IncludeFX : Include
+        {
+            static string includeDirectory = "Shaders/";
+
+            public Stream Open(IncludeType type, string fileName, Stream parentStream)
+            {
+                return new FileStream(includeDirectory + fileName, FileMode.Open);
+            }
+
+            public void Close(Stream stream)
+            {
+                stream.Close();
+                stream.Dispose();
+            }
+
+            public void Dispose()
+            {                
+            }
+
+            public IDisposable Shadow { get; set; }
+        }
+
+
         protected D3D11.PixelShader pixelShader;
 
         internal Fractal() { }
 
         public virtual void InitializeFractal(D3D11.Device d3dDevice, D3D11.DeviceContext deviceContext)
         {
-            using (var pixelShaderByteCode = ShaderBytecode.CompileFromFile("Shaders/" + StShader(), "main", "ps_4_0", ShaderFlags.Debug))
+            using (var pixelShaderByteCode = ShaderBytecode.CompileFromFile("Shaders/" + StShader(), "main", "ps_4_0", ShaderFlags.Debug, include: new IncludeFX()))
             {
+                string stErr = pixelShaderByteCode.Message;
                 pixelShader = new D3D11.PixelShader(d3dDevice, pixelShaderByteCode);
             }
 
@@ -34,9 +59,11 @@ namespace Render
         public abstract double DuEstimate(Vector3 pt);
     }
 
-    public class Mandelbrot : Fractal
+    public class Mandelbrot : Fractal3d
     {
         public override string StShader() => "mandelbrot.hlsl";
+
+        public override double DuEstimate(Vector3 pt) => 1;
     }
 
     public class Tetrahedron : Fractal3d
