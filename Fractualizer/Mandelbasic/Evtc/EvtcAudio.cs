@@ -15,9 +15,9 @@ namespace Mandelbasic
             processor.StartProcessor("Resources/lovesosa.mp3");
         }
 
-        public override void DoEvents()
+        public override void DoEvents(float dtms)
         {
-            base.DoEvents();
+            base.DoEvents(dtms);
             float duRange = processor.max - processor.min;
             scene.camera.param += du * Math.Abs(0.06f * (processor.val - duRange / 2) / duRange);
         }

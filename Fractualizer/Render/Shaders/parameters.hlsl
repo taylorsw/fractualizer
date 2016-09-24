@@ -10,4 +10,5 @@ cbuffer Parameters
 	float param2;
 
 	float fogA;
+	float3 ptLight;
 }

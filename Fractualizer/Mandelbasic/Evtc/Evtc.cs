@@ -14,6 +14,6 @@ namespace Mandelbasic
             this.scene = scene;
         }
 
-        public abstract void DoEvents();
+        public abstract void DoEvents(float dtms);
     }
 }

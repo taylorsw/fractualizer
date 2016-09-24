@@ -6,35 +6,36 @@ namespace Mandelbasic
 {
     class EvtcAnim : Evtc
     {
+        private readonly RailOrbit railCam;
+        private readonly RailOrbit railLight;
+
         public EvtcAnim(Form form, Scene scene) : base(form, scene)
         {
+            railCam = new RailOrbit(pt => scene.camera.ptCamera = pt, Vector3.Zero, Vector3.UnitX, 12f / 1000);
+            railLight = new RailOrbit(pt => scene.camera.ptLight = pt, Vector3.Zero, new Vector3(1, 1, 1), 60f / 1000);
         }
 
         protected float du = -1;
         protected float du2 = -1;
 
-        public override void DoEvents()
+        public override void DoEvents(float dtms)
         {
-            scene.camera.param += du*0.008f;
-            
+            scene.camera.param += du * 0.008f;
+
             if (scene.camera.param < 1.2)
                 du = 1;
             else if (scene.camera.param > 10.0)
                 du = -1;
-            
-            scene.camera.param2 += du2*0.0003f;
-            
+
+            scene.camera.param2 += du2 * 0.0003f;
+
             if (scene.camera.param2 < 1.0)
                 du2 = 1;
             else if (scene.camera.param2 > 3.0)
                 du2 = -1;
 
-            const float dagdX = -0.1f;
-            const float dagdY = -0.04f;
-            const float dagdZ = -0.2f;
-            scene.camera.Orbit(Vector3.UnitX, dagdX);
-            scene.camera.Orbit(Vector3.UnitY, dagdY);
-            scene.camera.Orbit(Vector3.UnitZ, dagdZ);
+            railCam.UpdatePt(scene.camera.ptCamera, dtms);
+            railLight.UpdatePt(scene.camera.ptLight, dtms);
 
             const float dagdRoll = 0.05f;
             scene.camera.RollBy(dagdRoll);

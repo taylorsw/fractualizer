@@ -109,10 +109,10 @@ float3 ColorFog(float3 color, float3 fogColor, float duMarched)
 	return lerp(color, fogColor, frFog);
 }
 
-static const float3 ptLight = float3(100, 0, 0);
+//static const float3 ptLight = float3(100, 0, 0);
 static const float3 colorDiffuse = float3(0.5, 0.5, 0.5);
 static const float3 colorSpecular = float3(0.8, 0.8, 0.8);
-static const float shininess = 10.0;
+static const float shininess = 18.0;
 static const float sfEpsilonShadow = 2.0;
 float3 ColorBP(float3 color, float3 ptSurface, float duEpsilon)
 {

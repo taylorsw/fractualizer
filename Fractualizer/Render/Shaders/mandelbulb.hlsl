@@ -17,6 +17,7 @@ float DE_fractal(float3 pos)
 
 		// convert to polar coordinates
 		float theta = acos(z.z / r) / param2;
+		/*float phi = atan2(z.x, z.y) * param2;*/
 		float phi = atan(z.y / z.x) * param2;
 		dr = pow(r, Power - 1.0) * Power * dr + 1.0;
 

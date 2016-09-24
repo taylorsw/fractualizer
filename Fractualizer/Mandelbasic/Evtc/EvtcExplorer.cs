@@ -9,11 +9,13 @@ namespace Mandelbasic
 {
     public class EvtcExplorer : EvtcUserDecode
     {
+        private readonly RailOrbit railLight;
         public EvtcExplorer(Form form, Scene scene) : base(form, scene)
         {
             Cursor.Hide();
             CenterCursor();
             form.MouseMove += OnMouseMove;
+            railLight = new RailOrbit(pt => scene.camera.ptLight = pt, Vector3.Zero, new Vector3(1, 1, 1), 60f / 1000);
         }
 
         private void CenterCursor()
@@ -45,8 +47,10 @@ namespace Mandelbasic
         }
 
         private const float frMoveBase = 0.1f;
-        public override void DoEvents()
+        public override void DoEvents(float dtms)
         {
+            railLight.UpdatePt(scene.camera.ptLight, dtms);
+
             float frMove = frMoveBase;
             if (IsKeyDown(Keys.ShiftKey))
                 frMove = frMove * 2;
@@ -83,7 +87,7 @@ namespace Mandelbasic
         public EvtcLookAt(Form form, Scene scene) : base(form, scene) { }
 
         private DateTime dtLastB = DateTime.MinValue;
-        public override void DoEvents()
+        public override void DoEvents(float dtms)
         {
             const float dagd = 2;
             if (IsKeyDown(Keys.O))

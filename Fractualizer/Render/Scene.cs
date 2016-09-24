@@ -19,20 +19,22 @@ namespace Render
         private D3D11.Buffer cameraBuffer;
 
         public Camera camera;
+        public Light[] rglight;
         public readonly Fractal3d fractal;
 
-        [StructLayout(LayoutKind.Explicit, Size=80)]
+        [StructLayout(LayoutKind.Explicit, Size=96)]
         public struct Camera
         {
             public static Camera Initial(int width, int height)
             {
                 return new Camera(
-                    ptCamera: new Vector3(2.4f, 0, 0),
-                    vkCamera: new Vector3(-1, 0, 0),
+                    ptCamera: new Vector3(0, 0, -2.4f),
+                    vkCamera: new Vector3(0, 0, 1),
                     vkCameraDown: new Vector3(0, 1, 0),
                     duNear: 0.5f,
                     rsScreen: new Vector2(width, height),
-                    rsViewPlane: new Vector2(dxView, dxView*height/width));
+                    rsViewPlane: new Vector2(dxView, dxView*height/width),
+                    ptLight: new Vector3(100, 0, -50));
             }
 
             [FieldOffset(0)]
@@ -64,12 +66,16 @@ namespace Render
             [FieldOffset(76)]
             public float fogA;
 
+            [FieldOffset(80)]
+            public Vector3 ptLight;
+
+
             public Vector3 ptPlaneCenter => ptCamera + vkCamera * duNear;
 
             // Unit Vector
             public Vector3 vkCameraRight => Vector3.Cross(vkCameraDown, vkCamera).Normalized();
 
-            public Camera(Vector3 ptCamera, Vector3 vkCamera, Vector3 vkCameraDown, float duNear, Vector2 rsScreen, Vector2 rsViewPlane)
+            public Camera(Vector3 ptCamera, Vector3 vkCamera, Vector3 vkCameraDown, float duNear, Vector2 rsScreen, Vector2 rsViewPlane, Vector3 ptLight)
             {
                 this.ptCamera = ptCamera;
                 this.vkCamera = vkCamera;
@@ -80,6 +86,7 @@ namespace Render
                 this.param = 8.0f;
                 this.param2 = 1.0f;
                 this.fogA = 1.0f;
+                this.ptLight = ptLight;
             }
 
             public void RotateCamera(float dagrUp, float dagrRight)

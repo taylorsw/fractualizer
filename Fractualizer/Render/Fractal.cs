@@ -107,7 +107,7 @@ namespace Render
 
                 // convert to polar coordinates
                 double theta = Math.Acos(z.Z / r);
-                double phi = Math.Atan(z.Y / z.X);
+                double phi = Math.Atan2(z.Y, z.X);
                 dr = Math.Pow(r, power - 1f) * power * dr + 1f;
 
                 // scale and rotate the point
