@@ -119,12 +119,12 @@ float3 ColorBP(float3 color, float3 ptSurface, float duEpsilon)
 	float3 vkNormal = VkNormal(ptSurface, duEpsilon);
 	float3 vkSurfaceToLight = ptLight - ptSurface;
 	float3 vkLightDir = normalize(vkSurfaceToLight);
+	float3 vkCameraDir = normalize(ptCamera - ptSurface);
 	float3 colorAmbient = 0.4 * color;
 	bool fInShadow = false;
 
 #ifdef SHADOWS
 	float _;
-	float3 vkCameraDir = normalize(ptCamera - ptSurface);
 	float3 ptShadowStart = ptSurface + vkCameraDir * 1.1 * DuEpsilon(sfEpsilonShadow, length(ptCamera - ptSurface));
 	float duToLight = length(vkSurfaceToLight);
 	float4 shadow = PtMarch(ptShadowStart, vkLightDir, sfEpsilonShadow, duToLight, _);
