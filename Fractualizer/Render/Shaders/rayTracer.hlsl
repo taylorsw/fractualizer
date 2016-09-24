@@ -55,23 +55,28 @@ float3 VkNormal(float3 pt, float duEpsilon)
 static float duPixelRadius = rsViewPlane.x / rsScreen.x;
 float DuEpsilon(float sfEpsilon, float duMarched)
 {
-	return sfEpsilon * 1 * duMarched / duNear * duPixelRadius;
+	return sfEpsilon * 0.8 * duMarched / duNear * duPixelRadius;
 }
 
-float4 PtMarch(float3 pt, float3 vk, float sfEpsilon, out float duEpsilon)
+const static float MARCHED_TIMEOUT = -1;
+const static float MARCHED_LIMIT = -2;
+float4 PtMarch(float3 pt, float3 vk, float sfEpsilon, float duMax, out float duEpsilon)
 {
 	duEpsilon = -1;
 	float duTotal = 0;
 	for (int i = 0; i < cmarch; ++i)
 	{
-		float du = 0.99 * DE(pt);
+		float du = 0.999 * DE(pt);
 		pt += du * vk;
 		duTotal += du;
 		duEpsilon = DuEpsilon(sfEpsilon, duTotal);
 		if (du < duEpsilon)
 			return float4(pt, i);
+
+		if (du > duMax)
+			return float4(pt, MARCHED_LIMIT);
 	}
-	return float4(pt, -1);
+	return float4(pt, MARCHED_TIMEOUT);
 }
 
 // Basic orbit-trapping color
@@ -105,44 +110,51 @@ float3 ColorFog(float3 color, float3 fogColor, float duMarched)
 }
 
 static const float3 ptLight = float3(100, 0, 0);
-static const float3 colorDiffuse = float3(0.5, 0.0, 0.0);
-static const float3 colorSpecular = float3(1.0, 1.0, 1.0);
-static const float shininess = 16.0;
+static const float3 colorDiffuse = float3(0.5, 0.5, 0.5);
+static const float3 colorSpecular = float3(0.8, 0.8, 0.8);
+static const float shininess = 10.0;
 static const float sfEpsilonShadow = 2.0;
 float3 ColorBP(float3 color, float3 ptSurface, float duEpsilon)
 {
 	float3 vkNormal = VkNormal(ptSurface, duEpsilon);
-	float3 vkLightDir = normalize(ptLight - ptSurface);
+	float3 vkSurfaceToLight = ptLight - ptSurface;
+	float3 vkLightDir = normalize(vkSurfaceToLight);
+	float3 colorAmbient = 0.4 * color;
+	bool fInShadow = false;
+
+#ifdef SHADOWS
+	float _;
+	float3 vkCameraDir = normalize(ptCamera - ptSurface);
+	float3 ptShadowStart = ptSurface + vkCameraDir * 1.1 * DuEpsilon(sfEpsilonShadow, length(ptCamera - ptSurface));
+	float duToLight = length(vkSurfaceToLight);
+	float4 shadow = PtMarch(ptShadowStart, vkLightDir, sfEpsilonShadow, duToLight, _);
+
+	// TODO: Should probably check if marched at least dist to light
+	if (shadow.w != MARCHED_LIMIT)
+		fInShadow = true;
+#endif
+
+	if (fInShadow)
+		return colorAmbient;
 
 	float lambertian = max(dot(vkLightDir, vkNormal), 0.0);
 	float specular = 0.0;
 
 	if (lambertian > 0.0)
 	{
-		float3 vkHalf = normalize(vkLightDir + vkCamera);
-		float agrSpecular = max(dot(vkHalf, vkNormal), 0.0);
-		specular = pow(agrSpecular, shininess);
+		float3 vkHalf = normalize(vkLightDir + vkCameraDir);
+		float cos = max(dot(vkHalf, vkNormal), 0.0);
+		specular = pow(cos, shininess);
 	}
 
-	color =
-		0.4 * color
-		+ 0.6 * lambertian * colorDiffuse
-		;// +specular * colorSpecular;
-
-#ifdef SHADOWS
-	float dummy;
-	float3 vkCameraDir = normalize(ptCamera - ptSurface);
-	float3 ptShadowStart = ptSurface + vkCameraDir * 1.1 * DuEpsilon(sfEpsilonShadow, length(ptCamera - ptSurface));
-	float4 shadow = PtMarch(ptShadowStart, vkLightDir, sfEpsilonShadow, dummy);
-
-	// TODO: Should probably check if marched at least dist to light
-	if (shadow.w != -1)
-		color *= 0.4;
-#endif
+	color = colorAmbient
+		+ 0.4 * lambertian * colorDiffuse
+		+ 0.2 * specular * colorSpecular;
 
 	return color;
 }
 
+static const float duMarchLimit = 20;
 float4 main(float4 position : SV_POSITION) : SV_TARGET
 {
 	// position.x is from 0.5 to rsScreen.x + 6.5
@@ -170,11 +182,12 @@ float4 main(float4 position : SV_POSITION) : SV_TARGET
 	float3 vkRay = normalize(ptPlane - ptCamera);
 
 	float duEpsilon;
-	float4 ptMarched = PtMarch(ptCamera, vkRay, 1.0, duEpsilon);
+	float sfEpsilon = 1.0;
+	float4 ptMarched = PtMarch(ptCamera, vkRay, sfEpsilon, duMarchLimit, duEpsilon);
 
 	float duMarched = length(ptMarched.xyz - ptCamera);
 
-	if (ptMarched.w == -1)
+	if (ptMarched.w == MARCHED_LIMIT || ptMarched.w == MARCHED_TIMEOUT)
 		return float4(0, 0, 0, 1);
 
 	float3 color = ColorOT(ptMarched);

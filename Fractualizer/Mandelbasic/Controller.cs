@@ -25,7 +25,7 @@ namespace Mandelbasic
                 IsFullscreen = false //true
             };
 
-            scene = new Scene(width, height, new Mandelbrot());
+            scene = new Scene(width, height, new Mandelbulb());
             renderForm.Show();
 
             renderer = new Renderer(this, renderForm);
