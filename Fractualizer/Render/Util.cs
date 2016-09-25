@@ -21,6 +21,21 @@ namespace Render
             return Math.Abs(Vector3.Dot(v, v2)) < 0.0001f;
         }
 
+        public static bool IsFinite(this Vector3 vk)
+        {
+            return !float.IsInfinity(vk.X) && !float.IsInfinity(vk.Y) && !float.IsInfinity(vk.Z)
+                   && !float.IsNaN(vk.X) && !float.IsNaN(vk.Y) && !float.IsNaN(vk.Z);
+        }
+
         public static float Saturate(float x) => Math.Max(0, Math.Min(1, x));
+
+        public static T Clamp<T>(this T val, T min, T max) where T : IComparable
+        {
+            if (val.CompareTo(min) < 0)
+                return min;
+            if (val.CompareTo(max) > 0)
+                return max;
+            return val;
+        }
     }
 }

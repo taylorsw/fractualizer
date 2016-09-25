@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using Render;
 using SharpDX;
 
@@ -15,15 +16,21 @@ namespace Mandelbasic
             this.dgUpdatePt = dgUpdatePt;
         }
 
-        public void UpdatePt(Vector3 ptCur, float dtms) => dgUpdatePt(PtUpdated(ptCur, dtms));
+        public void UpdatePt(Vector3 ptCur, float dtms)
+        {
+            Vector3 ptUpdated = PtUpdated(ptCur, dtms);
+            Debug.Assert(ptUpdated.IsFinite());
+            dgUpdatePt(ptUpdated);
+        }
+
         protected abstract Vector3 PtUpdated(Vector3 ptCur, float dtms);
     }
 
     public class RailOrbit : Rail
     {
-        private readonly Vector3 ptCenter;
-        private readonly Vector3 vkNormal;
-        private readonly float agd_dtms;
+        protected readonly Vector3 ptCenter;
+        protected readonly Vector3 vkNormal;
+        protected readonly float agd_dtms;
 
         public RailOrbit(DgUpdatePt dgUpdatePt, Vector3 ptCenter, Vector3 vkNormal, float agd_dtms) : base(dgUpdatePt)
         {
@@ -37,8 +44,65 @@ namespace Mandelbasic
             Vector3 vkFromCenter = ptCur - ptCenter;
             Matrix matRotate = Matrix.RotationAxis(vkNormal, MathUtil.DegreesToRadians(dtms * agd_dtms));
             Vector3 vkRotated = Vector3.Transform(vkFromCenter, matRotate).PerspectiveDivide();
-            Debug.WriteLine(ptCenter + vkRotated);
             return ptCenter + vkRotated;
+        }
+    }
+
+    public class RailHover : RailOrbit
+    {
+        private readonly Fractal3d fractal;
+        private readonly float duHoverMin;
+        private readonly float duHoverMax;
+        private readonly float sfTravelMax;
+
+        public RailHover(
+            DgUpdatePt dgUpdatePt, 
+            Fractal3d fractal, 
+            Vector3 ptCenter, 
+            Vector3 vkNormal, 
+            float agd_dtms, // angular speed at which the 
+            float duHoverMin, // the minimum distance the point will hover above the fractal - guaranteed
+            float duHoverMax, // the maximum distance the point will hover above the fractal - best attempt
+            float sfTravelMax // determines the maximum speed the hover will climb/drop relative to its orbiting speed
+            ) : base(dgUpdatePt, ptCenter, vkNormal, agd_dtms)
+        {
+            this.fractal = fractal;
+            this.duHoverMin = duHoverMin;
+            this.duHoverMax = duHoverMax;
+            Debug.Assert(sfTravelMax >= 1.0);
+            this.sfTravelMax = sfTravelMax;
+        }
+
+        protected override Vector3 PtUpdated(Vector3 ptCur, float dtms)
+        {
+            // Get orbit value and DE
+            Vector3 ptRotated = base.PtUpdated(ptCur, dtms);
+            double duDE = fractal.DuEstimate(ptRotated);
+
+            // Calculate distance we will travel along that arc
+            float duOrbitTravel = sfTravelMax * (ptCur - ptRotated).Length();
+
+            // Calculate the maximum amount we should adjust the location towards the center of the fractal
+            Vector3 vkFromCenter = ptRotated - ptCenter;
+            float duAdjustMax = duHoverMax - (float) duDE;
+            int sign = Math.Sign(duAdjustMax);
+            float duAdjustMaxAbs = Math.Abs(duAdjustMax);
+
+            // Computes the final hover adjustment. 
+            // Can be less than the amount needed to bring the point to within duHoverMax
+            // However, it will always ensure that the point is not closer than duHoverMin
+            float duAdjustFinal =
+                sign * 
+                    (duAdjustMaxAbs > duOrbitTravel 
+                        ?  sign < 0 
+                            ? duOrbitTravel 
+                            : duOrbitTravel < duHoverMin ? duHoverMin : duOrbitTravel
+                        : duAdjustMaxAbs);
+
+            //Debug.WriteLine("Orbit: {0}, Adjust: {1}, Chosen: {2}", duOrbitTravel, duAdjustMax, duAdjustFinal);
+
+            ptRotated += vkFromCenter.Normalized()*duAdjustFinal;
+            return ptRotated;
         }
     }
 }
