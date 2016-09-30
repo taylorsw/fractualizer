@@ -75,6 +75,10 @@
       <Project>{63100634-db24-46cf-b631-63590f99edd4}</Project>
       <Name>Audio</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Fractals\Fractals.csproj">
+      <Project>{59B2A913-CE09-42FD-A7B0-4AB79CEF8E33}</Project>
+      <Name>Fractals</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Render\Render.csproj">
       <Project>{5fd1e68e-47a1-402c-ab2e-285bd5ade19a}</Project>
       <Name>Render</Name>

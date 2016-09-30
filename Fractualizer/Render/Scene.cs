@@ -20,7 +20,7 @@ namespace Render
 
         public Camera camera;
         public Light[] rglight;
-        public readonly Fractal3d fractal;
+        public readonly FractalRenderer fractalRenderer;
 
         [StructLayout(LayoutKind.Explicit, Size=96)]
         public struct Camera
@@ -159,9 +159,9 @@ namespace Render
             }
         }
 
-        public Scene(int width, int height, Fractal3d fractal)
+        public Scene(int width, int height, FractalRenderer fractalRenderer)
         {
-            this.fractal = fractal;
+            this.fractalRenderer = fractalRenderer;
             this.camera = Camera.Initial(width, height);
         }
 
@@ -170,7 +170,7 @@ namespace Render
             cameraBuffer = D3D11.Buffer.Create(device, BindFlags.ConstantBuffer, ref camera);
             deviceContext.PixelShader.SetConstantBuffer(0, cameraBuffer);
 
-            fractal.InitializeFractal(device, deviceContext);
+            fractalRenderer.InitializeFractal(device, deviceContext);
         }
 
         public void UpdateBuffers(Device device, DeviceContext deviceContext)
@@ -181,7 +181,7 @@ namespace Render
         public void Dispose()
         {
             cameraBuffer.Dispose();
-            fractal.Dispose();
+            fractalRenderer.Dispose();
         }
     }
 }

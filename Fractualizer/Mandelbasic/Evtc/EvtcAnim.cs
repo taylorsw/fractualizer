@@ -13,7 +13,7 @@ namespace Mandelbasic
         {
             railCam = new RailHover(
                 pt => scene.camera.ptCamera = pt, 
-                scene.fractal, 
+                scene.fractalRenderer.fractal,
                 ptCenter: Vector3.Zero, 
                 vkNormal: new Vector3(-1f, 0.5f, 1f), 
                 agd_dtms: 20f / 1000,

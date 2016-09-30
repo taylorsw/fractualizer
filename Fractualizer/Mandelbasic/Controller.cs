@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Drawing;
 using System.Windows.Forms;
+using Fractals;
 using Render;
 using SharpDX.Windows;
 
@@ -27,7 +28,7 @@ namespace Mandelbasic
                 IsFullscreen = false //true
             };
 
-            scene = new Scene(width, height, new Mandelbulb());
+            scene = new Scene(width, height, new FractalRenderer(new Mandelbulb()));
             renderForm.Show();
 
             renderer = new Renderer(this, renderForm);
