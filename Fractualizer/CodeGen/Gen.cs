@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -18,6 +19,7 @@ namespace CodeGen
         public FPLToHLSL(string stFile, string stDirectory)
         {
             string stFileOutput = Path.Combine(stDirectory, Path.GetFileNameWithoutExtension(stFile) + ".hlsl");
+            Directory.CreateDirectory(stDirectory);
             fs = File.Create(stFileOutput);
             tw = new StreamWriter(fs);
         }
@@ -37,26 +39,33 @@ namespace CodeGen
 
     class Gen
     {
-        static void Main(string[] args)
+        static int Main(string[] args)
         {
             if (args.Length != 2)
                 throw new ArgumentException("Did not supply correct parameters.");
 
-            string stFile = args[0];
-            string stDirectoryOutput = args[1];
+            string stDirectoryIn = args[0];
+            string stDirectoryOut = args[1];
 
-            AntlrFileStream afs = new AntlrFileStream(stFile);
-            FPLLexer fplLexer = new FPLLexer(afs);
-            CommonTokenStream cts = new CommonTokenStream(fplLexer);
-            FPLParser fplParser = new FPLParser(cts);
-
-            FPLParser.FractalContext fractalContext = fplParser.fractal();
-
-            
-            using (FPLToHLSL fplToHlsl = new FPLToHLSL(stFile, stDirectoryOutput))
+            foreach (string stFile in Directory.GetFiles(stDirectoryIn))
             {
-                ParseTreeWalker.Default.Walk(fplToHlsl, fractalContext);
+                if (Path.GetExtension(stFile) != ".frac")
+                    continue;
+
+                AntlrFileStream afs = new AntlrFileStream(stFile);
+                FPLLexer fplLexer = new FPLLexer(afs);
+                CommonTokenStream cts = new CommonTokenStream(fplLexer);
+                FPLParser fplParser = new FPLParser(cts);
+
+                FPLParser.FractalContext fractalContext = fplParser.fractal();
+
+                using (FPLToHLSL fplToHlsl = new FPLToHLSL(stFile, stDirectoryOut))
+                {
+                    ParseTreeWalker.Default.Walk(fplToHlsl, fractalContext);
+                }
             }
+
+            return 0;
         }
     }
 }

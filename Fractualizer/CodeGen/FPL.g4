@@ -1,6 +1,6 @@
 grammar FPL;
 
-ID : [a-z]+ ;             // match lower-case identifiers
+ID : [A-Za-z]+ ;
 WS : [ \t\r\n]+ -> skip ; // skip spaces, tabs, newlines
 
 type : 'float' | 'int' | 'v3' ;
