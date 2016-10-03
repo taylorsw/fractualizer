@@ -29,6 +29,11 @@ namespace Fractals
         }
     }
 
+    public class Mandalay : Fractal3d
+    {
+        public override double DuEstimate(Vector3 pt) => 1;
+    }
+
     public class Mandelbulb : Fractal3d
     {
         public override double DuEstimate(Vector3 pt)
