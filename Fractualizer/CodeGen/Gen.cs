@@ -1,4 +1,7 @@
-﻿using System;
+﻿//#define VALIDATE_GEN
+//#define DEBUG_GEN
+
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
@@ -16,26 +19,26 @@ namespace CodeGen
         {
             idtrCur = Idtr.Initial(this);
 
-            string stFileOutput = Path.Combine(stDirectory, fractalContext.Identifier() + StExtension());
+            string stFileOutput = Path.Combine(stDirectory, VisitIdentifier(fractalContext.identifier()).ToString() + StExtension());
             Directory.CreateDirectory(stDirectory);
             using (FileStream fs = File.Create(stFileOutput))
             {
                 using (TextWriter tw = new StreamWriter(fs))
                 {
                     Losa losa = VisitFractal(fractalContext);
-
-                    Lne lne = (Lne) losa;
-                    StringBuilder sb = new StringBuilder();
-                    while (lne != null)
-                    {
-                        sb.Append(lne);
-                        sb.Append(Environment.NewLine);
-                        lne = lne.lneNext;
-                    }
-
-                    tw.Write(sb.ToString());
+                    tw.Write(losa.ToStringFollowing());
                 }
             }
+        }
+
+        protected static void Validate(ParserRuleContext context)
+        {
+            if (context == null)
+                return;
+            if (context.exception != null)
+                throw context.exception;
+            for (int i = 0; i < context.ChildCount; i++)
+                Validate(context.GetChild(i) as ParserRuleContext);
         }
 
         protected abstract string StExtension();
@@ -117,17 +120,21 @@ namespace CodeGen
             }
 
             protected abstract Losa LosaAdd(Losa losaRight);
+
+            public abstract string ToStringFollowing();
         }
 
         public class Lne : Losa
         {
-            public readonly Statm statm;
-            public Lne lneNext { get; private set; }
+            private readonly Statm statm;
+            private Lne lneNext;
+            private Lne lneLast;
 
             public Lne(Idtr idtr, Statm statm, Lne lneNext) : base(idtr)
             {
                 this.statm = statm;
                 this.lneNext = lneNext;
+                this.lneLast = this;
             }
 
             public override string ToString()
@@ -138,20 +145,22 @@ namespace CodeGen
 
             public static Lne operator +(Lne lneLeft, Lne lneRight)
             {
-                Lne lneCur = lneLeft.lneNext;
-                Lne lnePrev = lneLeft;
-                while (lneCur != null)
-                {
-                    lnePrev = lneCur;
-                    lneCur = lneCur.lneNext;
-                }
-                lnePrev.lneNext = lneRight;
+                Lne lneLastCur = lneLeft.lneLast;
+                Lne lneLastNew = lneRight.lneLast;
+                Debug.Assert(lneLastNew.lneNext == null && lneLastCur.lneNext == null);
+
+                lneLastCur.lneNext = lneRight;
+
+                lneLeft.lneLast = lneLastNew;
+                lneRight.lneLast = null;
+
                 return lneLeft;
             }
 
             public static Lne operator +(Lne lneLeft, Statm statmRight)
             {
-                return new Lne(lneLeft.idtr, lneLeft.statm == null ? statmRight : lneLeft.statm + statmRight, lneLeft.lneNext);
+                Lne lneLast = lneLeft.lneLast;
+                return new Lne(lneLast.idtr, lneLast.statm == null ? statmRight : lneLast.statm + statmRight, lneLast.lneNext);
             }
 
             public static Lne operator +(Statm statmLeft, Lne lneRight)
@@ -165,6 +174,14 @@ namespace CodeGen
                 if (lneRight != null)
                     return this + lneRight;
                 return this + (Statm)losaRight;
+            }
+
+            public override string ToStringFollowing()
+            {
+                string stThis = ToString() + Environment.NewLine;
+                if (lneNext != null)
+                    stThis += lneNext.ToStringFollowing();
+                return stThis;
             }
         }
 
@@ -200,6 +217,11 @@ namespace CodeGen
                     return this + statmRight;
                 return this + (Lne)losaRight;
             }
+
+            public override string ToStringFollowing()
+            {
+                return ToString();
+            }
         }
 
         #endregion
@@ -210,7 +232,12 @@ namespace CodeGen
         private Losa LosaInclude(string stFile) => LneNew(@"#include """ + stFile + @"""");
         public override Losa VisitFractal(FPLParser.FractalContext fractal)
         {
+#if DEBUG_GEN
             Debugger.Launch();
+#endif
+#if VALIDATE_GEN
+            Validate(fractal);
+#endif
             Losa losaProg = LosaInclude("parameters.hlsl");
             foreach (FPLParser.FuncContext func in fractal.func())
             {
@@ -225,7 +252,7 @@ namespace CodeGen
         {
             Losa losaArgs = VisitArglist(func.arglist());
             Losa losaBlock = VisitBlock(func.block());
-            Losa losaFunc = LneNew() + VisitRetType(func.retType()) + " " + func.Identifier().GetText() + "(" + losaArgs + ")"
+            Losa losaFunc = LneNew() + VisitRetType(func.retType()) + " " + VisitIdentifier(func.identifier()) + "(" + losaArgs + ")"
                 + losaBlock;
             return losaFunc;
         }
@@ -237,7 +264,7 @@ namespace CodeGen
             for (int iarg = 0; iarg < rgarg.Length; iarg++)
             {
                 FPLParser.ArgContext arg = rgarg[iarg];
-                losaArglist = losaArglist + VisitType(arg.type()) + " " + arg.Identifier().GetText();
+                losaArglist = losaArglist + VisitType(arg.type()) + " " + VisitIdentifier(arg.identifier());
                 if (iarg != rgarg.Length - 1)
                     losaArglist = losaArglist + ", ";
             }
@@ -263,17 +290,12 @@ namespace CodeGen
 
         public override Losa VisitLocalDecl(FPLParser.LocalDeclContext localDecl)
         {
-            return VisitType(localDecl.type()) + " " + localDecl.Identifier().GetText() + " = " + VisitExpr(localDecl.expr()) + ";";
-        }
-
-        public override Losa VisitExpr(FPLParser.ExprContext expr)
-        {
-            return expr.GetText();
+            return VisitType(localDecl.type()) + " " + VisitIdentifier(localDecl.identifier()) + " = " + VisitExpr(localDecl.expr()) + ";";
         }
 
         public override Losa VisitIfStat(FPLParser.IfStatContext ifStat)
         {
-            Losa losaIfStat = LneNew() + "if (" + VisitParExpr(ifStat.parExpr()) + ")";
+            Losa losaIfStat = LneNew() + "if " + VisitParExpr(ifStat.parExpr());
             var rgstat = ifStat.stat();
             for (int istat = 0; istat < rgstat.Length; istat++)
             {
@@ -287,10 +309,54 @@ namespace CodeGen
 
         public override Losa VisitForStat(FPLParser.ForStatContext forStat)
         {
-            Losa losaForStat = LneNew() + "for (" + VisitForInit(forStat.forInit()) + ";" + VisitExpr(forStat.expr()[0]) + ";" + VisitExpr(forStat.expr()[1]) + ")" + VisitBlock(forStat.block());
+            Losa losaForStat = LneNew() + "for (" + VisitForInit(forStat.forInit()) + " " + VisitExpr(forStat.expr()) + "; " + VisitForUpdate(forStat.forUpdate()) + ")" + VisitStat(forStat.stat());
             return losaForStat;
         }
 
+        public override Losa VisitForInit(FPLParser.ForInitContext forInit)
+        {
+            Losa losaChildren = base.VisitForInit(forInit);
+            if (forInit.localDecl() == null)
+                losaChildren += ";";
+            return losaChildren;
+        }
+
+        public override Losa VisitExprList(FPLParser.ExprListContext exprList)
+        {
+            Losa losaExprList = "";
+            FPLParser.ExprContext[] rgexpr = exprList.expr();
+            for (int iexpr = 0; iexpr < rgexpr.Length; iexpr++)
+            {
+                Losa losaExpr = VisitExpr(rgexpr[iexpr]);
+                losaExprList += iexpr == 0
+                    ? losaExpr
+                    : ", " + losaExpr;
+            }
+            return losaExprList;
+        }
+
+        public override Losa VisitParExpr(FPLParser.ParExprContext parExpr)
+        {
+            return "(" + VisitExpr(parExpr.expr()) + ")";
+        }
+
+        public override Losa VisitExpr(FPLParser.ExprContext expr)
+        {
+            Losa losaExpr = "";
+            foreach (IParseTree child in expr.children)
+                losaExpr += Visit(child);
+            return losaExpr;
+        }
+
+        public override Losa VisitBinaryOperator(FPLParser.BinaryOperatorContext binaryOperator)
+        {
+            return binaryOperator.GetText();
+        }
+
+        public override Losa VisitAssignmentOperator(FPLParser.AssignmentOperatorContext assignmentOperator)
+        {
+            return assignmentOperator.GetText();
+        }
 
         public override Losa VisitType(FPLParser.TypeContext type)
         {
@@ -304,10 +370,22 @@ namespace CodeGen
             }
         }
 
+        public override Losa VisitLiteral(FPLParser.LiteralContext literal)
+        {
+            return literal.GetText();
+        }
+
+        public override Losa VisitIdentifier(FPLParser.IdentifierContext identifier)
+        {
+            return identifier.GetText();
+        }
+
         protected override Losa AggregateResult(Losa aggregate, Losa nextResult)
         {
-            Debug.Assert(aggregate == null || nextResult == null);
-            return aggregate ?? nextResult;
+            // Debug.Assert(aggregate == null || nextResult == null);
+            if (aggregate != null)
+                return nextResult == null ? aggregate : nextResult + aggregate;
+            return nextResult;
         }
 
         protected override string StExtension() => ".hlsl";

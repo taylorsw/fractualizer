@@ -2,13 +2,11 @@
 {
 	float DE_fractal(v3 pos)
 	{
+		int i = 1.53;
+
 		float iterations = param;
 		int iterations = 10;
-		float Bailout = 5;
 
-		v3 z = pos;
-		float dr = 1.0;
-		float r = 0.0;
 		if (bar)
 		{
 			{
@@ -21,11 +19,9 @@
 			float c = 13.0;
 		}
 
-		/*for (int i = 0; 10;)
+		for (int i = 0; i < 1; i += 3)
 		{
 			float y = 0;
-		}*/
+		}
 	}
-
-	v3 f() { float x = 1; }
 }
