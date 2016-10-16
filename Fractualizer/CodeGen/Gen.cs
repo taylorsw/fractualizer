@@ -288,6 +288,14 @@ namespace CodeGen
             return losaBlock;
         }
 
+        public override Losa VisitBlockStat(FPLParser.BlockStatContext blockStat)
+        {
+            Losa losaBlockStat = base.VisitBlockStat(blockStat);
+            if (blockStat.stat() != null && blockStat.stat().expr() != null)
+                losaBlockStat += ";";
+            return losaBlockStat;
+        }
+
         public override Losa VisitLocalDecl(FPLParser.LocalDeclContext localDecl)
         {
             return VisitType(localDecl.type()) + " " + VisitIdentifier(localDecl.identifier()) + " = " + VisitExpr(localDecl.expr()) + ";";
@@ -344,7 +352,12 @@ namespace CodeGen
         {
             Losa losaExpr = "";
             foreach (IParseTree child in expr.children)
-                losaExpr += Visit(child);
+            {
+                if (child is ITerminalNode)
+                    losaExpr += child.GetText();
+                else
+                    losaExpr += Visit(child);
+            }
             return losaExpr;
         }
 

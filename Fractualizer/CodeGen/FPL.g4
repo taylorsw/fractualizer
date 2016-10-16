@@ -41,6 +41,7 @@ parExpr : '(' expr ')' ;
 expr 
 	: identifier
 	| parExpr
+	| expr '(' exprList? ')'
 	| expr binaryOperator expr
 	| expr assignmentOperator expr
 	| literal
