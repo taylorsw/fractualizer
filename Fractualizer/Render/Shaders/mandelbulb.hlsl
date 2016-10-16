@@ -1,6 +1,6 @@
 ﻿#include "parameters.hlsl"
 
-float DE_fractal(float3 pos)
+float DuDeFractal(float3 pos)
 {
 	float Power = param;
 	int iterations = 10;

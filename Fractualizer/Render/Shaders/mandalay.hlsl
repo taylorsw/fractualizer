@@ -39,7 +39,7 @@ static const float4 R = float4(0.19, .1, .1, .2);
 static const float sr = 20.0;
 static const float Scale = 4.0;
 static const float MinRad2 = 0.25;
-float DE_fractal(float3 p)
+float DuDeFractal(float3 p)
 {
 	float4 JC = float4(p, 1);
 	float r2 = dot(p, p);

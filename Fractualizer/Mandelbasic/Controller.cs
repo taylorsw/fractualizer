@@ -37,7 +37,7 @@ namespace Mandelbasic
 
             stopwatch = new Stopwatch();
 
-            evtc = new EvtcAnim(renderForm, scene);
+            evtc = new EvtcExplorer(renderForm, scene);
         }
 
         public void Run()

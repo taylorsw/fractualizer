@@ -40,7 +40,7 @@ float3x3 MxRotateZ(float agr)
 }
 
 static const float PI = 3.14159265f;
-float DE_fractal(float3 pt)
+float DuDeFractal(float3 pt)
 {
 	float sf = 1.25;
 	float r = dot(pt, pt);

@@ -4,25 +4,43 @@
 #define LIGHTING
 
 static const int cmarch = 148;
+static const float3 ptOrigin = float3(0, 0, 0);
 
-#ifdef SPHERE
-static const float duRadiusSphere = 0.3;
-float DE_sphere(float3 pos)
+float DuDeSphere(float3 ptPos, float3 ptCenter, float duRadius)
 {
-	return
-		min(
-		length(pos) - duRadiusSphere,
-		length(pos - float3(0.7, 0.0, 2.0)) - 0.5
-		);
+	return length(ptPos - ptCenter) - duRadius;
 }
-#endif
 
-float DE(float3 pos)
+static const float duRadiusLight = 0.1;
+float DuDeLight(float3 ptPos, int iLight)
+{
+	return DuDeSphere(ptPos, rgptLight[iLight], duRadiusLight);
+}
+
+float DuDeObject(float3 ptPos)
 {
 #ifdef SPHERE
-	return DE_sphere(pos);
+	return DuDeSphere(ptPos, ptOrigin, 0.3);
 #endif
-	return DE_fractal(pos);
+	return DuDeFractal(ptPos);
+}
+
+static const int ID_FRACTAL = -1;
+float DuDeScene(float3 ptPos, out int idHit)
+{
+	idHit = ID_FRACTAL;
+	float du = DuDeObject(ptPos);
+	for (int iLight = 0; iLight < cLight; iLight++)
+	{
+		float duDeLight = DuDeLight(ptPos, iLight);
+		if (duDeLight < du)
+		{
+			du = duDeLight;
+			idHit = iLight;
+		}
+	}
+
+	return du;
 }
 
 float3 VkNormalSphere(float3 pt)
@@ -40,14 +58,14 @@ float3 VkNormal(float3 pt, float duEpsilon)
 	float3 vkY = float3(0, duEpsilon, 0);
 	float3 vkZ = float3(0, 0, duEpsilon);
 	return normalize(float3(
-		DE(pt + vkX) - DE(pt - vkX),
-		DE(pt + vkY) - DE(pt - vkY),
-		DE(pt + vkZ) - DE(pt - vkZ)));
+		DuDeObject(pt + vkX) - DuDeObject(pt - vkX),
+		DuDeObject(pt + vkY) - DuDeObject(pt - vkY),
+		DuDeObject(pt + vkZ) - DuDeObject(pt - vkZ)));
 #else
-	float duDEPt = DE(pt);
-	float dx = DE(pt + float3(duEpsilon, 0, 0)) - duDEPt;
-	float dy = DE(pt + float3(0, duEpsilon, 0)) - duDEPt;
-	float dz = DE(pt + float3(0, 0, duEpsilon)) - duDEPt;
+	float duDEPt = DuDeObject(pt);
+	float dx = DuDeObject(pt + float3(duEpsilon, 0, 0)) - duDEPt;
+	float dy = DuDeObject(pt + float3(0, duEpsilon, 0)) - duDEPt;
+	float dz = DuDeObject(pt + float3(0, 0, duEpsilon)) - duDEPt;
 	return normalize(float3(dx, dy, dz));
 #endif
 }
@@ -60,13 +78,17 @@ float DuEpsilon(float sfEpsilon, float duMarched)
 
 const static float MARCHED_TIMEOUT = -1;
 const static float MARCHED_LIMIT = -2;
-float4 PtMarch(float3 pt, float3 vk, float sfEpsilon, float duMax, out float duEpsilon)
+float4 PtMarch(float3 pt, float3 vk, float sfEpsilon, float duMax, bool fIncludeLights, out int idHit, out float duEpsilon)
 {
 	duEpsilon = -1;
 	float duTotal = 0;
 	for (int i = 0; i < cmarch; ++i)
 	{
-		float du = 0.999 * DE(pt);
+		idHit = ID_FRACTAL;
+		float du = 0.999 * fIncludeLights
+			? DuDeScene(pt, idHit)
+			: DuDeObject(pt);
+
 		pt += du * vk;
 		duTotal += du;
 		duEpsilon = DuEpsilon(sfEpsilon, duTotal);
@@ -110,12 +132,16 @@ float3 ColorFog(float3 color, float3 fogColor, float duMarched)
 }
 
 //static const float3 ptLight = float3(100, 0, 0);
-static const float3 colorDiffuse = float3(1, 1, 1);
-static const float3 colorSpecular = float3(1, 1, 1);
+static const float3 WHITE = float3(1, 1, 1);
+static const float3 colorDiffuse = WHITE;
+static const float3 colorSpecular = WHITE;
 static const float shininess = 18.0;
-static const float sfEpsilonShadow = 2.0;
-float3 ColorBP(float3 color, float3 ptSurface, float duEpsilon)
+static const float sfEpsilonShadow = 5.0;
+float3 ColorBP(float3 color, float3 ptSurface, int idHit, float duEpsilon)
 {
+	if (idHit != ID_FRACTAL)
+		return WHITE;
+
 	color = 0.4 * color;
 
 	for (int iLight = 0; iLight < cLight; iLight++)
@@ -127,10 +153,11 @@ float3 ColorBP(float3 color, float3 ptSurface, float duEpsilon)
 		bool fInShadow = false;
 
 #ifdef SHADOWS
-		float _;
+		float epsilonIgnore;
+		int idHitIgnore;
 		float3 ptShadowStart = ptSurface + vkCameraDir * 1.1 * DuEpsilon(sfEpsilonShadow, length(ptCamera - ptSurface));
 		float duToLight = length(vkSurfaceToLight);
-		float4 shadow = PtMarch(ptShadowStart, vkLightDir, sfEpsilonShadow, duToLight, _);
+		float4 shadow = PtMarch(ptShadowStart, vkLightDir, sfEpsilonShadow, duToLight, false, idHitIgnore, epsilonIgnore);
 
 		// TODO: Should probably check if marched at least dist to light
 		if (shadow.w != MARCHED_LIMIT)
@@ -186,8 +213,9 @@ float4 main(float4 position : SV_POSITION) : SV_TARGET
 	float3 vkRay = normalize(ptPlane - ptCamera);
 
 	float duEpsilon;
+	int idHit;
 	float sfEpsilon = 2.0;
-	float4 ptMarched = PtMarch(ptCamera, vkRay, sfEpsilon, duMarchLimit, duEpsilon);
+	float4 ptMarched = PtMarch(ptCamera, vkRay, sfEpsilon, duMarchLimit, true, idHit, duEpsilon);
 
 	float duMarched = length(ptMarched.xyz - ptCamera);
 
@@ -203,7 +231,7 @@ float4 main(float4 position : SV_POSITION) : SV_TARGET
 #endif
 
 #ifdef LIGHTING
-	color = ColorBP(color, ptMarched, duEpsilon);
+	color = ColorBP(color, ptMarched, idHit, duEpsilon);
 #endif
 
 	return float4(color.x, color.y, color.z, 1.0);

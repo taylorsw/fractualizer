@@ -24,7 +24,7 @@ void boxFold(inout float3 z, inout float dz) {
 	z = clamp(z, -foldingLimit, foldingLimit) * 2.0 - z;
 }
 
-float DE_fractal(float3 z)
+float DuDeFractal(float3 z)
 {
 	float sf = 2;
 	float sfNormalizing = 3 * (sf + 1) / (sf - 1);

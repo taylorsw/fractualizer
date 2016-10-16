@@ -34,8 +34,8 @@ namespace Render
                     duNear: 0.5f,
                     rsScreen: new Vector2(width, height),
                     rsViewPlane: new Vector2(dxView, dxView*height/width),
-                    ptLight: new Vector3(100, 0, -50),
-                    ptLight2: new Vector3(-100, 0, -50));
+                    ptLight: new Vector3(2, 0, -1),
+                    ptLight2: new Vector3(-2, 0, -1.5f));
             }
 
             [FieldOffset(0)]
