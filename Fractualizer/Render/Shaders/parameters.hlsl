@@ -1,3 +1,5 @@
+static const int cLightMax = 20;
+
 cbuffer Parameters
 {
 	float3 ptCamera;
@@ -10,5 +12,6 @@ cbuffer Parameters
 	float param2;
 
 	float fogA;
-	float3 ptLight;
+	int cLight;
+	float3 rgptLight[cLightMax];
 }

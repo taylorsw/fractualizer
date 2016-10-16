@@ -110,47 +110,51 @@ float3 ColorFog(float3 color, float3 fogColor, float duMarched)
 }
 
 //static const float3 ptLight = float3(100, 0, 0);
-static const float3 colorDiffuse = float3(0.5, 0.5, 0.5);
-static const float3 colorSpecular = float3(0.8, 0.8, 0.8);
+static const float3 colorDiffuse = float3(1, 1, 1);
+static const float3 colorSpecular = float3(1, 1, 1);
 static const float shininess = 18.0;
 static const float sfEpsilonShadow = 2.0;
 float3 ColorBP(float3 color, float3 ptSurface, float duEpsilon)
 {
-	float3 vkNormal = VkNormal(ptSurface, duEpsilon);
-	float3 vkSurfaceToLight = ptLight - ptSurface;
-	float3 vkLightDir = normalize(vkSurfaceToLight);
-	float3 vkCameraDir = normalize(ptCamera - ptSurface);
-	float3 colorAmbient = 0.4 * color;
-	bool fInShadow = false;
+	color = 0.4 * color;
+
+	for (int iLight = 0; iLight < cLight; iLight++)
+	{
+		float3 vkNormal = VkNormal(ptSurface, duEpsilon);
+		float3 vkSurfaceToLight = rgptLight[iLight] - ptSurface;
+		float3 vkLightDir = normalize(vkSurfaceToLight);
+		float3 vkCameraDir = normalize(ptCamera - ptSurface);
+		bool fInShadow = false;
 
 #ifdef SHADOWS
-	float _;
-	float3 ptShadowStart = ptSurface + vkCameraDir * 1.1 * DuEpsilon(sfEpsilonShadow, length(ptCamera - ptSurface));
-	float duToLight = length(vkSurfaceToLight);
-	float4 shadow = PtMarch(ptShadowStart, vkLightDir, sfEpsilonShadow, duToLight, _);
+		float _;
+		float3 ptShadowStart = ptSurface + vkCameraDir * 1.1 * DuEpsilon(sfEpsilonShadow, length(ptCamera - ptSurface));
+		float duToLight = length(vkSurfaceToLight);
+		float4 shadow = PtMarch(ptShadowStart, vkLightDir, sfEpsilonShadow, duToLight, _);
 
-	// TODO: Should probably check if marched at least dist to light
-	if (shadow.w != MARCHED_LIMIT)
-		fInShadow = true;
+		// TODO: Should probably check if marched at least dist to light
+		if (shadow.w != MARCHED_LIMIT)
+			fInShadow = true;
 #endif
 
-	if (fInShadow)
-		return colorAmbient;
+		if (fInShadow)
+			continue;
 
-	float lambertian = max(dot(vkLightDir, vkNormal), 0.0);
-	float specular = 0.0;
+		float lambertian = max(dot(vkLightDir, vkNormal), 0.0);
+		float specular = 0.0;
 
-	if (lambertian > 0.0)
-	{
-		float3 vkHalf = normalize(vkLightDir + vkCameraDir);
-		float cos = max(dot(vkHalf, vkNormal), 0.0);
-		specular = pow(cos, shininess);
+		if (lambertian > 0.0)
+		{
+			float3 vkHalf = normalize(vkLightDir + vkCameraDir);
+			float cos = max(dot(vkHalf, vkNormal), 0.0);
+			specular = pow(cos, shininess);
+		}
+
+		color = color
+			+ 0.2 * lambertian * colorDiffuse
+			+ 0.2 * specular * colorSpecular;
+
 	}
-
-	color = colorAmbient
-		+ 0.4 * lambertian * colorDiffuse
-		+ 0.2 * specular * colorSpecular;
-
 	return color;
 }
 
@@ -182,7 +186,7 @@ float4 main(float4 position : SV_POSITION) : SV_TARGET
 	float3 vkRay = normalize(ptPlane - ptCamera);
 
 	float duEpsilon;
-	float sfEpsilon = 1.0;
+	float sfEpsilon = 2.0;
 	float4 ptMarched = PtMarch(ptCamera, vkRay, sfEpsilon, duMarchLimit, duEpsilon);
 
 	float duMarched = length(ptMarched.xyz - ptCamera);

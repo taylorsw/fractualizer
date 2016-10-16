@@ -22,7 +22,7 @@ namespace Render
         public Light[] rglight;
         public readonly FractalRenderer fractalRenderer;
 
-        [StructLayout(LayoutKind.Explicit, Size=96)]
+        [StructLayout(LayoutKind.Explicit, Size=128)]
         public struct Camera
         {
             public static Camera Initial(int width, int height)
@@ -34,7 +34,8 @@ namespace Render
                     duNear: 0.5f,
                     rsScreen: new Vector2(width, height),
                     rsViewPlane: new Vector2(dxView, dxView*height/width),
-                    ptLight: new Vector3(100, 0, -50));
+                    ptLight: new Vector3(100, 0, -50),
+                    ptLight2: new Vector3(-100, 0, -50));
             }
 
             [FieldOffset(0)]
@@ -67,15 +68,20 @@ namespace Render
             public float fogA;
 
             [FieldOffset(80)]
+            public int cLight;
+
+            [FieldOffset(96)]
             public Vector3 ptLight;
 
+            [FieldOffset(108)]
+            public Vector3 ptLight2;
 
             public Vector3 ptPlaneCenter => ptCamera + vkCamera * duNear;
 
             // Unit Vector
             public Vector3 vkCameraRight => Vector3.Cross(vkCameraDown, vkCamera).Normalized();
 
-            public Camera(Vector3 ptCamera, Vector3 vkCamera, Vector3 vkCameraDown, float duNear, Vector2 rsScreen, Vector2 rsViewPlane, Vector3 ptLight)
+            public Camera(Vector3 ptCamera, Vector3 vkCamera, Vector3 vkCameraDown, float duNear, Vector2 rsScreen, Vector2 rsViewPlane, Vector3 ptLight, Vector3 ptLight2)
             {
                 this.ptCamera = ptCamera;
                 this.vkCamera = vkCamera;
@@ -87,6 +93,8 @@ namespace Render
                 this.param2 = 1.0f;
                 this.fogA = 1.0f;
                 this.ptLight = ptLight;
+                this.ptLight2 = ptLight2;
+                this.cLight = 2;
             }
 
             public void RotateCamera(float dagrUp, float dagrRight)
