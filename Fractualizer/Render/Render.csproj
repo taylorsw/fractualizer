@@ -66,38 +66,30 @@
     <Compile Include="Util.cs" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Shaders\mandelbox.hlsl">
+    <EmbeddedResource Include="ShadersKludge\mandelbox.hlsl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Shaders\mandelbulb.hlsl">
+    <EmbeddedResource Include="ShadersKludge\mandelbrot.hlsl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
-    <EmbeddedResource Include="Shaders\mandelbrot.hlsl">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Shaders\vertexShader.hlsl">
+    <EmbeddedResource Include="ShadersKludge\vertexShader.hlsl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Shaders\tetrahedron.hlsl">
+    <EmbeddedResource Include="ShadersKludge\tetrahedron.hlsl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Shaders\dummy.hlsl">
+    <EmbeddedResource Include="ShadersKludge\rayTracer.hlsl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Shaders\rayTracer.hlsl">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Shaders\parameters.hlsl">
+    <EmbeddedResource Include="ShadersKludge\parameters.hlsl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
   </ItemGroup>
@@ -108,7 +100,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Shaders\mandalay.hlsl">
+    <EmbeddedResource Include="ShadersKludge\mandalay.hlsl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
   </ItemGroup>

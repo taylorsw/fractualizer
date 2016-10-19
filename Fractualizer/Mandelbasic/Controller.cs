@@ -8,7 +8,7 @@ using SharpDX.Windows;
 
 namespace Mandelbasic
 {
-    partial class Controller : IDisposable, IHaveScene
+    class Controller : IDisposable, IHaveScene
     {
         private readonly RenderForm renderForm;
         private readonly Renderer renderer;

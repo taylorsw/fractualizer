@@ -5,16 +5,32 @@ namespace Fractals
 {
     public abstract class Fractal3d
     {
+        // todo make this not virtual
+        public virtual string StShaderPath()
+        {
+            return "Shaders/" + GetType().Name + ".hlsl";
+        }
+
         public abstract double DuEstimate(Vector3 pt);
     }
 
     public class Mandelbrot : Fractal3d
     {
+        public override string StShaderPath()
+        {
+            return "ShadersKludge/" + GetType().Name + ".hlsl";
+        }
+
         public override double DuEstimate(Vector3 pt) => 1;
     }
 
     public class Tetrahedron : Fractal3d
     {
+        public override string StShaderPath()
+        {
+            return "ShadersKludge/" + GetType().Name + ".hlsl";
+        }
+
         public override double DuEstimate(Vector3 pt)
         {
             return 1;
@@ -23,6 +39,11 @@ namespace Fractals
 
     public class Mandelbox : Fractal3d
     {
+        public override string StShaderPath()
+        {
+            return "ShadersKludge/" + GetType().Name + ".hlsl";
+        }
+
         public override double DuEstimate(Vector3 pt)
         {
             return 1;
@@ -31,11 +52,17 @@ namespace Fractals
 
     public class Mandalay : Fractal3d
     {
+        public override string StShaderPath()
+        {
+            return "ShadersKludge/" + GetType().Name + ".hlsl";
+        }
+
         public override double DuEstimate(Vector3 pt) => 1;
     }
 
     public class Mandelbulb : Fractal3d
     {
+        // todo this is wrong
         public override double DuEstimate(Vector3 pt)
         {
             double power = 8;

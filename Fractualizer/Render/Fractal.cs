@@ -18,7 +18,7 @@ namespace Render
 
         public class IncludeFX : Include
         {
-            static string includeDirectory = "Shaders/";
+            static string includeDirectory = "ShadersKludge/";
 
             public Stream Open(IncludeType type, string fileName, Stream parentStream)
             {
@@ -42,9 +42,9 @@ namespace Render
 
         public virtual void InitializeFractal(D3D11.Device d3dDevice, D3D11.DeviceContext deviceContext)
         {
-            string stShader = fractal.GetType().Name.ToLower() + ".hlsl";
+            string stShaderPath = fractal.StShaderPath();
             using (
-                var pixelShaderByteCode = ShaderBytecode.CompileFromFile("Shaders/" + stShader, "main", "ps_4_0",
+                var pixelShaderByteCode = ShaderBytecode.CompileFromFile(stShaderPath, "main", "ps_4_0",
                     ShaderFlags.Debug, include: new IncludeFX()))
             {
                 string stErr = pixelShaderByteCode.Message;

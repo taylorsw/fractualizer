@@ -59,7 +59,7 @@ namespace Render
         {
             triangleVertexBuffer = D3D11.Buffer.Create<Vector3>(device, D3D11.BindFlags.VertexBuffer, vertices);
 
-            using (var vertexShaderByteCode = ShaderBytecode.CompileFromFile("Shaders/vertexShader.hlsl", "main", "vs_4_0", ShaderFlags.Debug))
+            using (var vertexShaderByteCode = ShaderBytecode.CompileFromFile("ShadersKludge/vertexShader.hlsl", "main", "vs_4_0", ShaderFlags.Debug))
             {
                 inputSignature = ShaderSignature.GetInputSignature(vertexShaderByteCode);
                 vertexShader = new D3D11.VertexShader(device, vertexShaderByteCode);

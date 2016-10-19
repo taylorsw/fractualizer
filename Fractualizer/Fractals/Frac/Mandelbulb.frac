@@ -1,31 +1,37 @@
 ﻿fractal Mandelbulb 
 {
-	float DE_fractal(v3 pos)
+	float DuDeFractal(v3 pos)
 	{
-		int i = 1.53;
-
-		x = 2*3+(1-3);
-
-		r = length(z);
-
-		float iterations = param;
+		float Power = param;
 		int iterations = 10;
+		float Bailout = 5;
 
-		if (bar)
+		v3 z = pos;
+		float dr = 1.0;
+		float r = 0.0;
+		for (int i = 0; i < iterations; i++)
 		{
-			{
-				float x = 54;
-			}
-			float b = 2.0;
-		}
-		else
-		{
-			float c = 13.0;
-		}
+			r = length(z);
+			if (r > Bailout)
+				break;
+			
+			// convert to polar coordinates
+			float theta = acos(z.z / r) / param2;
+			float phi = atan(z.y / z.x) * param2;
+			dr = pow(r, Power - 1.0) * Power * dr + 1.0;
 
-		for (int i = 0; i < 1; i += 3)
-		{
-			float y = 0;
+			// scale and rotate the point
+			float zr = pow(r, Power);
+			theta = theta * Power;
+			phi = phi * Power;
+
+			// convert back to cartesian coordinates
+			z = zr * v3(
+				sin(theta) * cos(phi),
+				sin(phi) * sin(theta),
+				cos(theta));
+			z += pos;
 		}
+		return 0.5 * log(r) * r / dr;
 	}
 }

@@ -4,6 +4,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Text;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
@@ -11,24 +12,39 @@ using FPL;
 
 namespace CodeGen
 {
-    abstract class FPLTranspiler : FPLBaseVisitor<FPLTranspiler.Losa>
+    internal abstract class FPLTranspiler : FPLBaseVisitor<FPLTranspiler.Losa>
     {
-        public Idtr idtrCur { get; private set; }
+        protected Idtr idtrCur { get; private set; }
 
-        public void GenFile(FPLParser.FractalContext fractalContext, string stDirectory)
+        internal void GenFile(FPLParser.FractalContext fractal, string stDirectory)
         {
             idtrCur = Idtr.Initial(this);
 
-            string stFileOutput = Path.Combine(stDirectory, VisitIdentifier(fractalContext.identifier()).ToString() + StExtension());
+            string stFileOutput = Path.Combine(stDirectory, VisitIdentifier(fractal.identifier()).ToString() + StExtension());
             Directory.CreateDirectory(stDirectory);
             using (FileStream fs = File.Create(stFileOutput))
             {
                 using (TextWriter tw = new StreamWriter(fs))
                 {
-                    Losa losa = VisitFractal(fractalContext);
-                    tw.Write(losa.ToStringFollowing());
+                    string stGenFile = StTranspile(fractal);
+                    tw.Write(stGenFile);
                 }
             }
+        }
+
+        internal static FPLParser.FractalContext FractalFromAntlrInputStream(AntlrInputStream antlrInputStream)
+        {
+            FPLLexer fplLexer = new FPLLexer(antlrInputStream);
+            CommonTokenStream cts = new CommonTokenStream(fplLexer);
+            FPLParser fplParser = new FPLParser(cts);
+            FPLParser.FractalContext fractal = fplParser.fractal();
+            return fractal;
+        }
+
+        internal string StTranspile(FPLParser.FractalContext fractal)
+        {
+            Losa losa = VisitFractal(fractal);
+            return losa.ToStringFollowing();
         }
 
         protected static void Validate(ParserRuleContext context)
@@ -227,7 +243,7 @@ namespace CodeGen
         #endregion
     }
 
-    class FPLToHLSL : FPLTranspiler
+    internal class FPLToHLSL : FPLTranspiler
     {
         private Losa LosaInclude(string stFile) => LneNew(@"#include """ + stFile + @"""");
         public override Losa VisitFractal(FPLParser.FractalContext fractal)
@@ -288,17 +304,17 @@ namespace CodeGen
             return losaBlock;
         }
 
-        public override Losa VisitBlockStat(FPLParser.BlockStatContext blockStat)
-        {
-            Losa losaBlockStat = base.VisitBlockStat(blockStat);
-            if (blockStat.stat() != null && blockStat.stat().expr() != null)
-                losaBlockStat += ";";
-            return losaBlockStat;
-        }
-
         public override Losa VisitLocalDecl(FPLParser.LocalDeclContext localDecl)
         {
             return VisitType(localDecl.type()) + " " + VisitIdentifier(localDecl.identifier()) + " = " + VisitExpr(localDecl.expr()) + ";";
+        }
+
+        public override Losa VisitStat(FPLParser.StatContext stat)
+        {
+            Losa losaStat = base.VisitStat(stat);
+            if (stat.expr() != null || stat.keywordExpr() != null)
+                losaStat += ";";
+            return losaStat;
         }
 
         public override Losa VisitIfStat(FPLParser.IfStatContext ifStat)
@@ -307,7 +323,12 @@ namespace CodeGen
             var rgstat = ifStat.stat();
             for (int istat = 0; istat < rgstat.Length; istat++)
             {
-                Losa losaStat = VisitStat(rgstat[istat]);
+                FPLParser.StatContext stat = rgstat[istat];
+                Losa losaStat = VisitStat(stat);
+                if (stat.block() == null)
+                    using (idtrCur.New())
+                        losaStat = LneNew() + losaStat;
+
                 losaIfStat = istat == 0
                     ? losaIfStat + losaStat
                     : losaIfStat + LneNew("else") + losaStat;
@@ -348,6 +369,13 @@ namespace CodeGen
             return "(" + VisitExpr(parExpr.expr()) + ")";
         }
 
+        public override Losa VisitKeywordExpr(FPLParser.KeywordExprContext context)
+        {
+            if (context.expr() == null)
+                return VisitKeywordSingle(context.keywordSingle());
+            return VisitKeywordPrefix(context.keywordPrefix()) + " " + VisitExpr(context.expr());
+        }
+
         public override Losa VisitExpr(FPLParser.ExprContext expr)
         {
             Losa losaExpr = "";
@@ -361,14 +389,34 @@ namespace CodeGen
             return losaExpr;
         }
 
-        public override Losa VisitBinaryOperator(FPLParser.BinaryOperatorContext binaryOperator)
+        public override Losa VisitBinaryOp(FPLParser.BinaryOpContext binaryOp)
         {
-            return binaryOperator.GetText();
+            return binaryOp.GetText();
         }
 
-        public override Losa VisitAssignmentOperator(FPLParser.AssignmentOperatorContext assignmentOperator)
+        public override Losa VisitAssignmentOp(FPLParser.AssignmentOpContext assignmentOp)
         {
-            return assignmentOperator.GetText();
+            return assignmentOp.GetText();
+        }
+
+        public override Losa VisitUnaryOp(FPLParser.UnaryOpContext unaryOp)
+        {
+            return unaryOp.GetText();
+        }
+
+        public override Losa VisitPrefixUnaryOp(FPLParser.PrefixUnaryOpContext prefixUnaryOp)
+        {
+            return prefixUnaryOp.GetText();
+        }
+
+        public override Losa VisitKeywordPrefix(FPLParser.KeywordPrefixContext keywordPrefix)
+        {
+            return keywordPrefix.GetText();
+        }
+
+        public override Losa VisitKeywordSingle(FPLParser.KeywordSingleContext keywordSingle)
+        {
+            return keywordSingle.GetText();
         }
 
         public override Losa VisitType(FPLParser.TypeContext type)
@@ -397,7 +445,7 @@ namespace CodeGen
         {
             // Debug.Assert(aggregate == null || nextResult == null);
             if (aggregate != null)
-                return nextResult == null ? aggregate : nextResult + aggregate;
+                return nextResult == null ? aggregate : aggregate + nextResult;
             return nextResult;
         }
 
@@ -420,14 +468,10 @@ namespace CodeGen
                     continue;
 
                 AntlrFileStream afs = new AntlrFileStream(stFile);
-                FPLLexer fplLexer = new FPLLexer(afs);
-                CommonTokenStream cts = new CommonTokenStream(fplLexer);
-                FPLParser fplParser = new FPLParser(cts);
-
-                FPLParser.FractalContext fractalContext = fplParser.fractal();
+                FPLParser.FractalContext fractal = FPLTranspiler.FractalFromAntlrInputStream(afs);
 
                 FPLToHLSL fplToHlsl = new FPLToHLSL();
-                fplToHlsl.GenFile(fractalContext, stDirectoryOut);
+                fplToHlsl.GenFile(fractal, stDirectoryOut);
             }
 
             return 0;

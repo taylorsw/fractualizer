@@ -22,6 +22,22 @@ stat
 	| forStat
 	| expr ';'
 	| ';'
+	| keywordExpr
+	;
+
+keywordExpr
+	: keywordSingle ';'
+	| keywordPrefix expr ';'
+	;
+
+keywordSingle
+	: 'break'
+	| 'continue'
+	;
+
+keywordPrefix
+	: 'return'
+	| 'throw'
 	;
 
 ifStat : 'if' parExpr stat ('else' stat)? ;
@@ -41,17 +57,22 @@ parExpr : '(' expr ')' ;
 expr 
 	: identifier
 	| parExpr
+	| expr '.' identifier
 	| expr '(' exprList? ')'
-	| expr binaryOperator expr
-	| expr assignmentOperator expr
+	| type '(' exprList? ')'
+	| expr binaryOp expr
+	| expr assignmentOp expr
+	| expr unaryOp
+	| (prefixUnaryOp | unaryOp) expr
 	| literal
 	;
 
-binaryOperator : 
+binaryOp : 
 	'+' 
 	| '-' 
 	| '*' 
-	| '%' 
+	| '%'
+	| '/'
 	| '<' 
 	| '<=' 
 	| '>' 
@@ -62,7 +83,7 @@ binaryOperator :
 	| '||'
 	;
 
-assignmentOperator :
+assignmentOp :
 	'='
     | '+='
     | '-='
@@ -75,6 +96,17 @@ assignmentOperator :
     | '>>>='
     | '<<='
     | '%='
+	;
+
+unaryOp :
+	'++'
+	| '--'
+	;
+
+prefixUnaryOp :
+	'+'
+	| '-'
+	| '!'
 	;
 
 retType : type | 'void' ;
