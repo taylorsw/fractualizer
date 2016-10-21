@@ -15,6 +15,8 @@ namespace Render
 
     public class Scene : IDisposable
     {
+        public readonly Random rand = new Random(1984);
+
         private const float dxView = 1;
         private D3D11.Buffer cameraBuffer;
 

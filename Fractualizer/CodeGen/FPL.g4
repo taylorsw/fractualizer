@@ -1,6 +1,11 @@
 grammar FPL;
 
-fractal : 'fractal' identifier '{' func* '}' ;
+fractal : input* 'fractal' identifier '{' distanceEstimator func* '}' ;
+
+input : arg ;
+
+distanceEstimator : 'DE()' block ;
+
 func : retType identifier '(' arglist ')' block ;
 arglist : arg?
 		| arg (',' arg)*

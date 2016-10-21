@@ -255,13 +255,20 @@ namespace CodeGen
             Validate(fractal);
 #endif
             Losa losaProg = LosaInclude("parameters.hlsl");
+            losaProg += VisitDistanceEstimator(fractal.distanceEstimator());
             foreach (FPLParser.FuncContext func in fractal.func())
             {
                 Losa losaFunc = VisitFunc(func);
-                losaProg = losaProg + losaFunc;
+                losaProg += losaFunc;
             }
-            losaProg = losaProg + LosaInclude("rayTracer.hlsl");
+            losaProg += LosaInclude("rayTracer.hlsl");
             return losaProg;
+        }
+
+        public override Losa VisitDistanceEstimator(FPLParser.DistanceEstimatorContext distanceEstimator)
+        {
+            Losa losaDE = LneNew("float DuDeFractal(float3 pos)") + VisitBlock(distanceEstimator.block());
+            return losaDE;
         }
 
         public override Losa VisitFunc(FPLParser.FuncContext func)

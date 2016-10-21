@@ -1,6 +1,8 @@
-﻿fractal Mandelbulb 
+﻿float param;
+float param2;
+fractal Mandelbulb
 {
-	float DuDeFractal(v3 pos)
+	DE()
 	{
 		float Power = param;
 		int iterations = 10;

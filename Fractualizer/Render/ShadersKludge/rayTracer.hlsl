@@ -11,7 +11,7 @@ float DuDeSphere(float3 ptPos, float3 ptCenter, float duRadius)
 	return length(ptPos - ptCenter) - duRadius;
 }
 
-static const float duRadiusLight = 0.1;
+static const float duRadiusLight = 0.01;
 float DuDeLight(float3 ptPos, int iLight)
 {
 	return DuDeSphere(ptPos, rgptLight[iLight], duRadiusLight);
