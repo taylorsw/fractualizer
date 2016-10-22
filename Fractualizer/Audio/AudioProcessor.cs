@@ -29,16 +29,24 @@ namespace Audio
 
         public void StartProcessor(string filename)
         {
-            const int csampleFft = 1024;
-            waveOut = new WaveOut { DesiredLatency = 200 };
-            var reader = new AudioFileReader(filename);
-            var sampleProvider = reader.ToSampleProvider();
-            var aggregator = new SampleAggregator(sampleProvider, csampleFft);
-            aggregator.PerformFFT = true;
-            aggregator.NotificationCount = csampleFft;
-            aggregator.FftCalculated += OnFftCalculated;
-            waveOut.Init(aggregator);
-            waveOut.Play();
+            try
+            {
+                const int csampleFft = 1024;
+                waveOut = new WaveOut { DesiredLatency = 200 };
+                var reader = new AudioFileReader(filename);
+                var sampleProvider = reader.ToSampleProvider();
+                var aggregator = new SampleAggregator(sampleProvider, csampleFft);
+                aggregator.PerformFFT = true;
+                aggregator.NotificationCount = csampleFft;
+                aggregator.FftCalculated += OnFftCalculated;
+                waveOut.Init(aggregator);
+                waveOut.Play();
+                waveOut.Volume = 1.0f;
+            }
+            catch (Exception)
+            {
+                
+            }
         }
 
         private void OnFftCalculated(object sender, FftEventArgs e)
