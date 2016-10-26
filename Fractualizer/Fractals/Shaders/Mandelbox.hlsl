@@ -10,10 +10,7 @@ void sphereFold(inout float3 z, inout float dz)
 		z*=temp;
 		dz*=temp;
 	}
-	else
-
-
-	if (r2<fixedRadius2)
+	else if (r2<fixedRadius2)
 	{
 		float temp = fixedRadius2/r2;
 		z*=temp;

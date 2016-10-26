@@ -157,6 +157,13 @@ namespace CodeGen
                 this.lneLast = this;
             }
 
+            private Lne(Idtr idtr, Statm statm, Lne lneNext, Lne lneLast) : base(idtr)
+            {
+                this.statm = statm;
+                this.lneNext = lneNext;
+                this.lneLast = lneLast;
+            }
+
             public override string ToString()
             {
                 // special case of empty line is easy
@@ -185,7 +192,7 @@ namespace CodeGen
 
             public static Lne operator +(Statm statmLeft, Lne lneRight)
             {
-                return new Lne(lneRight.idtr, lneRight.statm == null ? statmLeft : statmLeft + lneRight.statm, lneRight.lneNext);
+                return new Lne(lneRight.idtr, lneRight.statm == null ? statmLeft : statmLeft + lneRight.statm, lneRight.lneNext, lneRight.lneLast);
             }
 
             protected override Losa LosaAdd(Losa losaRight)
@@ -331,13 +338,13 @@ namespace CodeGen
             {
                 FPLParser.StatContext stat = rgstat[istat];
                 Losa losaStat = VisitStat(stat);
-                if (stat.block() == null)
+                if (!(losaStat is Lne))
                     using (idtrCur.New())
                         losaStat = LneNew() + losaStat;
 
                 losaIfStat = istat == 0
                     ? losaIfStat + losaStat
-                    : losaIfStat + LneNew("else") + losaStat;
+                    : losaIfStat + ("else " + losaStat);
             }
             return losaIfStat;
         }

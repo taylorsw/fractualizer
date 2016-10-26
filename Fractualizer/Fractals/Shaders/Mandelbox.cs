@@ -16,10 +16,7 @@ namespace Fractals
 				z*=temp;
 				dz*=temp;
 			}
-			else
-
-
-			if (r2<fixedRadius2)
+			else if (r2<fixedRadius2)
 			{
 				double temp = fixedRadius2/r2;
 				z*=temp;
