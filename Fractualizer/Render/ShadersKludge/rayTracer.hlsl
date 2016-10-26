@@ -31,7 +31,7 @@ float DuDeScene(float3 ptPos, out int idHit)
 {
 	idHit = ID_FRACTAL;
 	float du = DuDeObject(ptPos);
-#if VISUALIZE_LIGHTING
+#ifdef VISUALIZE_LIGHTING
 	for (int iLight = 0; iLight < cLight; iLight++)
 	{
 		float duDeLight = DuDeLight(ptPos, iLight);
