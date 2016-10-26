@@ -2,6 +2,7 @@
 //#define ACCUNORMAL
 #define SHADOWS
 #define LIGHTING
+#define VISUALIZE_LIGHTING
 
 static const int cmarch = 148;
 static const float3 ptOrigin = float3(0, 0, 0);
@@ -30,6 +31,7 @@ float DuDeScene(float3 ptPos, out int idHit)
 {
 	idHit = ID_FRACTAL;
 	float du = DuDeObject(ptPos);
+#if VISUALIZE_LIGHTING
 	for (int iLight = 0; iLight < cLight; iLight++)
 	{
 		float duDeLight = DuDeLight(ptPos, iLight);
@@ -39,6 +41,7 @@ float DuDeScene(float3 ptPos, out int idHit)
 			idHit = iLight;
 		}
 	}
+#endif
 
 	return du;
 }
@@ -92,11 +95,12 @@ float4 PtMarch(float3 pt, float3 vk, float sfEpsilon, float duMax, bool fInclude
 		pt += du * vk;
 		duTotal += du;
 		duEpsilon = DuEpsilon(sfEpsilon, duTotal);
+
+		if (duTotal > duMax)
+			return float4(pt, MARCHED_LIMIT);
+
 		if (du < duEpsilon)
 			return float4(pt, i);
-
-		if (du > duMax)
-			return float4(pt, MARCHED_LIMIT);
 	}
 	return float4(pt, MARCHED_TIMEOUT);
 }
@@ -173,7 +177,6 @@ float3 ColorBP(float3 color, float3 ptSurface, int idHit, float duEpsilon)
 		float3 vkSurfaceToLight = rgptLight[iLight] - ptSurface;
 		float3 vkLightDir = normalize(vkSurfaceToLight);
 		float3 vkCameraDir = normalize(ptCamera - ptSurface);
-		bool fInShadow = false;
 
 #ifdef SHADOWS
 		float epsilonIgnore;
@@ -184,11 +187,8 @@ float3 ColorBP(float3 color, float3 ptSurface, int idHit, float duEpsilon)
 
 		// TODO: Should probably check if marched at least dist to light
 		if (shadow.w != MARCHED_LIMIT)
-			fInShadow = true;
-#endif
-
-		if (fInShadow)
 			continue;
+#endif
 
 		float lambertian = max(dot(vkLightDir, vkNormal), 0.0);
 		float specular = 0.0;
