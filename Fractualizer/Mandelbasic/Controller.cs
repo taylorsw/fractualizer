@@ -71,7 +71,7 @@ namespace Mandelbasic
             bitmap.Save("test.jpg");
         }
 
-        private static int IntComponentFromDouble(double component) => (int)(255 * Util.Saturate((float)Math.Abs(component)));
+        private static int IntComponentFromDouble(double component) => (int)(255 * RenderUtil.Saturate((float)Math.Abs(component)));
 
         public void Dispose()
         {

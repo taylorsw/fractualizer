@@ -1,7 +1,7 @@
 #include "parameters.hlsl"
 float DuDeFractal(float3 pos)
 {
-	float Power = param;
+	float Power = 8;
 	int iterations = 10;
 	float Bailout = 5;
 	float3 z = pos;
@@ -12,8 +12,8 @@ float DuDeFractal(float3 pos)
 		r=length(z);
 		if (r>Bailout)
 			break;
-		float theta = acos(z.z/r)/param2;
-		float phi = atan(z.y/z.x)*param2;
+		float theta = acos(z.z/r);
+		float phi = atan(z.y/z.x);
 		dr=pow(r, Power-1.0)*Power*dr+1.0;
 		float zr = pow(r, Power);
 		theta=theta*Power;

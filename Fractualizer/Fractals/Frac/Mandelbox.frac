@@ -1,0 +1,49 @@
+﻿fractal Mandelbox
+{
+	void sphereFold(ref v3 z, ref float dz)
+	{
+		float minRadius2 = 0.25;
+		float fixedRadius2 = 1;
+
+		float r2 = dot(z, z);
+		if (r2 < minRadius2) 
+		{
+			// linear inner scaling
+			float temp = (fixedRadius2 / minRadius2);
+			z *= temp;
+			dz *= temp;
+		}
+		else if (r2 < fixedRadius2) 
+		{
+			// this is the actual sphere inversion
+			float temp = fixedRadius2 / r2;
+			z *= temp;
+			dz *= temp;
+		}
+	}
+
+	void boxFold(ref v3 z, ref float dz)
+	{
+		float foldingLimit = 1;
+		z = clamp(z, -foldingLimit, foldingLimit) * 2.0 - z;
+	}
+
+	DE()
+	{
+		float sf = 2;
+		float sfNormalizing = 3 * (sf + 1) / (sf - 1);
+		pos = pos * sfNormalizing;
+		int Iterations = 20;
+		v3 offset = pos;
+		float dr = 1.0;
+		for (int n = 0; n < Iterations; n++) {
+			boxFold(pos, dr);       // Reflect
+			sphereFold(pos, dr);    // Sphere Inversion
+
+			pos = sf * pos + offset;  // Scale & Translate
+			dr = dr*abs(sf) + 1.0;
+		}
+		float r = length(pos);
+		return r / abs(dr) / sfNormalizing;
+	}
+}

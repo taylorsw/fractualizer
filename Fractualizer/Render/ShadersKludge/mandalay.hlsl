@@ -39,7 +39,8 @@ static const float4 R = float4(0.19, .1, .1, .2);
 static const float sr = 20.0;
 static const float Scale = 4.0;
 static const float MinRad2 = 0.25;
-float DuDeFractal(float3 p)
+
+float DuDeFractalI(float3 p)
 {
 	float4 JC = float4(p, 1);
 	float r2 = dot(p, p);
@@ -70,6 +71,11 @@ float DuDeFractal(float3 p)
 	dd = abs(dd);	
 	float val = (sqrt(r2) - sr) / dd;
 	return val;//bounding volume is a sphere
+}
+
+float DuDeFractal(float3 p)
+{
+	return DuDeFractalI(10 * p) / 10;
 }
 
 #include "rayTracer.hlsl"

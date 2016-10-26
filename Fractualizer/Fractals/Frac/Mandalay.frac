@@ -1,0 +1,79 @@
+﻿fractal Mandalay
+{
+	float DBFold(v3 p, float fo, float g, float w) 
+	{
+		if (p.z>p.y)
+		{
+			float zTemp = p.z;
+			p.z = p.y;
+			p.y = zTemp;
+		}
+		float vx = p.x - 2.0*fo;
+		float vy = p.y - 4.0*fo;
+		float v = max(abs(vx + fo) - fo, vy);
+		float v1 = max(vx - g, p.y - w);
+		v = min(v, v1);
+		v1 = max(v1, -abs(p.x));
+		return min(v, p.x);
+	}
+
+	//the coordinates are pushed/pulled in parallel
+	v3 DBFoldParallel(v3 p, v3 fo, v3 g, v3 w) 
+	{
+		v3 p1 = p;
+		p.x = DBFold(p1, fo.x, g.x, w.x);
+		p.y = DBFold(v3(p1.y, p1.z, p1.x), fo.y, g.y, w.y);
+		p.z = DBFold(v3(p1.z, p1.x, p1.y), fo.z, g.z, w.z);
+		return p;
+	}
+
+	global v3 fo = v3(0.7, 0.9528, 0.9);
+	global v3 gh = v3(0.8, 0.7, 0.5638);
+	global v3 gw = v3(0.3, 0.5, 0.2);
+	global v4 X = v4(0.1, 0.5, 0.1, 0.3);
+	global v4 Y = v4(0.1, 0.8, 0.1, 0.1);
+	global v4 Z = v4(0.2, 0.2, 0.2, 0.45902);
+	global v4 R = v4(0.19, 0.1, 0.1, 0.2);
+	global float sr = 20.0;
+	global float Scale = 4.0;
+	global float MinRad2 = 0.25;
+
+	float DuDeFractalI(v3 p)
+	{
+		v3 JC = p;
+		float JCw = 1;
+		float r2 = dot(p, p);
+		float dd = 1;
+		for (int i = 0; i < 6; i++)
+		{
+			p = p - clamp(v3(p.x, p.y, p.z), -1.0, 1.0) * 2.0;  // mandelbox's box fold
+
+			//Apply pull transformation
+			v3 signs = v3(sign(p.x), sign(p.y), sign(p.z));//Save the original signs
+			p = abs(p);
+			p = DBFoldParallel(p, fo, gh, gw);
+
+			p *= signs;//resore signs: this way the mandelbrot set won't extend in negative directions
+
+			//Sphere fold
+			r2 = dot(p, p);
+			float  t = clamp(1.0 / r2, 1, 1.0 / MinRad2);
+			p *= t;
+			dd *= t;
+
+			//Scale and shift
+			p = p*Scale + JC; dd = dd*Scale + JCw;
+			p = v3(1.0, 1.0, 0.92)*p;
+
+			r2 = dot(p, p);
+		}
+		dd = abs(dd);	
+		float val = (sqrt(r2) - sr) / dd;
+		return val;//bounding volume is a sphere
+	}
+
+	DE()
+	{
+		return DuDeFractalI(10 * pos) / 10;
+	}
+}

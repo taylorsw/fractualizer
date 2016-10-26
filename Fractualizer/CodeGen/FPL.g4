@@ -1,16 +1,19 @@
 grammar FPL;
 
-fractal : input* 'fractal' identifier '{' distanceEstimator func* '}' ;
+fractal : input* 'fractal' identifier '{' global* distanceEstimator '}' ;
 
 input : arg ;
 
 distanceEstimator : 'DE()' block ;
 
+global : globalVal | func ;
+globalVal : 'global' localDecl ';' ;
 func : retType identifier '(' arglist ')' block ;
 arglist : arg?
 		| arg (',' arg)*
 		;
-arg : type identifier ;
+arg : argMod? type identifier ;
+argMod : 'ref' ;
 
 block : '{' blockStat* '}' ;
 
@@ -61,16 +64,20 @@ parExpr : '(' expr ')' ;
 
 expr 
 	: identifier
-	| parExpr
 	| expr '.' identifier
-	| expr '(' exprList? ')'
-	| type '(' exprList? ')'
+	| instantiation
+	| funcCall
+	| parExpr
 	| expr binaryOp expr
 	| expr assignmentOp expr
 	| expr unaryOp
 	| (prefixUnaryOp | unaryOp) expr
 	| literal
 	;
+
+funcCall : identifier '(' exprList? ')' ;
+
+instantiation : type '(' exprList? ')' ;
 
 binaryOp : 
 	'+' 
@@ -115,12 +122,15 @@ prefixUnaryOp :
 	;
 
 retType : type | 'void' ;
-type : 'float' | 'int' | 'v3' ;
+type : 'float' | 'int' | 'v3' | 'v4' ;
 
 literal :
-	IntLiteral
-	| FloatLiteral
+	literalInt
+	| literalFloat
 	;
+
+literalInt : IntLiteral ;
+literalFloat : FloatLiteral;
 
 identifier : ID ;
 

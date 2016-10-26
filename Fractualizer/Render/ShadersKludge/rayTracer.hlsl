@@ -101,12 +101,34 @@ float4 PtMarch(float3 pt, float3 vk, float sfEpsilon, float duMax, bool fInclude
 	return float4(pt, MARCHED_TIMEOUT);
 }
 
+float hash( float n )
+{
+    return frac(sin(n)*43758.5453);
+}
+
+float noise( float3 x )
+{
+    // The noise function returns a value in the range -1.0f -> 1.0f
+
+    float3 p = floor(x);
+    float3 f = frac(x);
+
+    f       = f*f*(3.0-2.0*f);
+    float n = p.x + p.y*57.0 + 113.0*p.z;
+
+    return lerp(lerp(lerp( hash(n+0.0), hash(n+1.0),f.x),
+                   lerp( hash(n+57.0), hash(n+58.0),f.x),f.y),
+               lerp(lerp( hash(n+113.0), hash(n+114.0),f.x),
+                   lerp( hash(n+170.0), hash(n+171.0),f.x),f.y),f.z);
+}
+
 // Basic orbit-trapping color
 float3 ColorOT(float4 marched)
 {
 #ifdef SPHERE
 	return float3(1.0, 0.0, 0.0);
 #endif
+	return float3(sin(marched.y * 7 + param * noise(marched.xyz * 10)), 0, sin(marched.x * 10 + (param / 2) * noise(marched.xyz * 10)));
 	return normalize(
 		float3(
 			length(float3(-3, 0, 0) - marched.xyz) / 4.0, 
@@ -142,7 +164,8 @@ float3 ColorBP(float3 color, float3 ptSurface, int idHit, float duEpsilon)
 	if (idHit != ID_FRACTAL)
 		return WHITE;
 
-	color = 0.4 * color;
+	float3 colorTexture = color;
+	color = 0.1 * color;
 
 	for (int iLight = 0; iLight < cLight; iLight++)
 	{
@@ -178,8 +201,8 @@ float3 ColorBP(float3 color, float3 ptSurface, int idHit, float duEpsilon)
 		}
 
 		color = color
-			+ 0.2 * lambertian * colorDiffuse
-			+ 0.2 * specular * colorSpecular;
+			+ 0.6 * lambertian * colorTexture
+			+ 0.6 * specular * colorTexture;
 
 	}
 	return color;

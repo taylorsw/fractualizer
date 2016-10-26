@@ -39,17 +39,18 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="$(ProjectDir)\Shaders\*.hlsl">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </EmbeddedResource>
+    <Compile Include="Vector3d.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Fractal3d.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Frac\Mandelbox.frac" />
+    <None Include="Frac\Mandalay.frac" />
     <None Include="Frac\Mandelbulb.frac" />
     <None Include="packages.config" />
   </ItemGroup>
@@ -71,6 +72,12 @@
   <Target Name="AfterResolveReferences">
     <Exec Command="$(SolutionDir)CodeGen\$(OutDir)CodeGen.exe $(ProjectDir)Frac $(ProjectDir)Shaders" />
   </Target>
+  <ItemGroup>
+    <EmbeddedResource Include="$(ProjectDir)\Shaders\*.hlsl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <Compile Include="$(ProjectDir)\Shaders\*.cs" />
+  </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

@@ -63,7 +63,7 @@
     <Compile Include="Raytracer.cs" />
     <Compile Include="Renderer.cs" />
     <Compile Include="Scene.cs" />
-    <Compile Include="Util.cs" />
+    <Compile Include="RenderUtil.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="ShadersKludge\mandelbox.hlsl">

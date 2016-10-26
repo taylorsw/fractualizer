@@ -3,7 +3,7 @@ using SharpDX;
 
 namespace Render
 {
-    public static class Util
+    public static class RenderUtil
     {
         public static Vector4 Cross3(this Vector4 left, Vector4 right) => new Vector4(Vector3.Cross(left.Xyz(), right.Xyz()), 1);
 
@@ -28,14 +28,5 @@ namespace Render
         }
 
         public static float Saturate(float x) => Math.Max(0, Math.Min(1, x));
-
-        public static T Clamp<T>(this T val, T min, T max) where T : IComparable
-        {
-            if (val.CompareTo(min) < 0)
-                return min;
-            if (val.CompareTo(max) > 0)
-                return max;
-            return val;
-        }
     }
 }
