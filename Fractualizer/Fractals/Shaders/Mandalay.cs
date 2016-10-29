@@ -73,7 +73,7 @@ namespace Fractals
 		}
 
 
-		public override double DuEstimate(Vector3d pos)
+		protected override double DuEstimateI(Vector3d pos)
 		{
 			return DuDeFractalI(10*pos)/10;
 		}

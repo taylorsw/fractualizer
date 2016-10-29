@@ -39,7 +39,7 @@ namespace Fractals
 		{
 			Util.UpdateBuffer(device, deviceContext, buffer, ref _mandelbulb);
 		}
-		public override void ResetInputs() { _mandelbulb = new _Mandelbulb(); }
+		public override void ResetInputs() { _mandelbulb = _Mandelbulb.I; }
 		public override int cinputFloat => 2;
 		public override float GetInputFloat(int iinput)
 		{
@@ -54,7 +54,7 @@ namespace Fractals
 			base.SetInputFloat(iinput, val);
 		}
 		protected override void DisposeI() { buffer.Dispose(); }
-		public override double DuEstimate(Vector3d pos)
+		protected override double DuEstimateI(Vector3d pos)
 		{
 			double Power = _mandelbulb.param;
 			int iterations = 10;

@@ -101,7 +101,6 @@ namespace CodeGen
                             losaProg += LneNew();
                     }
 
-                    //losaProg += LneNew("public override double DuEstimate(Vector3d pt) => (float)DuEstimateF(pt);");
                     losaProg += VisitDistanceEstimator(fractal.distanceEstimator());
                 }
                 losaProg += LneNew("}");
@@ -228,7 +227,7 @@ namespace CodeGen
             losaClassBody += losaUpdateBuffer;
 
             Losa losaReset =
-                LneNew("public override void ResetInputs() { " + stStructMemberName + " = new " + stStructName + "(); }");
+                LneNew("public override void ResetInputs() { " + stStructMemberName + " = " + stStructName + ".I; }");
             losaClassBody += losaReset;
 
             foreach (string stTypeInput in mpstType_rginput.Keys)
@@ -289,7 +288,7 @@ namespace CodeGen
 
         public override Losa VisitDistanceEstimator(FPLParser.DistanceEstimatorContext distanceEstimator)
         {
-            Losa losa = LneNew("public override double DuEstimate(Vector3d pos)") + VisitBlock(distanceEstimator.block());
+            Losa losa = LneNew("protected override double DuEstimateI(Vector3d pos)") + VisitBlock(distanceEstimator.block());
             return losa;
         }
 

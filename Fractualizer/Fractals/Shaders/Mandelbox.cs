@@ -34,7 +34,7 @@ namespace Fractals
 		}
 
 
-		public override double DuEstimate(Vector3d pos)
+		protected override double DuEstimateI(Vector3d pos)
 		{
 			double sf = 2;
 			double sfNormalizing = 3*(sf+1)/(sf-1);

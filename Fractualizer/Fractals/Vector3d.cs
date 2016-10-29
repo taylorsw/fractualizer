@@ -24,7 +24,7 @@ namespace Fractals
 
         public static double Dot(Vector3d v1, Vector3d v2) => v1.x*v2.x + v1.y*v2.y + v1.z*v2.z;
         public static double Length(Vector3d v) => Math.Sqrt(Length2(v));
-        public static double Length2(Vector3d v) => Dot(v, v);        
+        public static double Length2(Vector3d v) => Dot(v, v);
     }
 
     public struct Vector4d
