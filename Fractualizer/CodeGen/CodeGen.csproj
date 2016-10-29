@@ -45,6 +45,10 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FPLToCLL.cs" />
+    <Compile Include="FPLToCS.cs" />
+    <Compile Include="FPLToHLSL.cs" />
+    <Compile Include="FPLTranspilerBase.cs" />
     <Compile Include="Gen.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

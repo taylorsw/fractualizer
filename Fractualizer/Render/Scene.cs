@@ -18,13 +18,14 @@ namespace Render
         public readonly Random rand = new Random(1984);
 
         private const float dxView = 1;
-        private D3D11.Buffer cameraBuffer;
 
+        private readonly int width, height;
+
+        private D3D11.Buffer cameraBuffer;
         public Camera camera;
-        public Light[] rglight;
         public readonly FractalRenderer fractalRenderer;
 
-        [StructLayout(LayoutKind.Explicit, Size=128)]
+        [StructLayout(LayoutKind.Explicit, Size=96)]
         public struct Camera
         {
             public static Camera Initial(int width, int height)
@@ -43,13 +44,22 @@ namespace Render
             [FieldOffset(0)]
             public Vector3 ptCamera;
 
+            [FieldOffset(12)]
+            public readonly float duNear;
+
             [FieldOffset(16)]
             // Unit Vector
             public Vector3 vkCamera;
 
+            [FieldOffset(28)]
+            public int cLight;
+
             [FieldOffset(32)]
             // Unit Vector
             public Vector3 vkCameraDown;
+
+            [FieldOffset(44)]
+            public float fogA;
 
             [FieldOffset(48)]
             public Vector2 rsScreen;
@@ -58,24 +68,9 @@ namespace Render
             public Vector2 rsViewPlane;
 
             [FieldOffset(64)]
-            public readonly float duNear;
-
-            [FieldOffset(68)]
-            public float param;
-
-            [FieldOffset(72)]
-            public float param2;
-
-            [FieldOffset(76)]
-            public float fogA;
-
-            [FieldOffset(80)]
-            public int cLight;
-
-            [FieldOffset(96)]
             public Vector3 ptLight;
 
-            [FieldOffset(108)]
+            [FieldOffset(80)]
             public Vector3 ptLight2;
 
             public Vector3 ptPlaneCenter => ptCamera + vkCamera * duNear;
@@ -91,8 +86,6 @@ namespace Render
                 this.vkCameraDown = vkCameraDown;
                 this.rsScreen = rsScreen;
                 this.rsViewPlane = rsViewPlane;
-                this.param = 8.0f;
-                this.param2 = 1.0f;
                 this.fogA = 1.0f;
                 this.ptLight = ptLight;
                 this.ptLight2 = ptLight2;
@@ -171,21 +164,28 @@ namespace Render
 
         public Scene(int width, int height, FractalRenderer fractalRenderer)
         {
+            this.width = width;
+            this.height = height;
             this.fractalRenderer = fractalRenderer;
             this.camera = Camera.Initial(width, height);
         }
 
         public void Initialize(Device device, DeviceContext deviceContext)
         {
-            cameraBuffer = D3D11.Buffer.Create(device, BindFlags.ConstantBuffer, ref camera);
-            deviceContext.PixelShader.SetConstantBuffer(0, cameraBuffer);
-
+            cameraBuffer = Fractals.Util.BufferCreate(device, deviceContext, 0, ref camera);
             fractalRenderer.InitializeFractal(device, deviceContext);
         }
 
         public void UpdateBuffers(Device device, DeviceContext deviceContext)
         {
-            deviceContext.UpdateSubresource(ref camera, cameraBuffer);
+            Fractals.Util.UpdateBuffer(device, deviceContext, cameraBuffer, ref camera);
+            fractalRenderer.fractal.UpdateBuffer(device, deviceContext);
+        }
+
+        public void ResetScene()
+        {
+            camera = Camera.Initial(width, height);
+            fractalRenderer.fractal.ResetInputs();
         }
 
         public void Dispose()

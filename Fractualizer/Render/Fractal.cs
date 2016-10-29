@@ -40,7 +40,7 @@ namespace Render
 
         protected D3D11.PixelShader pixelShader;
 
-        public virtual void InitializeFractal(D3D11.Device d3dDevice, D3D11.DeviceContext deviceContext)
+        public virtual void InitializeFractal(D3D11.Device device, D3D11.DeviceContext deviceContext)
         {
             string stShaderPath = fractal.StShaderPath();
             using (
@@ -48,15 +48,18 @@ namespace Render
                     ShaderFlags.Debug, include: new IncludeFX()))
             {
                 string stErr = pixelShaderByteCode.Message;
-                pixelShader = new D3D11.PixelShader(d3dDevice, pixelShaderByteCode);
+                pixelShader = new D3D11.PixelShader(device, pixelShaderByteCode);
             }
 
             deviceContext.PixelShader.Set(pixelShader);
+
+            fractal.InitializeBuffer(device, deviceContext);
         }
 
         public void Dispose()
         {
             pixelShader.Dispose();
+            fractal.Dispose();
         }
     }
 }

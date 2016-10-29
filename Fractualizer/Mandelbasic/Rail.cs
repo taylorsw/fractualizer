@@ -100,8 +100,6 @@ namespace Mandelbasic
                             : duOrbitTravel < duHoverMin ? duHoverMin : duOrbitTravel
                         : duAdjustMaxAbs);
 
-            //Debug.WriteLine("Orbit: {0}, Adjust: {1}, Chosen: {2}", duOrbitTravel, duAdjustMax, duAdjustFinal);
-
             ptRotated += vkFromCenter.Normalized()*duAdjustFinal;
             return ptRotated;
         }

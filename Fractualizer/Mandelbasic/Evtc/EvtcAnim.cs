@@ -32,19 +32,19 @@ namespace Mandelbasic
 
         public override void DoEvents(float dtms)
         {
-            scene.camera.param += du * 0.0014f;
-
-            if (scene.camera.param < 2)
-                du = 1;
-            else if (scene.camera.param > 8.5)
-                du = -1;
-
-            scene.camera.param2 += du2 * 0.000014f;
-
-            if (scene.camera.param2 < 1.0)
-                du2 = 1;
-            else if (scene.camera.param2 > 3.0)
-                du2 = -1;
+//            scene.camera.param += du * 0.0014f;
+//
+//            if (scene.camera.param < 2)
+//                du = 1;
+//            else if (scene.camera.param > 8.5)
+//                du = -1;
+//
+//            scene.camera.param2 += du2 * 0.000014f;
+//
+//            if (scene.camera.param2 < 1.0)
+//                du2 = 1;
+//            else if (scene.camera.param2 > 3.0)
+//                du2 = -1;
 
             railCam.UpdatePt(scene.camera.ptCamera, dtms);
             railLight1.UpdatePt(scene.camera.ptLight, dtms);

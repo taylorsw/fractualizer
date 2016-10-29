@@ -132,7 +132,8 @@ float3 ColorOT(float4 marched)
 #ifdef SPHERE
 	return float3(1.0, 0.0, 0.0);
 #endif
-	return float3(sin(marched.y * 7 + param * noise(marched.xyz * 10)), 0, sin(marched.x * 10 + (param / 2) * noise(marched.xyz * 10)));
+	float paramStandin = 8.0;
+	return float3(sin(marched.y * 7 + paramStandin * noise(marched.xyz * 10)), 0, sin(marched.x * 10 + (paramStandin / 2) * noise(marched.xyz * 10)));
 	return normalize(
 		float3(
 			length(float3(-3, 0, 0) - marched.xyz) / 4.0, 

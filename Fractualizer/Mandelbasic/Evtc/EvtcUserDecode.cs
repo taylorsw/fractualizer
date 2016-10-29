@@ -27,7 +27,7 @@ namespace Mandelbasic
             switch (charUpper)
             {
                 case 'T':
-                    scene.camera = Scene.Camera.Initial(form.Width, form.Height);
+                    scene.ResetScene();
                     break;
                 case 'G':
                     Debug.WriteLine(scene.camera);

@@ -2,7 +2,8 @@ grammar FPL;
 
 fractal : input* 'fractal' identifier '{' global* distanceEstimator '}' ;
 
-input : arg ;
+input : inputType identifier '=' literal ';' ;
+inputType : FloatType | IntType ;
 
 distanceEstimator : 'DE()' block ;
 
@@ -122,7 +123,10 @@ prefixUnaryOp :
 	;
 
 retType : type | 'void' ;
-type : 'float' | 'int' | 'v3' | 'v4' ;
+type : FloatType | IntType | 'v3' | 'v4' ;
+
+FloatType : 'float' ;
+IntType : 'int' ;
 
 literal :
 	literalInt

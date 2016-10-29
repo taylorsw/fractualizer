@@ -1,6 +1,8 @@
 using System;
 using Fractals;
+using System.Runtime.InteropServices;
 using SharpDX;
+using SharpDX.Direct3D11;
 namespace Fractals
 {
 	public class Mandelbox : Fractal3d

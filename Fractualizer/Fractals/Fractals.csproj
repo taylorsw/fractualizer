@@ -33,6 +33,16 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="SharpDX, Version=3.0.2.0, Culture=neutral, PublicKeyToken=b4dcf0f35e5521f1, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\Tools\SharpDX\Bin\Desktop\SharpDX.dll</HintPath>
+    </Reference>
+    <Reference Include="SharpDX.Direct3D11">
+      <HintPath>..\..\Tools\SharpDX\Bin\Desktop\SharpDX.Direct3D11.dll</HintPath>
+    </Reference>
+    <Reference Include="SharpDX.DXGI">
+      <HintPath>..\..\Tools\SharpDX\Bin\Desktop\SharpDX.DXGI.dll</HintPath>
+    </Reference>
     <Reference Include="SharpDX.Mathematics">
       <HintPath>..\..\Tools\SharpDX\Bin\Desktop\SharpDX.Mathematics.dll</HintPath>
     </Reference>
@@ -42,6 +52,7 @@
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Util.cs" />
     <Compile Include="Vector3d.cs" />
   </ItemGroup>
   <ItemGroup>

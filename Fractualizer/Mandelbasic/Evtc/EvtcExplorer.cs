@@ -76,12 +76,15 @@ namespace Mandelbasic
             if (IsKeyDown(Keys.P))
                 form.Close();
 
-            float dParam = 0.01f;
-            if (IsKeyDown(Keys.Q))
-                scene.camera.param -= dParam;
+            if (scene.fractalRenderer.fractal.cinputFloat > 0)
+            {
+                float dParam = 0.01f;
+                if (IsKeyDown(Keys.Q))
+                    scene.fractalRenderer.fractal.SetInputFloat(0, scene.fractalRenderer.fractal.GetInputFloat(0) - dParam);
 
-            if (IsKeyDown(Keys.E))
-                scene.camera.param += dParam;
+                if (IsKeyDown(Keys.E))
+                    scene.fractalRenderer.fractal.SetInputFloat(0, scene.fractalRenderer.fractal.GetInputFloat(0) + dParam);
+            }
         }
     }
 

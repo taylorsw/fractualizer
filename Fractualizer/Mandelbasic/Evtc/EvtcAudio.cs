@@ -19,7 +19,12 @@ namespace Mandelbasic
         {
             base.DoEvents(dtms);
             float duRange = processor.max - processor.min;
-            scene.camera.param += du * Math.Abs(0.015f * (processor.val - duRange / 2) / duRange);
+            if (scene.fractalRenderer.fractal.cinputFloat > 0)
+            {
+                scene.fractalRenderer.fractal.SetInputFloat(0,
+                    scene.fractalRenderer.fractal.GetInputFloat(0) +
+                    du*Math.Abs(0.015f*(processor.val - duRange/2)/duRange));
+            }
         }
     }
 }
