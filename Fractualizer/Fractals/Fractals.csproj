@@ -81,14 +81,18 @@
   </Target>
   <Import Project="..\packages\Antlr4.4.5.3\build\Antlr4.targets" Condition="Exists('..\packages\Antlr4.4.5.3\build\Antlr4.targets')" />
   <Target Name="AfterResolveReferences">
-    <Exec Command="$(SolutionDir)CodeGen\$(OutDir)CodeGen.exe $(ProjectDir)Frac $(ProjectDir)Shaders" />
+    <Exec Command="$(SolutionDir)CodeGen\$(OutDir)CodeGen.exe $(ProjectDir)Frac $(ProjectDir)_gen" />
   </Target>
   <ItemGroup>
-    <EmbeddedResource Include="$(ProjectDir)\Shaders\*.hlsl">
+    <EmbeddedResource Include="$(ProjectDir)\_gen\*.hlsl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
-    <Compile Include="$(ProjectDir)\Shaders\*.cs" />
+    <Compile Include="$(ProjectDir)\_gen\*.cs" />
   </ItemGroup>
+  <Target Name="AfterClean">
+    <Exec Command="rmdir /s /q $(OutDir)_gen" ContinueOnError="true"/>
+    <Exec Command="rmdir /s /q $(ProjectDir)_gen" ContinueOnError="true"/>
+  </Target>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

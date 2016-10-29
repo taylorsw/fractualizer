@@ -41,7 +41,7 @@ namespace Fractals
 
         public string StShaderPath()
         {
-            return "Shaders/" + GetType().Name + ".hlsl";
+            return "_gen/" + GetType().Name + ".hlsl";
         }
 
         public virtual void ResetInputs() { }
