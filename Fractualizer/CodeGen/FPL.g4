@@ -1,11 +1,15 @@
 grammar FPL;
 
+prog : fractal | raytracer ;
+
+raytracer : input* 'raytracer' identifier '{' global* tracer '}' ;
+tracer : 'RgbaTrace(v4 pos)' block ;
+
 fractal : input* 'fractal' identifier '{' global* distanceEstimator '}' ;
+distanceEstimator : 'DE(v3 pos)' block ;
 
-input : inputType identifier '=' literal ';' ;
+input : inputType identifier ('=' literal) ';' ;
 inputType : FloatType | IntType ;
-
-distanceEstimator : 'DE()' block ;
 
 global : globalVal | func ;
 globalVal : 'global' localDecl ';' ;

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Drawing;
+using Fractals;
 using SharpDX.Windows;
 using SharpDX.DXGI;
 using D3D11 = SharpDX.Direct3D11;
@@ -11,8 +12,7 @@ namespace Render
 {
     public class Renderer : IDisposable
     {
-        private readonly IHaveScene ihs;
-        private Scene scene => ihs.scene;
+        private readonly Raytracer raytracer;
 
         private D3D11.Device device;
         private D3D11.DeviceContext deviceContext;
@@ -35,9 +35,9 @@ namespace Render
             new D3D11.InputElement("POSITION", 0, Format.R32G32B32_Float, 0)
         };
 
-        public Renderer(IHaveScene ihs, RenderForm renderForm)
+        public Renderer(Raytracer raytracer, RenderForm renderForm)
         {
-            this.ihs = ihs;
+            this.raytracer = raytracer;
             InitializeDeviceResources(renderForm);
             InitializeShaders();
         }
@@ -48,7 +48,7 @@ namespace Render
 
             deviceContext.InputAssembler.SetVertexBuffers(0, new D3D11.VertexBufferBinding(triangleVertexBuffer, Utilities.SizeOf<Vector3>(), 0));
 
-            scene.UpdateBuffers(device, deviceContext);
+            raytracer.UpdateBuffers(device, deviceContext);
 
             deviceContext.Draw(vertices.Length, 0);
 
@@ -71,7 +71,7 @@ namespace Render
             inputLayout = new D3D11.InputLayout(device, inputSignature, inputElements);
             deviceContext.InputAssembler.InputLayout = inputLayout;
 
-            scene.Initialize(device, deviceContext);
+            raytracer.Initialize(device, deviceContext);
         }
 
         private void InitializeDeviceResources(RenderForm renderForm)
@@ -112,7 +112,7 @@ namespace Render
             swapChain.Dispose();
             device.Dispose();
             deviceContext.Dispose();
-            scene.Dispose();
+            raytracer.Dispose();
         }
     }
 }

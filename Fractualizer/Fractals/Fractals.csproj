@@ -37,6 +37,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\Tools\SharpDX\Bin\Desktop\SharpDX.dll</HintPath>
     </Reference>
+    <Reference Include="SharpDX.D3DCompiler">
+      <HintPath>..\..\Tools\SharpDX\Bin\Desktop\SharpDX.D3DCompiler.dll</HintPath>
+    </Reference>
     <Reference Include="SharpDX.Direct3D11">
       <HintPath>..\..\Tools\SharpDX\Bin\Desktop\SharpDX.Direct3D11.dll</HintPath>
     </Reference>
@@ -49,9 +52,12 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Prog.cs" />
+    <Compile Include="Raytracer.cs" />
     <Compile Include="Util.cs" />
     <Compile Include="Vector3d.cs" />
   </ItemGroup>
@@ -89,9 +95,44 @@
     </EmbeddedResource>
     <Compile Include="$(ProjectDir)\_gen\*.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="ShadersKludge\mandalay.hlsl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="ShadersKludge\mandelbox.hlsl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="ShadersKludge\mandelbrot.hlsl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="ShadersKludge\parameters.hlsl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="ShadersKludge\rayTracer.hlsl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="ShadersKludge\tetrahedron.hlsl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="ShadersKludge\vertexShader.hlsl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
   <Target Name="AfterClean">
-    <Exec Command="rmdir /s /q $(OutDir)_gen" ContinueOnError="true"/>
-    <Exec Command="rmdir /s /q $(ProjectDir)_gen" ContinueOnError="true"/>
+    <Exec Command="rmdir /s /q $(OutDir)_gen" ContinueOnError="true" />
+    <Exec Command="rmdir /s /q $(ProjectDir)_gen" ContinueOnError="true" />
   </Target>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

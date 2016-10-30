@@ -57,23 +57,17 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Controller.cs" />
-    <Compile Include="Evtc\Evtc.cs" />
-    <Compile Include="Evtc\EvtcAnim.cs" />
-    <Compile Include="Evtc\EvtcAudio.cs" />
-    <Compile Include="Evtc\EvtcUserDecode.cs" />
-    <Compile Include="Evtc\EvtcExplorer.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Rail.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Audio\Audio.csproj">
-      <Project>{63100634-db24-46cf-b631-63590f99edd4}</Project>
-      <Name>Audio</Name>
+    <ProjectReference Include="..\Evtc\Evtc.csproj">
+      <Project>{85645d8b-62c2-4069-b89b-216ff5887371}</Project>
+      <Name>Evtc</Name>
     </ProjectReference>
     <ProjectReference Include="..\Fractals\Fractals.csproj">
       <Project>{59B2A913-CE09-42FD-A7B0-4AB79CEF8E33}</Project>
@@ -84,6 +78,7 @@
       <Name>Render</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>

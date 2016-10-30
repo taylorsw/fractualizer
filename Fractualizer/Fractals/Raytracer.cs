@@ -1,16 +1,63 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using System.Windows.Forms;
 using SharpDX;
 using SharpDX.Direct3D11;
-using D3D11 = SharpDX.Direct3D11;
 
-namespace Render
+namespace Fractals
 {
-    public interface IHaveScene
+    public abstract class Raytracer : Prog
     {
-        Scene scene { get; }
+        public readonly Scene scene;
+        public Raytracer(Scene scene)
+        {
+            this.scene = scene;
+        }
+
+        public void Initialize(Device device, DeviceContext deviceContext)
+        {
+            scene.Initialize(device, deviceContext);
+        }
+
+        public void UpdateBuffers(Device device, DeviceContext deviceContext)
+        {
+            scene.UpdateBuffers(device, deviceContext);
+        }
+
+//        public void CPURender()
+//        {
+//            int width = (int)scene.camera.rsScreen.X;
+//            int height = (int)scene.camera.rsScreen.Y;
+//            Bitmap bitmap = new Bitmap(width, height);
+//            for (int x = 0; x < width; x++)
+//            {
+//                for (int y = 0; y < height; y++)
+//                {
+//                    var color = Raytracer.Raytrace(scene, new SharpDX.Vector2(x, y));
+//                    bitmap.SetPixel(x, y, Color.FromArgb(IntComponentFromDouble(color.X), IntComponentFromDouble(color.Y), IntComponentFromDouble(color.Z)));
+//                }
+//            }
+//
+//            bitmap.Save("test.jpg");
+//        }
+//
+//        private static int IntComponentFromDouble(double component) => (int)(255 * Saturate((float)Math.Abs(component)));
+
+        public static float Saturate(float x) => Math.Max(0, Math.Min(1, x));
+
+        protected abstract Vector4d RgbaTrace(Vector4d pos);
+    }
+
+    public class RaytracerDummy : Raytracer
+    {
+        public RaytracerDummy(Scene scene) : base(scene)
+        {
+        }
+
+        protected override Vector4d RgbaTrace(Vector4d pos)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     public class Scene : IDisposable
@@ -21,11 +68,11 @@ namespace Render
 
         private readonly int width, height;
 
-        private D3D11.Buffer cameraBuffer;
+        private SharpDX.Direct3D11.Buffer cameraBuffer;
         public Camera camera;
-        public readonly FractalRenderer fractalRenderer;
+        public readonly Fractal3d fractal;
 
-        [StructLayout(LayoutKind.Explicit, Size=96)]
+        [StructLayout(LayoutKind.Explicit, Size = 96)]
         public struct Camera
         {
             public static Camera Initial(int width, int height)
@@ -36,7 +83,7 @@ namespace Render
                     vkCameraDown: new Vector3(0, 1, 0),
                     duNear: 0.5f,
                     rsScreen: new Vector2(width, height),
-                    rsViewPlane: new Vector2(dxView, dxView*height/width),
+                    rsViewPlane: new Vector2(dxView, dxView * height / width),
                     ptLight: new Vector3(2, 0, -1),
                     ptLight2: new Vector3(-2, 0, -1.5f));
             }
@@ -127,7 +174,7 @@ namespace Render
 
                 // Project that vector onto plane P with normal vkCameraUp
                 Vector3 vkCameraUp = -vkCameraDown;
-                Vector3 vkProjected = 
+                Vector3 vkProjected =
                     Vector3.Cross(
                         Vector3.Cross(vkCameraUp, vkToTarget),
                         vkCameraUp).Normalized();
@@ -152,7 +199,7 @@ namespace Render
                 }
                 else
                     vkCameraRightNew = vkCameraRight;
-                
+
                 // Finally, compute the new vkCameraDown by crossing the new vkCamera and the new vkCameraRight
                 // todo: does this need to cross in a different order depending on dot(target, rightNew)???
                 Vector3 vkCameraDownNew = Vector3.Cross(vkToTarget, vkCameraRightNew);
@@ -162,36 +209,36 @@ namespace Render
             }
         }
 
-        public Scene(int width, int height, FractalRenderer fractalRenderer)
+        public Scene(int width, int height, Fractal3d fractal)
         {
             this.width = width;
             this.height = height;
-            this.fractalRenderer = fractalRenderer;
+            this.fractal = fractal;
             this.camera = Camera.Initial(width, height);
         }
 
-        public void Initialize(Device device, DeviceContext deviceContext)
+        internal void Initialize(Device device, DeviceContext deviceContext)
         {
             cameraBuffer = Fractals.Util.BufferCreate(device, deviceContext, 0, ref camera);
-            fractalRenderer.InitializeFractal(device, deviceContext);
+            fractal.InitializeFractal(device, deviceContext);
         }
 
-        public void UpdateBuffers(Device device, DeviceContext deviceContext)
+        internal void UpdateBuffers(Device device, DeviceContext deviceContext)
         {
             Fractals.Util.UpdateBuffer(device, deviceContext, cameraBuffer, ref camera);
-            fractalRenderer.fractal.UpdateBuffer(device, deviceContext);
+            fractal.UpdateBuffer(device, deviceContext);
         }
 
         public void ResetScene()
         {
             camera = Camera.Initial(width, height);
-            fractalRenderer.fractal.ResetInputs();
+            fractal.ResetInputs();
         }
 
         public void Dispose()
         {
             cameraBuffer.Dispose();
-            fractalRenderer.Dispose();
+            fractal.Dispose();
         }
     }
 }

@@ -15,35 +15,35 @@ namespace CodeGen
         protected string StFractalName(FPLParser.FractalContext fractal)
             => VisitIdentifier(fractal.identifier()).ToString();
 
-        internal void GenFile(FPLParser.FractalContext fractal, string stDirectory)
+        protected string StRaytracerName(FPLParser.RaytracerContext raytracer)
+            => VisitIdentifier(raytracer.identifier()).ToString();
+
+        internal void GenFile(FPLParser.ProgContext prog, string stDirectory)
         {
             idtrCur = Idtr.Initial(this);
 
-            string stFileOutput = Path.Combine(stDirectory, StFractalName(fractal) + StExtension());
+            bool fRaytracer = prog.raytracer() != null;
+            string stFileName = fRaytracer ? StRaytracerName(prog.raytracer()) : StFractalName(prog.fractal());
+
+            string stFileOutput = Path.Combine(stDirectory, stFileName + StExtension());
             Directory.CreateDirectory(stDirectory);
             using (FileStream fs = File.Create(stFileOutput))
             {
                 using (TextWriter tw = new StreamWriter(fs))
                 {
-                    string stGenFile = StTranspile(fractal);
+                    string stGenFile = Visit(prog).ToStringFollowing();
                     tw.Write(stGenFile);
                 }
             }
         }
 
-        internal static FPLParser.FractalContext FractalFromAntlrInputStream(AntlrInputStream antlrInputStream)
+        internal static FPLParser.ProgContext ProgFromAntlrInputStream(AntlrInputStream antlrInputStream)
         {
             FPLLexer fplLexer = new FPLLexer(antlrInputStream);
             CommonTokenStream cts = new CommonTokenStream(fplLexer);
             FPLParser fplParser = new FPLParser(cts);
-            FPLParser.FractalContext fractal = fplParser.fractal();
-            return fractal;
-        }
-
-        internal string StTranspile(FPLParser.FractalContext fractal)
-        {
-            Losa losa = VisitFractal(fractal);
-            return losa.ToStringFollowing();
+            FPLParser.ProgContext prog = fplParser.prog();
+            return prog;
         }
 
         protected static void Validate(ParserRuleContext context)

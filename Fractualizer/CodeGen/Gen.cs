@@ -32,13 +32,13 @@ namespace CodeGen
                     continue;
 
                 AntlrFileStream afs = new AntlrFileStream(stFile);
-                FPLParser.FractalContext fractal = FPLTranspilerBase.FractalFromAntlrInputStream(afs);
+                FPLParser.ProgContext prog = FPLTranspilerBase.ProgFromAntlrInputStream(afs);
 
                 FPLToHLSL fplToHlsl = new FPLToHLSL();
-                fplToHlsl.GenFile(fractal, stDirectoryOut);
+                fplToHlsl.GenFile(prog, stDirectoryOut);
                 
                 FPLToCS fpltoCs = new FPLToCS();
-                fpltoCs.GenFile(fractal, stDirectoryOut);
+                fpltoCs.GenFile(prog, stDirectoryOut);
             }
 
             return 0;

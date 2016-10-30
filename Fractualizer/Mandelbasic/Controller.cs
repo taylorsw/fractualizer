@@ -8,14 +8,14 @@ using SharpDX.Windows;
 
 namespace Mandelbasic
 {
-    class Controller : IDisposable, IHaveScene
+    class Controller : IDisposable
     {
         private readonly RenderForm renderForm;
         private readonly Renderer renderer;
         private readonly Stopwatch stopwatch;
         private readonly Evtc evtc;
 
-        public Scene scene { get; }
+        public readonly Raytracer raytracer;
         
         public Controller()
         {
@@ -28,16 +28,16 @@ namespace Mandelbasic
                 IsFullscreen = false //true
             };
 
-            scene = new Scene(width, height, new FractalRenderer(new Mandelbulb()));
+            raytracer = new RaytracerDummy(new Scene(width, height, new Mandelbulb()));
             renderForm.Show();
 
-            renderer = new Renderer(this, renderForm);
+            renderer = new Renderer(raytracer, renderForm);
 
             renderForm.Focus();
 
             stopwatch = new Stopwatch();
 
-            evtc = new EvtcExplorer(renderForm, scene);
+            evtc = new EvtcExplorer(renderForm, raytracer.scene);
         }
 
         public void Run()
@@ -53,25 +53,6 @@ namespace Mandelbasic
             stopwatch.Restart();
             renderer.Render();
         }
-
-        private void CPURender()
-        {
-            int width = (int)scene.camera.rsScreen.X;
-            int height = (int)scene.camera.rsScreen.Y;
-            Bitmap bitmap = new Bitmap(width, height);
-            for (int x = 0; x < width; x++)
-            {
-                for (int y = 0; y < height; y++)
-                {
-                    var color = Raytracer.Raytrace(scene, new SharpDX.Vector2(x, y));
-                    bitmap.SetPixel(x, y, Color.FromArgb(IntComponentFromDouble(color.X), IntComponentFromDouble(color.Y), IntComponentFromDouble(color.Z)));
-                }
-            }
-
-            bitmap.Save("test.jpg");
-        }
-
-        private static int IntComponentFromDouble(double component) => (int)(255 * RenderUtil.Saturate((float)Math.Abs(component)));
 
         public void Dispose()
         {

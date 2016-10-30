@@ -1,5 +1,5 @@
 ﻿using System.Windows.Forms;
-using Render;
+using Fractals;
 
 namespace Mandelbasic
 {

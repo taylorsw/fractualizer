@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Windows.Forms;
-using Render;
+using Fractals;
 using SharpDX;
 using Point = System.Drawing.Point;
 
@@ -17,7 +17,7 @@ namespace Mandelbasic
             CenterCursor();
             form.MouseMove += OnMouseMove;
             railLight = new RailOrbit(pt => scene.camera.ptLight = pt, Vector3.Zero, new Vector3(1, 1, 1), 60f / 1000);
-            railLight2 = new RailHover(pt => scene.camera.ptLight2 = pt, scene.fractalRenderer.fractal, Vector3.Zero, new Vector3(0.3f, 0.4f, 0.7f), 0.08f, 0.15f, 0.15f, 1.0f);
+            railLight2 = new RailHover(pt => scene.camera.ptLight2 = pt, scene.fractal, Vector3.Zero, new Vector3(0.3f, 0.4f, 0.7f), 0.08f, 0.15f, 0.15f, 1.0f);
         }
 
         private void CenterCursor()
@@ -58,7 +58,7 @@ namespace Mandelbasic
             if (IsKeyDown(Keys.ShiftKey))
                 frMove = frMove * 2;
 
-            double duFromFractal = scene.fractalRenderer.fractal.DuEstimate(scene.camera.ptCamera);
+            double duFromFractal = scene.fractal.DuEstimate(scene.camera.ptCamera);
             float duMove = (float)(frMove * duFromFractal);
 
             if (IsKeyDown(Keys.W))
@@ -76,14 +76,14 @@ namespace Mandelbasic
             if (IsKeyDown(Keys.P))
                 form.Close();
 
-            if (scene.fractalRenderer.fractal.cinputFloat > 0)
+            if (scene.fractal.cinputFloat > 0)
             {
                 float dParam = 0.01f;
                 if (IsKeyDown(Keys.Q))
-                    scene.fractalRenderer.fractal.SetInputFloat(0, scene.fractalRenderer.fractal.GetInputFloat(0) - dParam);
+                    scene.fractal.SetInputFloat(0, scene.fractal.GetInputFloat(0) - dParam);
 
                 if (IsKeyDown(Keys.E))
-                    scene.fractalRenderer.fractal.SetInputFloat(0, scene.fractalRenderer.fractal.GetInputFloat(0) + dParam);
+                    scene.fractal.SetInputFloat(0, scene.fractal.GetInputFloat(0) + dParam);
             }
         }
     }

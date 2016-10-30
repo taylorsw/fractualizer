@@ -210,7 +210,7 @@ float3 ColorBP(float3 color, float3 ptSurface, int idHit, float duEpsilon)
 }
 
 static const float duMarchLimit = 20;
-float4 main(float4 position : SV_POSITION) : SV_TARGET
+float4 main(float4 pos : SV_POSITION) : SV_TARGET
 {
 	// position.x is from 0.5 to rsScreen.x + 6.5
 	float4 red = float4(1, 0, 0, 1);
@@ -218,7 +218,7 @@ float4 main(float4 position : SV_POSITION) : SV_TARGET
 	float4 blue = float4(0, 0, 1, 1);
 	float4 black = float4(0, 0, 0, 1);
 
-	float2 ptScreen = position.xy - float2(0.5, 0.5);
+	float2 ptScreen = pos.xy - float2(0.5, 0.5);
 
 	float3 ptPlaneCenter = ptCamera + vkCamera * duNear;
 

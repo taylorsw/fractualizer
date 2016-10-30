@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Windows.Forms;
-using Render;
 using Audio;
+using Fractals;
 
 namespace Mandelbasic
 {
-    class EvtcAudio : EvtcAnim
+    public class EvtcAudio : EvtcAnim
     {
         private readonly AudioProcessor processor;
 
@@ -19,10 +19,10 @@ namespace Mandelbasic
         {
             base.DoEvents(dtms);
             float duRange = processor.max - processor.min;
-            if (scene.fractalRenderer.fractal.cinputFloat > 0)
+            if (scene.fractal.cinputFloat > 0)
             {
-                scene.fractalRenderer.fractal.SetInputFloat(0,
-                    scene.fractalRenderer.fractal.GetInputFloat(0) +
+                scene.fractal.SetInputFloat(0,
+                    scene.fractal.GetInputFloat(0) +
                     du*Math.Abs(0.015f*(processor.val - duRange/2)/duRange));
             }
         }

@@ -72,7 +72,7 @@
 		return val;//bounding volume is a sphere
 	}
 
-	DE()
+	DE(v3 pos)
 	{
 		return DuDeFractalI(10 * pos) / 10;
 	}

@@ -2,7 +2,7 @@
 float param2 = 1.0;
 fractal Mandelbulb
 {
-	DE()
+	DE(v3 pos)
 	{
 		float Power = param;
 		int iterations = 10;

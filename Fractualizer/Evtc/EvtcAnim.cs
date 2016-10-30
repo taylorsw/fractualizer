@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Windows.Forms;
-using Render;
+using Fractals;
 using SharpDX;
 
 namespace Mandelbasic
 {
-    class EvtcAnim : Evtc
+    public class EvtcAnim : Evtc
     {
         private readonly RailHover railCam;
         private readonly RailOrbit railLight1;
@@ -15,7 +15,7 @@ namespace Mandelbasic
         {
             railCam = new RailHover(
                 pt => scene.camera.ptCamera = pt, 
-                scene.fractalRenderer.fractal,
+                scene.fractal,
                 ptCenter: Vector3.Zero, 
                 vkNormal: new Vector3(scene.rand.NextFloat(-1.0f, 1.0f), scene.rand.NextFloat(-1.0f, 1.0f), scene.rand.NextFloat(-1.0f, 1.0f)), 
                 agd_dtms: 20f / 1000,
@@ -24,7 +24,7 @@ namespace Mandelbasic
                 sfTravelMax: 2);
 
             railLight1 = new RailOrbit(pt => scene.camera.ptLight = pt, Vector3.Zero, new Vector3(1, 1, 1), 60f / 1000);
-            railLight2 = new RailHover(pt => scene.camera.ptLight2 = pt, scene.fractalRenderer.fractal, Vector3.Zero, new Vector3(0.3f, 0.4f, 0.7f), 0.1f, 0.1f, 0.3f, 2.0f);
+            railLight2 = new RailHover(pt => scene.camera.ptLight2 = pt, scene.fractal, Vector3.Zero, new Vector3(0.3f, 0.4f, 0.7f), 0.1f, 0.1f, 0.3f, 2.0f);
         }
 
         protected float du = -1;
