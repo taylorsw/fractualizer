@@ -185,7 +185,7 @@ namespace CodeGen
             losaStruct += LneNew("}");
 
             Losa losaClassBody = losaStruct;
-            losaClassBody += LneNew("private " + stStructName + " " + stStructMemberName + ";");
+            losaClassBody += LneNew("public " + stStructName + " " + stStructMemberName + ";");
             losaClassBody += LneNew("private SharpDX.Direct3D11.Buffer buffer;");
 
             Losa losaClassContstructorEmpty = LneNew("public " + stFractalName + "()") +
@@ -208,7 +208,7 @@ namespace CodeGen
 
 
             Losa losaInitializeBuffer =
-                LneNew("public override void InitializeBuffer(Device device, DeviceContext deviceContext)") + LneNew("{");
+                LneNew("internal override void InitializeBuffer(Device device, DeviceContext deviceContext)") + LneNew("{");
             using (idtrCur.New())
             {
                 losaInitializeBuffer +=
@@ -218,7 +218,7 @@ namespace CodeGen
             losaClassBody += losaInitializeBuffer;
 
             Losa losaUpdateBuffer =
-                LneNew("public override void UpdateBuffer(Device device, DeviceContext deviceContext)") + LneNew("{");
+                LneNew("internal override void UpdateBuffer(Device device, DeviceContext deviceContext)") + LneNew("{");
             using (idtrCur.New())
             {
                 losaUpdateBuffer += LneNew("Util.UpdateBuffer(device, deviceContext, buffer, ref " + stStructMemberName + ");");
@@ -274,7 +274,7 @@ namespace CodeGen
                 losaClassBody += losaInputSet;
             }
 
-            Losa losaDispose = LneNew("protected override void DisposeI() { buffer.Dispose(); }");
+            Losa losaDispose = LneNew("public override void Dispose() { base.Dispose(); buffer.Dispose(); }");
             losaClassBody += losaDispose;
 
             return losaClassBody;

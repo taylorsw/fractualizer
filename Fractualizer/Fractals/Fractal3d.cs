@@ -7,7 +7,7 @@ using SharpDX.Direct3D11;
 
 namespace Fractals
 {
-    public abstract class Fractal3d : Prog
+    public abstract class Fractal3d : FPLGenBase
     {
         #region Shader
         protected PixelShader pixelShader;
@@ -33,7 +33,7 @@ namespace Fractals
             public IDisposable Shadow { get; set; }
         }
 
-        public virtual void InitializeFractal(Device device, DeviceContext deviceContext)
+        internal virtual void InitializeFractal(Device device, DeviceContext deviceContext)
         {
             string stShaderPath = StShaderPath();
             using (
@@ -122,10 +122,9 @@ namespace Fractals
         }
         #endregion
 
-        public new void Dispose()
+        public override void Dispose()
         {
             pixelShader.Dispose();
-            DisposeI();
         }
     }
 }

@@ -56,7 +56,8 @@
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Prog.cs" />
+    <Compile Include="Camera.cs" />
+    <Compile Include="FPLGenBase.cs" />
     <Compile Include="Raytracer.cs" />
     <Compile Include="Util.cs" />
     <Compile Include="Vector3d.cs" />

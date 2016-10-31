@@ -11,13 +11,13 @@ namespace Mandelbasic
     {
         private readonly RailOrbit railLight;
         private readonly RailOrbit railLight2;
-        public EvtcExplorer(Form form, Scene scene) : base(form, scene)
+        public EvtcExplorer(Form form, Raytracer raytracer) : base(form, raytracer)
         {
             Cursor.Hide();
             CenterCursor();
             form.MouseMove += OnMouseMove;
-            railLight = new RailOrbit(pt => scene.camera.ptLight = pt, Vector3.Zero, new Vector3(1, 1, 1), 60f / 1000);
-            railLight2 = new RailHover(pt => scene.camera.ptLight2 = pt, scene.fractal, Vector3.Zero, new Vector3(0.3f, 0.4f, 0.7f), 0.08f, 0.15f, 0.15f, 1.0f);
+            railLight = new RailOrbit(pt => camera.cameraData.ptLight = pt, Vector3.Zero, new Vector3(1, 1, 1), 60f / 1000);
+            railLight2 = new RailHover(pt => camera.cameraData.ptLight2 = pt, scene.fractal, Vector3.Zero, new Vector3(0.3f, 0.4f, 0.7f), 0.08f, 0.15f, 0.15f, 1.0f);
         }
 
         private void CenterCursor()
@@ -39,11 +39,11 @@ namespace Mandelbasic
 
             float frScreenX = (float)vkMouseDelta.X / form.Width;
             float frScreenY = (float)vkMouseDelta.Y / form.Height;
-            float ddxScene = scene.camera.rsViewPlane.X * frScreenX;
-            float ddyScene = scene.camera.rsViewPlane.Y * frScreenY;
-            float dagrX = (float)(Math.Atan(ddxScene / scene.camera.duNear));
-            float dagrY = (float)(Math.Atan(ddyScene / scene.camera.duNear));
-            scene.camera.RotateCamera(-dagrY, dagrX);
+            float ddxScene = camera.rsViewPlane.X * frScreenX;
+            float ddyScene = camera.rsViewPlane.Y * frScreenY;
+            float dagrX = (float)(Math.Atan(ddxScene / camera.duNear));
+            float dagrY = (float)(Math.Atan(ddyScene / camera.duNear));
+            camera.RotateCamera(-dagrY, dagrX);
 
             CenterCursor();
         }
@@ -51,27 +51,27 @@ namespace Mandelbasic
         private const float frMoveBase = 0.1f;
         public override void DoEvents(float dtms)
         {
-            railLight.UpdatePt(scene.camera.ptLight, dtms);
-            railLight2.UpdatePt(scene.camera.ptLight2, dtms);
+            railLight.UpdatePt(camera.cameraData.ptLight, dtms);
+            railLight2.UpdatePt(camera.cameraData.ptLight2, dtms);
 
             float frMove = frMoveBase;
             if (IsKeyDown(Keys.ShiftKey))
                 frMove = frMove * 2;
 
-            double duFromFractal = scene.fractal.DuEstimate(scene.camera.ptCamera);
+            double duFromFractal = scene.fractal.DuEstimate(camera.ptCamera);
             float duMove = (float)(frMove * duFromFractal);
 
             if (IsKeyDown(Keys.W))
-                scene.camera.ptCamera += scene.camera.vkCamera * duMove;
+                camera.MoveBy(camera.vkCamera * duMove);
 
             if (IsKeyDown(Keys.S))
-                scene.camera.ptCamera -= scene.camera.vkCamera * duMove;
+                camera.MoveBy(-camera.vkCamera * duMove);
 
             if (IsKeyDown(Keys.A))
-                scene.camera.ptCamera += Vector3.Cross(scene.camera.vkCamera, scene.camera.vkCameraDown) * duMove;
+                camera.MoveBy(Vector3.Cross(camera.vkCamera, camera.vkCameraDown) * duMove);
 
             if (IsKeyDown(Keys.D))
-                scene.camera.ptCamera += Vector3.Cross(scene.camera.vkCameraDown, scene.camera.vkCamera) * duMove;
+                camera.MoveBy(Vector3.Cross(camera.vkCameraDown, camera.vkCamera) * duMove);
 
             if (IsKeyDown(Keys.P))
                 form.Close();
@@ -90,16 +90,16 @@ namespace Mandelbasic
 
     public class EvtcLookAt : EvtcUserDecode
     {
-        public EvtcLookAt(Form form, Scene scene) : base(form, scene) { }
+        public EvtcLookAt(Form form, Raytracer raytracer) : base(form, raytracer) { }
 
         private DateTime dtLastB = DateTime.MinValue;
         public override void DoEvents(float dtms)
         {
             const float dagd = 2;
             if (IsKeyDown(Keys.O))
-                scene.camera.RollBy(dagd);
+                camera.RollBy(dagd);
             if (IsKeyDown(Keys.I))
-                scene.camera.RollBy(-dagd);
+                camera.RollBy(-dagd);
 
             if (IsKeyDown(Keys.B))
             {
@@ -109,8 +109,8 @@ namespace Mandelbasic
                     dtLastB = DateTime.Now;
                     Vector3 ptViewTopLeft = PtViewPlaneFromPtClient(new Point(0, 0));
                     Vector3 ptViewCursor = PtViewPlaneFromPtCursor();
-                    Debug.Assert(scene.camera.vkCamera.IsOrthogonalTo(ptViewCursor - ptViewTopLeft));
-                    scene.camera.LookAt(ptViewCursor);
+                    Debug.Assert(camera.vkCamera.IsOrthogonalTo(ptViewCursor - ptViewTopLeft));
+                    camera.LookAt(ptViewCursor);
                 }
             }
         }

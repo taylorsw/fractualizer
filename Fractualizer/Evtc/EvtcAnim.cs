@@ -11,10 +11,10 @@ namespace Mandelbasic
         private readonly RailOrbit railLight1;
         private readonly RailHover railLight2;
         
-        public EvtcAnim(Form form, Scene scene) : base(form, scene)
+        public EvtcAnim(Form form, Raytracer raytracer) : base(form, raytracer)
         {
             railCam = new RailHover(
-                pt => scene.camera.ptCamera = pt, 
+                pt => raytracer.camera.MoveTo(pt), 
                 scene.fractal,
                 ptCenter: Vector3.Zero, 
                 vkNormal: new Vector3(scene.rand.NextFloat(-1.0f, 1.0f), scene.rand.NextFloat(-1.0f, 1.0f), scene.rand.NextFloat(-1.0f, 1.0f)), 
@@ -23,8 +23,8 @@ namespace Mandelbasic
                 duHoverMax: 0.1f,
                 sfTravelMax: 2);
 
-            railLight1 = new RailOrbit(pt => scene.camera.ptLight = pt, Vector3.Zero, new Vector3(1, 1, 1), 60f / 1000);
-            railLight2 = new RailHover(pt => scene.camera.ptLight2 = pt, scene.fractal, Vector3.Zero, new Vector3(0.3f, 0.4f, 0.7f), 0.1f, 0.1f, 0.3f, 2.0f);
+            railLight1 = new RailOrbit(pt => camera.cameraData.ptLight = pt, Vector3.Zero, new Vector3(1, 1, 1), 60f / 1000);
+            railLight2 = new RailHover(pt => camera.cameraData.ptLight2 = pt, scene.fractal, Vector3.Zero, new Vector3(0.3f, 0.4f, 0.7f), 0.1f, 0.1f, 0.3f, 2.0f);
         }
 
         protected float du = -1;
@@ -46,15 +46,15 @@ namespace Mandelbasic
 //            else if (scene.camera.param2 > 3.0)
 //                du2 = -1;
 
-            railCam.UpdatePt(scene.camera.ptCamera, dtms);
-            railLight1.UpdatePt(scene.camera.ptLight, dtms);
-            railLight2.UpdatePt(scene.camera.ptLight2, dtms);
+            railCam.UpdatePt(camera.ptCamera, dtms);
+            railLight1.UpdatePt(camera.cameraData.ptLight, dtms);
+            railLight2.UpdatePt(camera.cameraData.ptLight2, dtms);
 
             const float dagdRoll = 0.01f;
-            scene.camera.RollBy(dagdRoll);
+            camera.RollBy(dagdRoll);
 
-            scene.camera.LookAt(Vector3.Zero);
-            scene.camera.RotateCamera(scene.camera.vkCameraRight, MathUtil.DegreesToRadians(45));
+            camera.LookAt(Vector3.Zero);
+            camera.RotateCamera(camera.vkCameraRight, MathUtil.DegreesToRadians(45));
         }
     }
 }

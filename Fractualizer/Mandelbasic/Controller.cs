@@ -28,7 +28,7 @@ namespace Mandelbasic
                 IsFullscreen = false //true
             };
 
-            raytracer = new RaytracerDummy(new Scene(width, height, new Mandelbulb()));
+            raytracer = new RaytracerDummy(new Scene(new Mandelbox()), width, height);
             renderForm.Show();
 
             renderer = new Renderer(raytracer, renderForm);
@@ -37,7 +37,7 @@ namespace Mandelbasic
 
             stopwatch = new Stopwatch();
 
-            evtc = new EvtcExplorer(renderForm, raytracer.scene);
+            evtc = new EvtcExplorer(renderForm, raytracer);
         }
 
         public void Run()
