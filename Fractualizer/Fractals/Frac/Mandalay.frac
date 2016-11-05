@@ -38,7 +38,7 @@
 	global float Scale = 4.0;
 	global float MinRad2 = 0.25;
 
-	float DuDeFractalI(v3 p)
+	float DuDeMandalay(v3 p)
 	{
 		v3 JC = p;
 		float JCw = 1;
@@ -74,6 +74,6 @@
 
 	DE(v3 pos)
 	{
-		return DuDeFractalI(10 * pos) / 10;
+		return DuDeMandalay(10 * pos) / 10;
 	}
 }

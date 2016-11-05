@@ -1,29 +1,67 @@
-﻿using FPL;
+﻿using System;
+using System.Diagnostics;
+using FPL;
 
 namespace CodeGen
 {
     internal class FPLToHLSL : FPLToCLL
     {
+        private const int ibufferRaytracer = 0;
+        private const int ibufferFractal = 1;
+
+        public override Losa VisitPifdef(FPLParser.PifdefContext pifdef)
+        {
+            return "#ifdef";
+        }
+
+        public override Losa VisitPifndef(FPLParser.PifndefContext pifndef)
+        {
+            return "#ifndef";
+        }
+
+        public override Losa VisitPendif(FPLParser.PendifContext pendif)
+        {
+            return "#endif";
+        }
+
+        public override Losa VisitPelse(FPLParser.PelseContext pelse)
+        {
+            return "#else";
+        }
+
         private Losa LosaInclude(string stFile) => LneNew(@"#include """ + stFile + @"""");
+
+        public override Losa VisitRaytracer(FPLParser.RaytracerContext raytracer)
+        {
+            Losa losaRaytracer = "";
+
+            if (raytracer.input().Length > 0)
+                losaRaytracer += LosaInputs(raytracer.identifier(), raytracer.input(), ibufferRaytracer);
+
+            losaRaytracer += LosaVisitGlobals(raytracer.global());
+
+            losaRaytracer += VisitTracer(raytracer.tracer());
+
+            return losaRaytracer;
+        }
+
+        public override Losa VisitTracer(FPLParser.TracerContext tracer)
+        {
+            Losa losaTracer = LneNew("float4 main(float4 pos : SV_POSITION) : SV_TARGET") + VisitBlock(tracer.block());
+            return losaTracer;
+        }
+
         public override Losa VisitFractal(FPLParser.FractalContext fractal)
         {
-#if VALIDATE_GEN
-            Validate(fractal);
-#endif
-            Losa losaProg = LosaInclude("parameters.hlsl");
+            Losa losaProg = "";
 
             if (fractal.input().Length > 0)
             {
-                Losa losaInputs = LosaInputs(fractal);
+                Losa losaInputs = LosaInputs(fractal.identifier(), fractal.input(), ibufferFractal);
                 losaProg += losaInputs;
             }
 
-            foreach (var global in fractal.global())
-            {
-                losaProg += VisitGlobal(global);
-                if (global.globalVal() == null)
-                    losaProg += LneNew();
-            }
+            losaProg += LosaVisitGlobals(fractal.global());
 
             losaProg += VisitDistanceEstimator(fractal.distanceEstimator());
 
@@ -31,16 +69,42 @@ namespace CodeGen
             return losaProg;
         }
 
-        private Losa LosaInputs(FPLParser.FractalContext fractal)
+        public override Losa VisitInputAccess(FPLParser.InputAccessContext inputAccess)
         {
-            Losa losaInputs = LneNew("cbuffer " + StFractalName(fractal) + " : register(b1)") + LneNew("{");
+            return VisitIdentifier(inputAccess.identifier());
+        }
+
+        public override Losa VisitFractalAccess(FPLParser.FractalAccessContext fractalAccess)
+        {
+            return Visit(fractalAccess.children[fractalAccess.ChildCount - 1]);
+        }
+
+        private Losa LosaVisitGlobals(FPLParser.GlobalContext[] rgglobal)
+        {
+            Losa losaGlobals = LneNew();
+            foreach (FPLParser.GlobalContext global in rgglobal)
+            {
+                losaGlobals += VisitGlobal(global);
+                if (global.globalVal() == null)
+                    losaGlobals += LneNew();
+            }
+            return losaGlobals;
+        }
+
+        public override Losa VisitInput(FPLParser.InputContext input)
+        {
+            return LneNew() +
+                   LosaLocalDecl(input.inputType().type(), input.identifier(),
+                       input.arrayDecl() == null ? new FPLParser.ArrayDeclContext[0] : new[] {input.arrayDecl()}, null);
+        }
+
+        private Losa LosaInputs(FPLParser.IdentifierContext identifier, FPLParser.InputContext[] rginput, int cbuffer)
+        {
+            Losa losaInputs = LneNew("cbuffer " + StNameFromIdentifier(identifier) + " : register(b" + cbuffer + ")") + LneNew("{");
             using (idtrCur.New())
             {
-                foreach (FPLParser.InputContext input in fractal.input())
-                {
-                    losaInputs += LneNew() + VisitInputType(input.inputType()) + " " +
-                                  VisitIdentifier(input.identifier()) + ";";
-                }
+                foreach (FPLParser.InputContext input in rginput)
+                    losaInputs += VisitInput(input);
             }
             losaInputs += LneNew("}");
             return losaInputs;
@@ -69,6 +133,27 @@ namespace CodeGen
             }
         }
 
+        public override Losa VisitLocalDecl(FPLParser.LocalDeclContext localDecl)
+        {
+            return LosaLocalDecl(localDecl.type(), localDecl.identifier(), localDecl.arrayDecl(), localDecl.expr());
+        }
+
+        private Losa LosaLocalDecl(FPLParser.TypeContext type, FPLParser.IdentifierContext identifier, FPLParser.ArrayDeclContext[] rgarrayDecl, FPLParser.ExprContext expr)
+        {
+            Losa losaLocalDecl = VisitType(type) + " " + VisitIdentifier(identifier);
+            if (rgarrayDecl.Length > 0)
+            {
+                foreach (var arrayDecl in rgarrayDecl)
+                    losaLocalDecl += "[" + VisitExpr(arrayDecl.expr()) + "]";
+            }
+            else if (expr != null)
+            {
+                losaLocalDecl += " = " + VisitExpr(expr);
+            }
+            losaLocalDecl += ";";
+            return losaLocalDecl;
+        }
+
         public override Losa VisitGlobalVal(FPLParser.GlobalValContext global)
         {
             return LneNew("static const ") + VisitLocalDecl(global.localDecl());
@@ -79,20 +164,26 @@ namespace CodeGen
             return VisitType(instantiation.type()) + "(" + VisitExprList(instantiation.exprList()) + ")";
         }
 
-        public override Losa VisitType(FPLParser.TypeContext type)
+        public override Losa VisitInputType(FPLParser.InputTypeContext inputType)
         {
-            string stType = type.GetText();
-            switch (stType)
-            {
-                case "v3":
-                    return "float3";
-                case "v4":
-                    return "float4";
-                default:
-                    return stType;
-            }
+            return VisitType(inputType.type());
         }
 
-        protected override string StExtension() => ".hlsl";
+        public override Losa VisitType(FPLParser.TypeContext type)
+        {
+            Losa losaType;
+            if (type.V2Type() != null)
+                losaType = "float2";
+            else if (type.V3Type() != null)
+                losaType = "float3";
+            else if (type.V4Type() != null)
+                losaType = "float4";
+            else
+                losaType = type.GetText();
+
+            return losaType;
+        }
+
+        protected override string StExtension() => "hlsl";
     }
 }

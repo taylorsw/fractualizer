@@ -1,14 +1,7 @@
-﻿//#define VALIDATE_GEN
-//#define DEBUG_GEN
-
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Diagnostics;
 using System.IO;
-using System.Runtime.CompilerServices;
-using System.Text;
 using Antlr4.Runtime;
-using Antlr4.Runtime.Tree;
 using FPL;
 
 namespace CodeGen
@@ -25,18 +18,17 @@ namespace CodeGen
 
             foreach (string stFile in Directory.GetFiles(stDirectoryIn))
             {
-#if DEBUG_GEN
-            Debugger.Launch();
-#endif
                 if (Path.GetExtension(stFile) != ".frac")
                     continue;
 
                 AntlrFileStream afs = new AntlrFileStream(stFile);
                 FPLParser.ProgContext prog = FPLTranspilerBase.ProgFromAntlrInputStream(afs);
 
+                FPLTranspilerBase.Validate(prog);
+
                 FPLToHLSL fplToHlsl = new FPLToHLSL();
                 fplToHlsl.GenFile(prog, stDirectoryOut);
-                
+
                 FPLToCS fpltoCs = new FPLToCS();
                 fpltoCs.GenFile(prog, stDirectoryOut);
             }

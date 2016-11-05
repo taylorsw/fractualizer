@@ -48,7 +48,7 @@ namespace Render
 
             deviceContext.InputAssembler.SetVertexBuffers(0, new D3D11.VertexBufferBinding(triangleVertexBuffer, Utilities.SizeOf<Vector3>(), 0));
 
-            raytracer.UpdateBuffers(device, deviceContext);
+            raytracer.Update(device, deviceContext);
 
             deviceContext.Draw(vertices.Length, 0);
 

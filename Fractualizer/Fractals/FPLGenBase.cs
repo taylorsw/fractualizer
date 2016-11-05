@@ -7,13 +7,23 @@ namespace Fractals
     {
         public string StShaderPath()
         {
-            return "_gen/" + GetType().Name + ".hlsl";
+            return "_gen/" + GetType().Name + ".gen.hlsl";
         }
 
         public virtual void ResetInputs() { }
 
-        internal virtual void InitializeBuffer(Device device, DeviceContext deviceContext) { }
-        internal virtual void UpdateBuffer(Device device, DeviceContext deviceContext) { }
+        protected virtual void InitializeBuffer(Device device, DeviceContext deviceContext) { }
+        protected virtual void UpdateBuffer(Device device, DeviceContext deviceContext) { }
+
+        public virtual void Initialize(Device device, DeviceContext deviceContext)
+        {
+            InitializeBuffer(device, deviceContext);
+        }
+
+        public virtual void Update(Device device, DeviceContext deviceContext)
+        {
+            UpdateBuffer(device, deviceContext);
+        }
 
         public abstract void Dispose();
     }

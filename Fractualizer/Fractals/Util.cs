@@ -6,6 +6,19 @@ namespace Fractals
 {
     public static class Util
     {
+        public static double Lerp(double x, double y, double s) => x*(1 - s) + y*s;
+
+        public static Vector3d Lerp(Vector3d x, Vector3d y, double s)
+            => new Vector3d(Lerp(x.x, y.x, s), Lerp(x.y, y.y, s), Lerp(x.z, y.z, s));
+
+        public static double Frac(double d) => d - Math.Truncate(d);
+
+        public static Vector3d Frac(Vector3d v) => new Vector3d(Frac(v.x), Frac(v.y), Frac(v.z));
+
+        public static double Floor(double d) => Math.Floor(d);
+
+        public static Vector3d Floor(Vector3d val) => new Vector3d();
+
         public static T Clamp<T>(this T val, T min, T max) where T : IComparable
         {
             if (val.CompareTo(min) < 0)
@@ -24,10 +37,10 @@ namespace Fractals
         {
             return new Vector3d(Clamp(val.x, min, max), Clamp(val.y, min, max), Clamp(val.z, min, max));
         }
+        
+        public static Vector3d Abs(Vector3d v) => new Vector3d(Math.Abs(v.x), Math.Abs(v.y), Math.Abs(v.z));
 
         public static double Abs(double val) => Math.Abs(val);
-
-        public static Vector3d Abs(Vector3d v) => new Vector3d(Math.Abs(v.x), Math.Abs(v.y), Math.Abs(v.z));
 
         public static double Atan(double x)
         {

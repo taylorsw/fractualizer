@@ -58,7 +58,7 @@ namespace Mandelbasic
             if (IsKeyDown(Keys.ShiftKey))
                 frMove = frMove * 2;
 
-            double duFromFractal = scene.fractal.DuEstimate(camera.ptCamera);
+            double duFromFractal = scene.fractal.DuDeFractal(camera.ptCamera);
             float duMove = (float)(frMove * duFromFractal);
 
             if (IsKeyDown(Keys.W))

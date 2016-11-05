@@ -69,6 +69,7 @@
   <ItemGroup>
     <None Include="Frac\Mandelbox.frac" />
     <None Include="Frac\Mandalay.frac" />
+    <None Include="Frac\RaytracerFractal.frac" />
     <None Include="Frac\Mandelbulb.frac" />
     <None Include="packages.config" />
   </ItemGroup>
@@ -95,26 +96,6 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
     <Compile Include="$(ProjectDir)\_gen\*.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="ShadersKludge\mandalay.hlsl">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="ShadersKludge\mandelbox.hlsl">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="ShadersKludge\mandelbrot.hlsl">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="ShadersKludge\parameters.hlsl">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="ShadersKludge\rayTracer.hlsl">

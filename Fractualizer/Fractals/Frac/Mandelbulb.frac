@@ -4,7 +4,7 @@ fractal Mandelbulb
 {
 	DE(v3 pos)
 	{
-		float Power = param;
+		float Power = inputs.param;
 		int iterations = 10;
 		float Bailout = 5;
 
@@ -18,8 +18,8 @@ fractal Mandelbulb
 				break;
 			
 			// convert to polar coordinates
-			float theta = acos(z.z / r) / param2;
-			float phi = atan(z.y / z.x) * param2;
+			float theta = acos(z.z / r) / inputs.param2;
+			float phi = atan(z.y / z.x) * inputs.param2;
 			dr = pow(r, Power - 1.0) * Power * dr + 1.0;
 
 			// scale and rotate the point

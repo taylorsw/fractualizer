@@ -33,7 +33,13 @@ namespace Fractals
             public IDisposable Shadow { get; set; }
         }
 
-        internal virtual void InitializeFractal(Device device, DeviceContext deviceContext)
+        public override void Initialize(Device device, DeviceContext deviceContext)
+        {
+            InitializeFractal(device, deviceContext);
+            base.Initialize(device, deviceContext);
+        }
+
+        private void InitializeFractal(Device device, DeviceContext deviceContext)
         {
             string stShaderPath = StShaderPath();
             using (
@@ -45,8 +51,6 @@ namespace Fractals
             }
 
             deviceContext.PixelShader.Set(pixelShader);
-
-            InitializeBuffer(device, deviceContext);
         }
         #endregion
 
@@ -55,7 +59,7 @@ namespace Fractals
         private readonly Dictionary<Vector3d, double> mppt_duDe = new Dictionary<Vector3d, double>(cduCacheMax);
         private Queue<Vector3d> rgpt = new Queue<Vector3d>(cduCacheMax);
         private int cduCache = 0;
-        public double DuEstimate(Vector3d pt)
+        public double DuDeFractal(Vector3d pt)
         {
             //Debug.WriteLine("cache size: " + cduCache);
             double duDeCached;
@@ -73,14 +77,14 @@ namespace Fractals
                 Debug.Assert(fRemoved);
             }
 
-            double duDe = DuEstimateI(pt);
+            double duDe = DuDeFractalI(pt);
             mppt_duDe[pt] = duDe;
             rgpt.Enqueue(pt);
             cduCache++;
 
             return duDe;
         }
-        protected abstract double DuEstimateI(Vector3d pt);
+        protected abstract double DuDeFractalI(Vector3d pt);
         #endregion
 
         #region Inputs

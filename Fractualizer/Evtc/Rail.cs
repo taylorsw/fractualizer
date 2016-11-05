@@ -77,7 +77,7 @@ namespace Mandelbasic
         {
             // Get orbit value and DE
             Vector3 ptRotated = base.PtUpdated(ptCur, dtms);
-            double duDE = fractal.DuEstimate(ptRotated);
+            double duDE = fractal.DuDeFractal(ptRotated);
 
             // Calculate distance we will travel along that arc
             float duOrbitTravel = sfTravelMax * (ptCur - ptRotated).Length();

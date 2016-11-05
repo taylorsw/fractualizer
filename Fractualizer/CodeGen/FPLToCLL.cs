@@ -1,11 +1,104 @@
 ﻿using System;
+using System.Diagnostics;
+using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
 using FPL;
 
 namespace CodeGen
 {
+    public static class TranspilerExtensions
+    {
+        public static RuleContext Root(this RuleContext context)
+        {
+            RuleContext node = context;
+            while (node.Parent != null)
+                node = node.Parent;
+            return node;
+        }
+    }
+
     internal abstract class FPLToCLL : FPLTranspilerBase
     {
+        public override Losa VisitProg(FPLParser.ProgContext context)
+        {
+            Losa losaPdefines = VisitPdefines(context.pdefines());
+            Losa losaMain = Visit(context.children[context.ChildCount - 1]);
+            return losaPdefines + losaMain;
+        }
+
+        public override Losa VisitPdefines(FPLParser.PdefinesContext pdefines)
+        {
+            Losa losaPdefines = "";
+            foreach (FPLParser.PdefineContext pdefine in pdefines.pdefine())
+                losaPdefines += VisitPdefine(pdefine) + LneNew();
+            return losaPdefines;
+        }
+
+        public sealed override Losa VisitPdefine(FPLParser.PdefineContext pdefine)
+        {
+            return "#define " + VisitIdentifier(pdefine.identifier());
+        }
+
+        public sealed override Losa VisitDefCond(FPLParser.DefCondContext defCond)
+        {
+            using (idtrCur.NewZero())
+            {
+                Losa losaDefCond = LneNew() + Visit(defCond.children[0]) + " ";
+                if (defCond.identifier() != null)
+                    losaDefCond += VisitIdentifier(defCond.identifier());
+                return losaDefCond;
+            }
+        }
+
+        protected int RoundToByteOffset(int cybte, int cbyteOffset = 16)
+        {
+            return cybte + (cbyteOffset - cybte%cbyteOffset)%cbyteOffset;
+        }
+
+        protected int SizeOf(FPLParser.InputContext input)
+        {
+            FPLParser.InputTypeContext inputType = input.inputType();
+            FPLParser.TypeContext type = inputType.type();
+            int cbyte;
+            if (type.BoolType() != null)
+                cbyte = 1;
+            else if (type.FloatType() != null || type.IntType() != null)
+                cbyte = 4;
+            else
+            {
+                switch (inputType.type().GetText())
+                {
+                    case "v2":
+                        cbyte = 2 * 4;
+                        break;
+                    case "v3":
+                        cbyte = 3 * 4;
+                        break;
+                    case "v4":
+                        cbyte = 4 * 4;
+                        break;
+                    default:
+                        Error("Size of type " + inputType.type().GetText() + " not defined.");
+                        throw new NotImplementedException();
+                }
+            }
+            FPLParser.ArrayDeclContext arrayDecl = input.arrayDecl();
+            if (arrayDecl != null)
+            {
+                try
+                {
+                    int size = int.Parse(arrayDecl.expr().literal().literalInt().GetText());
+                    cbyte *= size;
+                }
+                catch (Exception)
+                {
+                    Error("Input array size must be an explicit integer.");
+                    throw;
+                }
+            }
+            return cbyte;
+        }
+
         public override Losa VisitFunc(FPLParser.FuncContext func)
         {
             Losa losaArgs = VisitArglist(func.arglist());
@@ -58,18 +151,14 @@ namespace CodeGen
                 foreach (FPLParser.BlockStatContext blockStat in block.blockStat())
                 {
                     Losa losaBlockStat = VisitBlockStat(blockStat);
-                    losaBlock = losaBlock + (losaBlockStat is Lne
-                        ? losaBlockStat
-                        : LneNew() + losaBlockStat);
+                    losaBlock = losaBlock + (
+                        losaBlockStat is Lne
+                            ? losaBlockStat
+                            : LneNew() + losaBlockStat);
                 }
             }
             losaBlock = losaBlock + LneNew("}");
             return losaBlock;
-        }
-
-        public override Losa VisitLocalDecl(FPLParser.LocalDeclContext localDecl)
-        {
-            return VisitType(localDecl.type()) + " " + VisitIdentifier(localDecl.identifier()) + " = " + VisitExpr(localDecl.expr()) + ";";
         }
 
         public override Losa VisitStat(FPLParser.StatContext stat)
@@ -146,6 +235,11 @@ namespace CodeGen
             return "(" + VisitExpr(parExpr.expr()) + ")";
         }
 
+        public override Losa VisitTernary(FPLParser.TernaryContext ternary)
+        {
+            return " ? " + VisitExpr(ternary.expr(0)) + " : " + VisitExpr(ternary.expr(1));
+        }
+
         public override Losa VisitKeywordExpr(FPLParser.KeywordExprContext context)
         {
             if (context.expr() == null)
@@ -214,11 +308,6 @@ namespace CodeGen
         public override Losa VisitIdentifier(FPLParser.IdentifierContext identifier)
         {
             return identifier.GetText();
-        }
-
-        public override Losa VisitInputType(FPLParser.InputTypeContext inputType)
-        {
-            return inputType.GetText();
         }
 
         protected override Losa AggregateResult(Losa aggregate, Losa nextResult)

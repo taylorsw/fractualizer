@@ -6,8 +6,9 @@ namespace Fractals
     public abstract class Raytracer : FPLGenBase
     {
         public readonly Scene scene;
+        public readonly Camera camera;
 
-        public Camera camera;
+        protected Fractal3d fractal => scene.fractal;
 
         protected Raytracer(Scene scene, int width, int height)
         {
@@ -15,14 +16,16 @@ namespace Fractals
             this.camera = new Camera(width, height);
         }
 
-        public void Initialize(Device device, DeviceContext deviceContext)
+        public override void Initialize(Device device, DeviceContext deviceContext)
         {
+            base.Initialize(device, deviceContext);
             camera.Initialize(device, deviceContext);
             scene.Initialize(device, deviceContext);
         }
 
-        public void UpdateBuffers(Device device, DeviceContext deviceContext)
+        public override void Update(Device device, DeviceContext deviceContext)
         {
+            base.Update(device, deviceContext);
             camera.UpdateBuffers(device, deviceContext);
             scene.UpdateBuffers(device, deviceContext);
         }
@@ -86,12 +89,12 @@ namespace Fractals
 
         internal void Initialize(Device device, DeviceContext deviceContext)
         {
-            fractal.InitializeFractal(device, deviceContext);
+            fractal.Initialize(device, deviceContext);
         }
 
         internal void UpdateBuffers(Device device, DeviceContext deviceContext)
         {
-            fractal.UpdateBuffer(device, deviceContext);
+            fractal.Update(device, deviceContext);
         }
 
         public void ResetScene()

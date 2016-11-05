@@ -4,6 +4,20 @@
 #define LIGHTING
 #define VISUALIZE_LIGHTING
 
+static const int cLightMax = 20;
+cbuffer Parameters : register(b0)
+{
+	float3 ptCamera;
+	float duNear;
+	float3 vkCamera;
+	int cLight;
+	float3 vkCameraOrtho;
+	float fogA;
+	float2 rsScreen;
+	float2 rsViewPlane;
+	float3 rgptLight[cLightMax];
+}
+
 static const int cmarch = 148;
 static const float3 ptOrigin = float3(0, 0, 0);
 
@@ -73,7 +87,7 @@ float3 VkNormal(float3 pt, float duEpsilon)
 #endif
 }
 
-static float duPixelRadius = rsViewPlane.x / rsScreen.x;
+static const float duPixelRadius = rsViewPlane.x / rsScreen.x;
 float DuEpsilon(float sfEpsilon, float duMarched)
 {
 	return sfEpsilon * 0.8 * duMarched / duNear * duPixelRadius;
@@ -88,9 +102,9 @@ float4 PtMarch(float3 pt, float3 vk, float sfEpsilon, float duMax, bool fInclude
 	for (int i = 0; i < cmarch; ++i)
 	{
 		idHit = ID_FRACTAL;
-		float du = 0.999 * fIncludeLights
+		float du = 0.999 * (fIncludeLights
 			? DuDeScene(pt, idHit)
-			: DuDeObject(pt);
+			: DuDeObject(pt));
 
 		pt += du * vk;
 		duTotal += du;
