@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Windows.Forms;
+using Evtc;
 using Fractals;
 using SharpDX;
 
@@ -11,7 +12,7 @@ namespace Mandelbasic
         private readonly RailOrbit railLight1;
         private readonly RailHover railLight2;
         
-        public EvtcAnim(Form form, RaytracerFractal raytracer) : base(form, raytracer)
+        public EvtcAnim(Form form, Controller controller) : base(form, controller)
         {
             railCam = new RailHover(
                 pt => raytracer.camera.MoveTo(pt), 

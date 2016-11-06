@@ -163,7 +163,7 @@ namespace Fractals
             duNear: 0.5f,
             rsScreen: new Vector2(width, height),
             rsViewPlane: new Vector2(dxView, dxView*height/width),
-            cLight: 2,
+            cLight: 1,
             fogA: 1.0f,
             ptLight: new Vector3f(2, 0, -1), 
             ptLight2: new Vector3f(-2, 0, -1.5f));

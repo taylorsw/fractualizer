@@ -47,6 +47,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Controller.cs" />
     <Compile Include="Evtc.cs" />
     <Compile Include="EvtcAnim.cs" />
     <Compile Include="EvtcAudio.cs" />

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Windows.Forms;
+using Evtc;
 using Fractals;
 using SharpDX;
 using Point = System.Drawing.Point;
@@ -12,7 +13,7 @@ namespace Mandelbasic
     {
         private readonly HashSet<Keys> mpkeys;
 
-        protected EvtcUserDecode(Form form, RaytracerFractal raytracer) : base(form, raytracer)
+        protected EvtcUserDecode(Form form, Controller controller) : base(form, controller)
         {
             mpkeys = new HashSet<Keys>();
             form.KeyDown += OnKeyDown;
@@ -26,20 +27,11 @@ namespace Mandelbasic
 
         private void OnKeyUp(object sender, KeyEventArgs keyEventArgs)
         {
-            switch (keyEventArgs.KeyCode)
-            {
-                case Keys.T:
-                    raytracer.ResetSceneAndCamera();
-                    break;
-                case Keys.Y:
-                    //var color = raytracer.RgbaTrace(new Vector2d(ptFormCenter.X, ptFormCenter.Y));
-                    //Debug.WriteLine(color.x + ", " + color.y + ", " + color.z);
-                    raytracer.CPUScreenshot();
-                    break;
-            }
-
+            OnKeyUp(keyEventArgs);
             mpkeys.Remove(keyEventArgs.KeyCode);
         }
+
+        protected virtual void OnKeyUp(KeyEventArgs keyEventArgs) { }
 
         protected bool IsKeyDown(Keys keyCode)
         {

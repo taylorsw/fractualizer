@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Windows.Forms;
+using Evtc;
 using Fractals;
 using SharpDX;
 using Point = System.Drawing.Point;
@@ -11,7 +12,7 @@ namespace Mandelbasic
     {
         private readonly RailOrbit railLight;
         private readonly RailOrbit railLight2;
-        public EvtcExplorer(Form form, RaytracerFractal raytracer) : base(form, raytracer)
+        public EvtcExplorer(Form form, Controller controller) : base(form, controller)
         {
             Cursor.Hide();
             CenterCursor();
@@ -48,10 +49,32 @@ namespace Mandelbasic
             CenterCursor();
         }
 
+        private bool fLightFollows = true;
+        protected override void OnKeyUp(KeyEventArgs keyEventArgs)
+        {
+            switch (keyEventArgs.KeyCode)
+            {
+                case Keys.T:
+                    raytracer.ResetSceneAndCamera();
+                    break;
+                case Keys.Y:
+                    raytracer.CPUScreenshot();
+                    break;
+                case Keys.L:
+                    fLightFollows = !fLightFollows;
+                    break;
+                case Keys.NumPad8:
+                    controller.Resize(raytracer.width * 2, raytracer.height * 2);
+                    break;
+            }
+        }
+
         private const float frMoveBase = 0.1f;
         public override void DoEvents(float dtms)
         {
-            railLight.UpdatePt(raytracer._raytracerfractal.ptLight, dtms);
+            if (fLightFollows)
+                raytracer._raytracerfractal.ptLight = raytracer.camera.ptCamera;
+            //railLight.UpdatePt(raytracer._raytracerfractal.ptLight, dtms);
             railLight2.UpdatePt(raytracer._raytracerfractal.ptLight2, dtms);
 
             float frMove = frMoveBase;
@@ -90,7 +113,7 @@ namespace Mandelbasic
 
     public class EvtcLookAt : EvtcUserDecode
     {
-        public EvtcLookAt(Form form, RaytracerFractal raytracer) : base(form, raytracer) { }
+        public EvtcLookAt(Form form, Controller controller) : base(form, controller) { }
 
         private DateTime dtLastB = DateTime.MinValue;
         public override void DoEvents(float dtms)

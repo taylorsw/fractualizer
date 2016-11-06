@@ -4,9 +4,9 @@
     {
         static void Main(string[] args)
         {
-            using (Controller controller = new Controller())
+            using (ControllerMandelbasic controllerMandelbasic = new ControllerMandelbasic())
             {
-                controller.Run();
+                controllerMandelbasic.Run();
             }
         }
     }

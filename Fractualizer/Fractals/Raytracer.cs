@@ -87,21 +87,23 @@ namespace Fractals
         private static int cscreenshot = 0;
         public void CPUScreenshot()
         {
-            Bitmap bitmap = new Bitmap(width, height);
-            Vector3d[][] rgrgColorScreenshot = new Vector3d[width][];
-            for (int x = 0; x < width; x++)
-                rgrgColorScreenshot[x] = new Vector3d[height];
+            int imgWidth = width;
+            int imgHeight = height;
+            Bitmap bitmap = new Bitmap(imgWidth, imgHeight);
+            Vector3d[][] rgrgColorScreenshot = new Vector3d[imgWidth][];
+            for (int x = 0; x < imgWidth; x++)
+                rgrgColorScreenshot[x] = new Vector3d[imgHeight];
 
             int duxProgress = 0;
-            int duxPerProg = width / 100;
+            int duxPerProg = imgWidth / 100;
             Parallel.For(
                 0,
-                width,
+                imgWidth,
                 x =>
                 {
                     Parallel.For(
                         0,
-                        height,
+                        imgHeight,
                         y =>
                         {
                             Vector3d rgbaTrace = RgbaTrace(new Vector2d(x, y));
@@ -110,13 +112,13 @@ namespace Fractals
                     if (x % duxPerProg == 0)
                     {
                         Interlocked.Increment(ref duxProgress);
-                        Debug.WriteLine("Progress: " + 100f * (duxPerProg * duxProgress) / (float)width + "%");
+                        Debug.WriteLine("Progress: " + 100f * (duxPerProg * duxProgress) / (float)imgWidth + "%");
                     }
                 });
 
-            for (int x = 0; x < width; x++)
+            for (int x = 0; x < imgWidth; x++)
             {
-                for (int y = 0; y < height; y++)
+                for (int y = 0; y < imgHeight; y++)
                 {
                     Vector3d rgbd = rgrgColorScreenshot[x][y];
                     if (rgbd.x < 0 || rgbd.y < 0 || rgbd.z < 0 || rgbd.x > 1 || rgbd.y > 1 || rgbd.z > 1)

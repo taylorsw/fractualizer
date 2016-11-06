@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Windows.Forms;
 using Audio;
+using Evtc;
 using Fractals;
 
 namespace Mandelbasic
@@ -9,7 +10,7 @@ namespace Mandelbasic
     {
         private readonly AudioProcessor processor;
 
-        public EvtcAudio(Form form, RaytracerFractal raytracer) : base(form, raytracer)
+        public EvtcAudio(Form form, Controller controller) : base(form, controller)
         {
             processor = new AudioProcessor();
             processor.StartProcessor("Resources/lovesosa.mp3");
