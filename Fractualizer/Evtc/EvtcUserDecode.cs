@@ -17,27 +17,6 @@ namespace Mandelbasic
             mpkeys = new HashSet<Keys>();
             form.KeyDown += OnKeyDown;
             form.KeyUp += OnKeyUp;
-            form.KeyPress += OnKeyPress;
-        }
-
-        private void OnKeyPress(object sender, KeyPressEventArgs keyPressEventArgs)
-        {
-            char charUpper = char.ToUpper(keyPressEventArgs.KeyChar);
-
-            switch (charUpper)
-            {
-                case 'T':
-                    raytracer.ResetSceneAndCamera();
-                    break;
-                case 'G':
-                    Debug.WriteLine(camera);
-                    break;
-                case 'Y':
-                    //var color = raytracer.RgbaTrace(new Vector2d(ptFormCenter.X, ptFormCenter.Y));
-                    //Debug.WriteLine(color.x + ", " + color.y + ", " + color.z);
-                    raytracer.CPUScreenshot();
-                    break;
-            }
         }
 
         private void OnKeyDown(object sender, KeyEventArgs keyEventArgs)
@@ -47,6 +26,18 @@ namespace Mandelbasic
 
         private void OnKeyUp(object sender, KeyEventArgs keyEventArgs)
         {
+            switch (keyEventArgs.KeyCode)
+            {
+                case Keys.T:
+                    raytracer.ResetSceneAndCamera();
+                    break;
+                case Keys.Y:
+                    //var color = raytracer.RgbaTrace(new Vector2d(ptFormCenter.X, ptFormCenter.Y));
+                    //Debug.WriteLine(color.x + ", " + color.y + ", " + color.z);
+                    raytracer.CPUScreenshot();
+                    break;
+            }
+
             mpkeys.Remove(keyEventArgs.KeyCode);
         }
 

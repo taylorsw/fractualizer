@@ -17,7 +17,7 @@ namespace Fractals
 
         public static double Floor(double d) => Math.Floor(d);
 
-        public static Vector3d Floor(Vector3d val) => new Vector3d();
+        public static Vector3d Floor(Vector3d val) => new Vector3d(Math.Floor(val.x), Math.Floor(val.y), Math.Floor(val.z));
 
         public static T Clamp<T>(this T val, T min, T max) where T : IComparable
         {

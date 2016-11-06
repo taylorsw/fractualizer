@@ -93,24 +93,25 @@ namespace Fractals
                 rgrgColorScreenshot[x] = new Vector3d[height];
 
             int duxProgress = 0;
-            int duxPerProg = width / 10;
+            int duxPerProg = width / 100;
             Parallel.For(
                 0,
                 width,
                 x =>
                 {
-                    if (x%duxPerProg == 0)
-                    {
-                        Interlocked.Increment(ref duxProgress);
-                        Debug.WriteLine("Progress: " + 100f * (duxPerProg * duxProgress) / (float)width + "%");
-                    }
                     Parallel.For(
                         0,
                         height,
                         y =>
                         {
-                            rgrgColorScreenshot[x][y] = RgbaTrace(new Vector2d(x, y));
+                            Vector3d rgbaTrace = RgbaTrace(new Vector2d(x, y));
+                            rgrgColorScreenshot[x][y] = rgbaTrace;
                         });
+                    if (x % duxPerProg == 0)
+                    {
+                        Interlocked.Increment(ref duxProgress);
+                        Debug.WriteLine("Progress: " + 100f * (duxPerProg * duxProgress) / (float)width + "%");
+                    }
                 });
 
             for (int x = 0; x < width; x++)
@@ -118,15 +119,34 @@ namespace Fractals
                 for (int y = 0; y < height; y++)
                 {
                     Vector3d rgbd = rgrgColorScreenshot[x][y];
-                    Color color = Color.FromArgb(
-                        SharpDX.Color.ToByte(IntComponentFromDouble(rgbd.x)),
-                        SharpDX.Color.ToByte(IntComponentFromDouble(rgbd.y)),
-                        SharpDX.Color.ToByte(IntComponentFromDouble(rgbd.z)));
+                    if (rgbd.x < 0 || rgbd.y < 0 || rgbd.z < 0 || rgbd.x > 1 || rgbd.y > 1 || rgbd.z > 1)
+                        Debugger.Launch();
+                    Color color = ProcessColor(rgbd);
                     bitmap.SetPixel(x, y, color);
                 }
             }
         
             bitmap.Save("screenshot" + cscreenshot++ + ".jpg");
+        }
+
+        private Color ProcessColor(Vector3d rgb)
+        {
+//            double duMin = Math.Min(double.PositiveInfinity, Math.Min(rgb.x, Math.Min(rgb.y, rgb.z)));
+//            if (duMin < 0)
+//            {
+//                double duAbsMin = Math.Abs(duMin);
+//                rgb = new Vector3d(rgb.x + duAbsMin, rgb.y + duAbsMin, rgb.z + duAbsMin);
+//            }
+//            double duMax = Math.Max(double.NegativeInfinity, Math.Max(rgb.x, Math.Max(rgb.y, rgb.z)));
+//            if (duMax > 1.0)
+//            {
+//                rgb = new Vector3d(rgb.x / duMax, rgb.y / duMax, rgb.z / duMax);
+//            }
+            Color color = Color.FromArgb(
+                SharpDX.Color.ToByte(IntComponentFromDouble(rgb.x)),
+                SharpDX.Color.ToByte(IntComponentFromDouble(rgb.y)),
+                SharpDX.Color.ToByte(IntComponentFromDouble(rgb.z)));
+            return color;
         }
 
         private static int IntComponentFromDouble(double component) => (int) ((double) component*(double) byte.MaxValue);

@@ -19,8 +19,8 @@ namespace Mandelbasic
         
         public Controller()
         {
-            int width = 500;//Screen.PrimaryScreen.Bounds.Width;
-            int height = 500;//Screen.PrimaryScreen.Bounds.Height;
+            int width = 1920;//Screen.PrimaryScreen.Bounds.Width;
+            int height = 1080;//Screen.PrimaryScreen.Bounds.Height;
             renderForm = new RenderForm("Fractualizer")
             {
                 ClientSize = new Size(width, height),
