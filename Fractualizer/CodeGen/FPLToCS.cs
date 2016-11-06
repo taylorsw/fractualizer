@@ -169,8 +169,8 @@ namespace CodeGen
                         string stStructName, stStructMemberName;
                         Losa losaStruct = LosaStruct(stClassName, false, raytracer.input(), out stStructName, out stStructMemberName);
                         Losa losaStructMemberAndBuffer = LosaStructMemberAndBuffer(stStructName, stStructMemberName);
-                        Losa losaConstructor = LneNew("protected " + stClassName + "(Scene scene, int width, int height) : base(scene, width, height) { }");
-                        Losa losaBufferMethods = LosaBufferMethods(stStructMemberName);
+                        Losa losaConstructor = LneNew("public " + stClassName + "(Scene scene, int width, int height) : base(scene, width, height) { }");
+                        Losa losaBufferMethods = LosaBufferMethods(stStructMemberName, GenU.ibufferRaytracer);
                         Losa losaGlobals = LosaGlobals(raytracer.global());
                         Losa losaTracer = VisitTracer(raytracer.tracer());
                         return losaStruct + losaStructMemberAndBuffer + losaConstructor + losaBufferMethods + LneNew() + losaGlobals + losaTracer;
@@ -182,7 +182,7 @@ namespace CodeGen
 
         public override Losa VisitTracer(FPLParser.TracerContext tracer)
         {
-            return LneNew("protected override Vector4d RgbaTrace(Vector4d pos)") + VisitBlock(tracer.block());
+            return LneNew("public override Vector4d RgbaTrace(Vector2d pos)") + VisitBlock(tracer.block());
         }
 
         public override Losa VisitFractal(FPLParser.FractalContext fractal)
@@ -300,7 +300,7 @@ namespace CodeGen
             return losaStructMemberAndBuffer;
         }
 
-        private Losa LosaBufferMethods(string stStructMemberName)
+        private Losa LosaBufferMethods(string stStructMemberName, int ibuffer)
         {
             Losa losaInitializeBuffer =
                 LneNew("protected override void InitializeBuffer(Device device, DeviceContext deviceContext)") +
@@ -308,7 +308,7 @@ namespace CodeGen
             using (idtrCur.New())
             {
                 losaInitializeBuffer +=
-                    LneNew("buffer = Util.BufferCreate(device, deviceContext, 1, ref " + stStructMemberName + ");");
+                    LneNew("buffer = Util.BufferCreate(device, deviceContext, " + ibuffer + ", ref " + stStructMemberName + ");");
             }
             losaInitializeBuffer += LneNew("}");
             Losa losaBufferMethods = losaInitializeBuffer;
@@ -354,7 +354,7 @@ namespace CodeGen
             losaClassConstructorVerbose += LneNew("}");
             losaClassBody += losaClassConstructorVerbose;
 
-            losaClassBody += LosaBufferMethods(stStructMemberName);
+            losaClassBody += LosaBufferMethods(stStructMemberName, GenU.ibufferFractal);
 
             Losa losaReset =
                 LneNew("public override void ResetInputs() { " + stStructMemberName + " = " + stStructName + ".I; }");
@@ -426,7 +426,7 @@ namespace CodeGen
 
         public override Losa VisitDistanceEstimator(FPLParser.DistanceEstimatorContext distanceEstimator)
         {
-            Losa losa = LneNew("protected override double DuDeFractalI(Vector3d pos)") + VisitBlock(distanceEstimator.block());
+            Losa losa = LneNew("protected internal override double DuDeFractal(Vector3d pos)") + VisitBlock(distanceEstimator.block());
             return losa;
         }
 

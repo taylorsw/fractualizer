@@ -6,9 +6,6 @@ namespace CodeGen
 {
     internal class FPLToHLSL : FPLToCLL
     {
-        private const int ibufferRaytracer = 0;
-        private const int ibufferFractal = 1;
-
         public override Losa VisitPifdef(FPLParser.PifdefContext pifdef)
         {
             return "#ifdef";
@@ -33,10 +30,10 @@ namespace CodeGen
 
         public override Losa VisitRaytracer(FPLParser.RaytracerContext raytracer)
         {
-            Losa losaRaytracer = "";
+            Losa losaRaytracer = LosaInclude(GenU.stFractalInclude);
 
             if (raytracer.input().Length > 0)
-                losaRaytracer += LosaInputs(raytracer.identifier(), raytracer.input(), ibufferRaytracer);
+                losaRaytracer += LosaInputs(raytracer.identifier(), raytracer.input(), GenU.ibufferRaytracer);
 
             losaRaytracer += LosaVisitGlobals(raytracer.global());
 
@@ -57,7 +54,7 @@ namespace CodeGen
 
             if (fractal.input().Length > 0)
             {
-                Losa losaInputs = LosaInputs(fractal.identifier(), fractal.input(), ibufferFractal);
+                Losa losaInputs = LosaInputs(fractal.identifier(), fractal.input(), GenU.ibufferFractal);
                 losaProg += losaInputs;
             }
 
@@ -65,7 +62,6 @@ namespace CodeGen
 
             losaProg += VisitDistanceEstimator(fractal.distanceEstimator());
 
-            losaProg += LosaInclude("rayTracer.hlsl");
             return losaProg;
         }
 

@@ -12,7 +12,8 @@ v3 vkCameraOrtho;
 float fogA;
 v2 rsScreen;
 v2 rsViewPlane;
-v3 rgptLight[2];
+v3 ptLight;
+v3 ptLight2;
 raytracer RaytracerFractal
 {
 	global int cmarch = 148;
@@ -26,7 +27,7 @@ raytracer RaytracerFractal
 	global float duRadiusLight = 0.01;
 	float DuDeLight(v3 ptPos, int iLight)
 	{
-		return DuDeSphere(ptPos, inputs.rgptLight[iLight], duRadiusLight);
+		return DuDeSphere(ptPos, iLight == 0 ? inputs.ptLight : inputs.ptLight2, duRadiusLight);
 	}
 
 	float DuDeObject(v3 ptPos)
@@ -141,6 +142,7 @@ raytracer RaytracerFractal
 	// Basic orbit-trapping color
 	v3 ColorOT(v3 marched)
 	{
+		//return v3(0.0, 1.0, 0.0);
 #ifdef SPHERE
 		return v3(1.0, 0.0, 0.0);
 #endif
@@ -187,7 +189,7 @@ raytracer RaytracerFractal
 		for (int iLight = 0; iLight < inputs.cLight; iLight++)
 		{
 			v3 vkNormal = VkNormal(ptSurface, duEpsilon);
-			v3 vkSurfaceToLight = inputs.rgptLight[iLight] - ptSurface;
+			v3 vkSurfaceToLight = (iLight == 0 ? inputs.ptLight : inputs.ptLight2) - ptSurface;
 			v3 vkLightDir = normalize(vkSurfaceToLight);
 			v3 vkCameraDir = normalize(inputs.ptCamera - ptSurface);
 

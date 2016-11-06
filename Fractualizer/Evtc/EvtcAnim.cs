@@ -11,7 +11,7 @@ namespace Mandelbasic
         private readonly RailOrbit railLight1;
         private readonly RailHover railLight2;
         
-        public EvtcAnim(Form form, Raytracer raytracer) : base(form, raytracer)
+        public EvtcAnim(Form form, RaytracerFractal raytracer) : base(form, raytracer)
         {
             railCam = new RailHover(
                 pt => raytracer.camera.MoveTo(pt), 
@@ -23,8 +23,8 @@ namespace Mandelbasic
                 duHoverMax: 0.1f,
                 sfTravelMax: 2);
 
-            railLight1 = new RailOrbit(pt => camera.cameraData.ptLight = pt, Vector3.Zero, new Vector3(1, 1, 1), 60f / 1000);
-            railLight2 = new RailHover(pt => camera.cameraData.ptLight2 = pt, scene.fractal, Vector3.Zero, new Vector3(0.3f, 0.4f, 0.7f), 0.1f, 0.1f, 0.3f, 2.0f);
+            railLight1 = new RailOrbit(pt => raytracer._raytracerfractal.ptLight = pt, Vector3.Zero, new Vector3(1, 1, 1), 60f / 1000);
+            railLight2 = new RailHover(pt => raytracer._raytracerfractal.ptLight2 = pt, scene.fractal, Vector3.Zero, new Vector3(0.3f, 0.4f, 0.7f), 0.1f, 0.1f, 0.3f, 2.0f);
         }
 
         protected float du = -1;
@@ -47,8 +47,8 @@ namespace Mandelbasic
 //                du2 = -1;
 
             railCam.UpdatePt(camera.ptCamera, dtms);
-            railLight1.UpdatePt(camera.cameraData.ptLight, dtms);
-            railLight2.UpdatePt(camera.cameraData.ptLight2, dtms);
+            railLight1.UpdatePt(raytracer._raytracerfractal.ptLight, dtms);
+            railLight2.UpdatePt(raytracer._raytracerfractal.ptLight2, dtms);
 
             const float dagdRoll = 0.01f;
             camera.RollBy(dagdRoll);

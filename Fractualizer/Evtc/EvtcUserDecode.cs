@@ -12,7 +12,7 @@ namespace Mandelbasic
     {
         private readonly HashSet<Keys> mpkeys;
 
-        protected EvtcUserDecode(Form form, Raytracer raytracer) : base(form, raytracer)
+        protected EvtcUserDecode(Form form, RaytracerFractal raytracer) : base(form, raytracer)
         {
             mpkeys = new HashSet<Keys>();
             form.KeyDown += OnKeyDown;
@@ -31,6 +31,11 @@ namespace Mandelbasic
                     break;
                 case 'G':
                     Debug.WriteLine(camera);
+                    break;
+                case 'Y':
+                    //var color = raytracer.RgbaTrace(new Vector2d(ptFormCenter.X, ptFormCenter.Y));
+                    //Debug.WriteLine(color.x + ", " + color.y + ", " + color.z);
+                    raytracer.CPUScreenshot();
                     break;
             }
         }
@@ -74,7 +79,7 @@ namespace Mandelbasic
 
             Vector3 ptPlane = camera.ptPlaneCenter
                    + camera.vkCameraRight * ddxScene
-                   + camera.vkCameraDown * ddyScene;
+                   + camera.vkCameraOrtho * ddyScene;
 
             return ptPlane;
         }

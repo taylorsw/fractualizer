@@ -11,13 +11,13 @@ namespace Mandelbasic
     {
         private readonly RailOrbit railLight;
         private readonly RailOrbit railLight2;
-        public EvtcExplorer(Form form, Raytracer raytracer) : base(form, raytracer)
+        public EvtcExplorer(Form form, RaytracerFractal raytracer) : base(form, raytracer)
         {
             Cursor.Hide();
             CenterCursor();
             form.MouseMove += OnMouseMove;
-            railLight = new RailOrbit(pt => camera.cameraData.ptLight = pt, Vector3.Zero, new Vector3(1, 1, 1), 60f / 1000);
-            railLight2 = new RailHover(pt => camera.cameraData.ptLight2 = pt, scene.fractal, Vector3.Zero, new Vector3(0.3f, 0.4f, 0.7f), 0.08f, 0.15f, 0.15f, 1.0f);
+            railLight = new RailOrbit(pt => raytracer._raytracerfractal.ptLight = pt, Vector3.Zero, new Vector3(1, 1, 1), 60f / 1000);
+            railLight2 = new RailHover(pt => raytracer._raytracerfractal.ptLight2 = pt, scene.fractal, Vector3.Zero, new Vector3(0.3f, 0.4f, 0.7f), 0.08f, 0.15f, 0.15f, 1.0f);
         }
 
         private void CenterCursor()
@@ -51,14 +51,14 @@ namespace Mandelbasic
         private const float frMoveBase = 0.1f;
         public override void DoEvents(float dtms)
         {
-            railLight.UpdatePt(camera.cameraData.ptLight, dtms);
-            railLight2.UpdatePt(camera.cameraData.ptLight2, dtms);
+            railLight.UpdatePt(raytracer._raytracerfractal.ptLight, dtms);
+            railLight2.UpdatePt(raytracer._raytracerfractal.ptLight2, dtms);
 
             float frMove = frMoveBase;
             if (IsKeyDown(Keys.ShiftKey))
                 frMove = frMove * 2;
 
-            double duFromFractal = scene.fractal.DuDeFractal(camera.ptCamera);
+            double duFromFractal = scene.fractal.DuDeFractalOrCache(camera.ptCamera);
             float duMove = (float)(frMove * duFromFractal);
 
             if (IsKeyDown(Keys.W))
@@ -68,10 +68,10 @@ namespace Mandelbasic
                 camera.MoveBy(-camera.vkCamera * duMove);
 
             if (IsKeyDown(Keys.A))
-                camera.MoveBy(Vector3.Cross(camera.vkCamera, camera.vkCameraDown) * duMove);
+                camera.MoveBy(Vector3.Cross(camera.vkCamera, camera.vkCameraOrtho) * duMove);
 
             if (IsKeyDown(Keys.D))
-                camera.MoveBy(Vector3.Cross(camera.vkCameraDown, camera.vkCamera) * duMove);
+                camera.MoveBy(Vector3.Cross(camera.vkCameraOrtho, camera.vkCamera) * duMove);
 
             if (IsKeyDown(Keys.P))
                 form.Close();
@@ -90,7 +90,7 @@ namespace Mandelbasic
 
     public class EvtcLookAt : EvtcUserDecode
     {
-        public EvtcLookAt(Form form, Raytracer raytracer) : base(form, raytracer) { }
+        public EvtcLookAt(Form form, RaytracerFractal raytracer) : base(form, raytracer) { }
 
         private DateTime dtLastB = DateTime.MinValue;
         public override void DoEvents(float dtms)

@@ -25,6 +25,7 @@ namespace Fractals
             this.v = new Vector2(x, y);
         }
 
+        public static implicit operator Vector2(Vector2f v) => new Vector2(v.x, v.y);
         public static implicit operator Vector2f(Vector2 v) => new Vector2f(v);
         public static implicit operator float(Vector2f v) => v.x;
         public static implicit operator Vector2f(Vector3f v) => new Vector2f(v.x, v.y);
@@ -59,6 +60,7 @@ namespace Fractals
             this.v = new Vector3(x, y, z);
         }
 
+        public static implicit operator Vector3(Vector3f v) => new Vector3(v.x, v.y, v.z);
         public static implicit operator Vector3f(Vector3 v) => new Vector3f(v);
         public static implicit operator float(Vector3f v) => v.x;
         public static implicit operator Vector3f(Vector4f v) => new Vector3f(v.x, v.y, v.z);
@@ -94,6 +96,7 @@ namespace Fractals
             this.v = new Vector4(x, y, z, w);
         }
 
+        public static implicit operator Vector4(Vector4f v) => new Vector4(v.x, v.y, v.z, v.w);
         public static implicit operator Vector4f(Vector4 v) => new Vector4f(v);
         public static implicit operator float(Vector4f v) => v.x;
 

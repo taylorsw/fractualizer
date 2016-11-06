@@ -15,12 +15,12 @@ namespace Mandelbasic
         private readonly Stopwatch stopwatch;
         private readonly Evtc evtc;
 
-        public readonly Raytracer raytracer;
+        public readonly RaytracerFractal raytracer;
         
         public Controller()
         {
-            int width = 1920;//Screen.PrimaryScreen.Bounds.Width;
-            int height = 1080;//Screen.PrimaryScreen.Bounds.Height;
+            int width = 500;//Screen.PrimaryScreen.Bounds.Width;
+            int height = 500;//Screen.PrimaryScreen.Bounds.Height;
             renderForm = new RenderForm("Fractualizer")
             {
                 ClientSize = new Size(width, height),
@@ -28,7 +28,7 @@ namespace Mandelbasic
                 IsFullscreen = false //true
             };
 
-            raytracer = new RaytracerDummy(new Scene(new Mandelbulb()), width, height);
+            raytracer = new RaytracerFractal(new Scene(new Mandelbox()), width, height);
             renderForm.Show();
 
             renderer = new Renderer(raytracer, renderForm);

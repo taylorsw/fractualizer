@@ -9,7 +9,7 @@ namespace Mandelbasic
     {
         private readonly AudioProcessor processor;
 
-        public EvtcAudio(Form form, Raytracer raytracer) : base(form, raytracer)
+        public EvtcAudio(Form form, RaytracerFractal raytracer) : base(form, raytracer)
         {
             processor = new AudioProcessor();
             processor.StartProcessor("Resources/lovesosa.mp3");

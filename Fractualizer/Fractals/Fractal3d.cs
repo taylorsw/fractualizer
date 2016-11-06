@@ -1,65 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
-using SharpDX.D3DCompiler;
-using SharpDX.Direct3D11;
 
 namespace Fractals
 {
     public abstract class Fractal3d : FPLGenBase
     {
-        #region Shader
-        protected PixelShader pixelShader;
-        public class IncludeFX : Include
-        {
-            static string includeDirectory = "ShadersKludge/";
-
-            public Stream Open(IncludeType type, string fileName, Stream parentStream)
-            {
-                return new FileStream(includeDirectory + fileName, FileMode.Open);
-            }
-
-            public void Close(Stream stream)
-            {
-                stream.Close();
-                stream.Dispose();
-            }
-
-            public void Dispose()
-            {
-            }
-
-            public IDisposable Shadow { get; set; }
-        }
-
-        public override void Initialize(Device device, DeviceContext deviceContext)
-        {
-            InitializeFractal(device, deviceContext);
-            base.Initialize(device, deviceContext);
-        }
-
-        private void InitializeFractal(Device device, DeviceContext deviceContext)
-        {
-            string stShaderPath = StShaderPath();
-            using (
-                var pixelShaderByteCode = ShaderBytecode.CompileFromFile(stShaderPath, "main", "ps_4_0",
-                    ShaderFlags.Debug, include: new IncludeFX()))
-            {
-                string stErr = pixelShaderByteCode.Message;
-                pixelShader = new PixelShader(device, pixelShaderByteCode);
-            }
-
-            deviceContext.PixelShader.Set(pixelShader);
-        }
-        #endregion
-
         #region Distance Estimation
         private const int cduCacheMax = 20;
         private readonly Dictionary<Vector3d, double> mppt_duDe = new Dictionary<Vector3d, double>(cduCacheMax);
         private Queue<Vector3d> rgpt = new Queue<Vector3d>(cduCacheMax);
         private int cduCache = 0;
-        public double DuDeFractal(Vector3d pt)
+        public double DuDeFractalOrCache(Vector3d pt)
         {
             //Debug.WriteLine("cache size: " + cduCache);
             double duDeCached;
@@ -77,14 +29,14 @@ namespace Fractals
                 Debug.Assert(fRemoved);
             }
 
-            double duDe = DuDeFractalI(pt);
+            double duDe = DuDeFractal(pt);
             mppt_duDe[pt] = duDe;
             rgpt.Enqueue(pt);
             cduCache++;
 
             return duDe;
         }
-        protected abstract double DuDeFractalI(Vector3d pt);
+        protected internal abstract double DuDeFractal(Vector3d pt);
         #endregion
 
         #region Inputs
@@ -128,7 +80,6 @@ namespace Fractals
 
         public override void Dispose()
         {
-            pixelShader.Dispose();
         }
     }
 }

@@ -23,6 +23,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <UseVSHostingProcess>true</UseVSHostingProcess>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -56,9 +57,9 @@
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Camera.cs" />
     <Compile Include="FPLGenBase.cs" />
     <Compile Include="Raytracer.cs" />
+    <Compile Include="RaytracerFractal_Camera.cs" />
     <Compile Include="Util.cs" />
     <Compile Include="Vector3d.cs" />
   </ItemGroup>
@@ -96,11 +97,6 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
     <Compile Include="$(ProjectDir)\_gen\*.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="ShadersKludge\rayTracer.hlsl">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="ShadersKludge\tetrahedron.hlsl">
