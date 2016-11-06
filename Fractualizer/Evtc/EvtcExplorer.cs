@@ -49,7 +49,7 @@ namespace Mandelbasic
             CenterCursor();
         }
 
-        private bool fLightFollows = true;
+        private bool fLightFollows = false;
         protected override void OnKeyUp(KeyEventArgs keyEventArgs)
         {
             switch (keyEventArgs.KeyCode)
