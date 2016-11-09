@@ -8,6 +8,7 @@ using CodeGen;
 using SharpDX;
 using SharpDX.D3DCompiler;
 using SharpDX.Direct3D11;
+using Util;
 using Color = System.Drawing.Color;
 
 namespace Fractals

@@ -10,10 +10,11 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Fractals</RootNamespace>
     <AssemblyName>Fractals</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -60,8 +61,6 @@
     <Compile Include="FPLGenBase.cs" />
     <Compile Include="Raytracer.cs" />
     <Compile Include="RaytracerFractal_Camera.cs" />
-    <Compile Include="Util.cs" />
-    <Compile Include="Vector3d.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Fractal3d.cs" />
@@ -78,6 +77,10 @@
     <ProjectReference Include="..\CodeGen\CodeGen.csproj">
       <Project>{cfefbc76-7751-4237-b814-12707408721a}</Project>
       <Name>CodeGen</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Util\Util.csproj">
+      <Project>{57A9458F-A94F-413D-B6B0-C7D3F8748AC4}</Project>
+      <Name>Util</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

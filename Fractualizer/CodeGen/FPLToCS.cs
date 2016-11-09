@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using FPL;
+using Util;
 
 namespace CodeGen
 {
@@ -9,12 +10,12 @@ namespace CodeGen
     {
         private delegate Losa DgLosaCreator();
 
-        private class FPLTableBuilder : FPLBaseVisitor<int>
+        private class FPLPreProcessor : FPLBaseVisitor<int>
         {
             public readonly Dictionary<string, List<FPLParser.ArgModContext>> mpstFunc_rgargmod;
             public readonly Dictionary<string, FPLParser.InputContext> mpstIdentifier_input;
 
-            public FPLTableBuilder()
+            public FPLPreProcessor()
             {
                 mpstFunc_rgargmod = new Dictionary<string, List<FPLParser.ArgModContext>>();
                 mpstIdentifier_input = new Dictionary<string, FPLParser.InputContext>();
@@ -54,19 +55,19 @@ namespace CodeGen
             }
         }
 
-        private FPLTableBuilder fplTableBuilder;
+        private FPLPreProcessor _fplPreProcessor;
 
         private static readonly Dictionary<string, string> mpstBuiltinFpl_stCs = new Dictionary<string, string>
         {
             {"length", "Vector3d.Length"},
             {"dot", "Vector3d.Dot" },
             {"cross", "Vector3d.Cross" },
-            {"lerp", "Util.Lerp" },
-            {"clamp", "Util.Clamp"},
-            {"floor", "Util.Floor"},
-            {"frac", "Util.Frac"},
-            {"atan", "Util.Atan"},
-            {"abs", "Util.Abs"},
+            {"lerp", "U.Lerp" },
+            {"clamp", "U.Clamp"},
+            {"floor", "U.Floor"},
+            {"frac", "U.Frac"},
+            {"atan", "U.Atan"},
+            {"abs", "U.Abs"},
             {"normalize", "VectorUtil.Normalize" },
             {"acos", "Math.Acos"},
             {"asin", "Math.Asin"},
@@ -106,6 +107,7 @@ namespace CodeGen
         {
             return LneNew("using System;") +
                    LneNew("using Fractals;") +
+                   LneNew("using Util;") +
                    LneNew("using System.Runtime.InteropServices;") +
                    LneNew("using SharpDX;") +
                    LneNew("using SharpDX.Direct3D11;");
@@ -147,8 +149,8 @@ namespace CodeGen
 
         public override Losa VisitProg(FPLParser.ProgContext prog)
         {
-            fplTableBuilder = new FPLTableBuilder();
-            fplTableBuilder.VisitProg(prog);
+            _fplPreProcessor = new FPLPreProcessor();
+            _fplPreProcessor.VisitProg(prog);
             return base.VisitProg(prog);
         }
 
@@ -252,7 +254,7 @@ namespace CodeGen
                 foreach (FPLParser.InputContext input in rginput)
                 {
                     int cbyteInput = SizeOf(input);
-                    int ibyteNextAlignment = RoundToByteOffset(ibyteOffset);
+                    int ibyteNextAlignment = Util.U.RoundToByteOffset(ibyteOffset);
                     int cbyteDiff = ibyteNextAlignment - ibyteOffset;
                     if (cbyteDiff != 0 && cbyteDiff < cbyteInput)
                         ibyteOffset = ibyteNextAlignment;
@@ -287,7 +289,7 @@ namespace CodeGen
             }
             losaStruct += LneNew("}");
 
-            int cbyteTotal = RoundToByteOffset(cbyteMembers);
+            int cbyteTotal = Util.U.RoundToByteOffset(cbyteMembers);
             Losa losaLayoutAttribute = LneNew("[StructLayout(LayoutKind.Explicit, Size=" + cbyteTotal + ")]");
             return losaLayoutAttribute + losaStruct;
         }
@@ -308,7 +310,7 @@ namespace CodeGen
             using (idtrCur.New())
             {
                 losaInitializeBuffer +=
-                    LneNew("buffer = Util.BufferCreate(device, deviceContext, " + ibuffer + ", ref " + stStructMemberName + ");");
+                    LneNew("buffer = U.BufferCreate(device, deviceContext, " + ibuffer + ", ref " + stStructMemberName + ");");
             }
             losaInitializeBuffer += LneNew("}");
             Losa losaBufferMethods = losaInitializeBuffer;
@@ -318,7 +320,7 @@ namespace CodeGen
             using (idtrCur.New())
             {
                 losaUpdateBuffer +=
-                    LneNew("Util.UpdateBuffer(device, deviceContext, buffer, ref " + stStructMemberName + ");");
+                    LneNew("U.UpdateBuffer(device, deviceContext, buffer, ref " + stStructMemberName + ");");
             }
             losaUpdateBuffer += LneNew("}");
             losaBufferMethods += losaUpdateBuffer;
@@ -445,7 +447,7 @@ namespace CodeGen
             Losa losaExpr = base.VisitFuncCallExpr(funcCall, expr, iexpr);
             string stFunc = funcCall.identifier().GetText();
             List<FPLParser.ArgModContext> rgargmod;
-            if (fplTableBuilder.mpstFunc_rgargmod.TryGetValue(stFunc, out rgargmod)
+            if (_fplPreProcessor.mpstFunc_rgargmod.TryGetValue(stFunc, out rgargmod)
                 && rgargmod[iexpr] != null)
                 losaExpr = VisitArgMod(rgargmod[iexpr]) + " " + losaExpr;
             return losaExpr;
@@ -454,9 +456,9 @@ namespace CodeGen
         public override Losa VisitInputAccess(FPLParser.InputAccessContext inputAccess)
         {
             FPLParser.IdentifierContext identifier = inputAccess.identifier();
-            string stIdentifier = FPLTableBuilder.StFromIdentifier(identifier);
+            string stIdentifier = FPLPreProcessor.StFromIdentifier(identifier);
             FPLParser.InputContext input;
-            if (fplTableBuilder.mpstIdentifier_input.TryGetValue(stIdentifier, out input))
+            if (_fplPreProcessor.mpstIdentifier_input.TryGetValue(stIdentifier, out input))
                 return LosaUseInputIdentifier(input);
             Error("Unknown input " + identifier.GetText());
             throw new NotImplementedException();

@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
 using SharpDX;
 using SharpDX.Direct3D11;
 
-namespace Fractals
+namespace Util
 {
-    public static class Util
+    public static class U
     {
         public static double Lerp(double x, double y, double s) => x*(1 - s) + y*s;
 
@@ -65,11 +67,34 @@ namespace Fractals
             return buffer;
         }
 
+        public static SharpDX.Direct3D11.Buffer BufferCreate(Device device, DeviceContext deviceContext, int ibuffer, byte[] rgbyte)
+        {
+            BufferDescription bufferDesc = new BufferDescription(
+                sizeInBytes: rgbyte.Length,
+                bindFlags: BindFlags.ConstantBuffer, 
+                usage: ResourceUsage.Dynamic, 
+                cpuAccessFlags: CpuAccessFlags.Write,
+                optionFlags: ResourceOptionFlags.None, 
+                structureByteStride: 0);
+            var buffer = SharpDX.Direct3D11.Buffer.Create(device, rgbyte, bufferDesc);
+            deviceContext.PixelShader.SetConstantBuffer(ibuffer, buffer);
+            return buffer;
+        }
+
         public static void UpdateBuffer<T>(Device device, DeviceContext deviceContext, SharpDX.Direct3D11.Buffer buffer, ref T t) where T : struct
         {
             DataStream dataStream;
             deviceContext.MapSubresource(buffer, MapMode.WriteDiscard, MapFlags.None, out dataStream);
             dataStream.Write(t);
+            dataStream.Dispose();
+            deviceContext.UnmapSubresource(buffer, 0);
+        }
+
+        public static void UpdateBuffer(Device device, DeviceContext deviceContext, SharpDX.Direct3D11.Buffer buffer, byte[] rgbyte)
+        {
+            DataStream dataStream;
+            deviceContext.MapSubresource(buffer, MapMode.WriteDiscard, MapFlags.None, out dataStream);
+            dataStream.Write(rgbyte, 0, rgbyte.Length);
             dataStream.Dispose();
             deviceContext.UnmapSubresource(buffer, 0);
         }
@@ -94,6 +119,55 @@ namespace Fractals
         {
             return !float.IsInfinity(vk.X) && !float.IsInfinity(vk.Y) && !float.IsInfinity(vk.Z)
                    && !float.IsNaN(vk.X) && !float.IsNaN(vk.Y) && !float.IsNaN(vk.Z);
+        }
+
+        public static int RoundToByteOffset(int cybte, int cbyteOffset = 16)
+        {
+            return cybte + (cbyteOffset - cybte % cbyteOffset) % cbyteOffset;
+        }
+    }
+
+    public class PaddedArray<T> where T : struct
+    {
+        public readonly byte[] rgbyte;
+        private readonly int ibyteStart, cvalArray, cbyteTWithPad;
+
+        public PaddedArray(byte[] rgbyte, int ibyteStart, int cvalArray, int cbytePaddedTo = 16)
+        {
+            this.rgbyte = rgbyte;
+            this.ibyteStart = ibyteStart;
+            this.cvalArray = cvalArray;
+            this.cbyteTWithPad = U.RoundToByteOffset(Marshal.SizeOf(typeof(T)), cbytePaddedTo);
+        }
+
+        private int IbyteIndex(int ival)
+        {
+            if (ival >= cvalArray || ival < 0)
+                throw new IndexOutOfRangeException();
+            return ibyteStart + cbyteTWithPad * ival;
+        }
+
+        public T this[int ival]
+        {
+            get { return ValFromRgbyte(rgbyte, IbyteIndex(ival)); }
+            set { SetVal(rgbyte, IbyteIndex(ival), value); }
+        }
+
+        public static T ValFromRgbyte(byte[] rgbyte, int ibyteOffset)
+        {
+            GCHandle handle = GCHandle.Alloc(rgbyte, GCHandleType.Pinned);
+            T stuff = (T)Marshal.PtrToStructure(handle.AddrOfPinnedObject(), typeof(T));
+            handle.Free();
+            return stuff;
+        }
+
+        public static void SetVal(byte[] rgbyte, int ibyteOffset, T val)
+        {
+            int cbyteT = Marshal.SizeOf(val);
+            IntPtr ptr = Marshal.AllocHGlobal(cbyteT);
+            Marshal.StructureToPtr(val, ptr, true);
+            Marshal.Copy(ptr, rgbyte, ibyteOffset, cbyteT);
+            Marshal.FreeHGlobal(ptr);
         }
     }
 }

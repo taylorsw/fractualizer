@@ -1,7 +1,7 @@
 ﻿using System;
 using SharpDX;
 
-namespace Fractals
+namespace Util
 {
     public static class VectorUtil
     {

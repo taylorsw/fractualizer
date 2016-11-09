@@ -50,11 +50,6 @@ namespace CodeGen
             }
         }
 
-        protected int RoundToByteOffset(int cybte, int cbyteOffset = 16)
-        {
-            return cybte + (cbyteOffset - cybte%cbyteOffset)%cbyteOffset;
-        }
-
         protected int SizeOf(FPLParser.InputContext input)
         {
             FPLParser.InputTypeContext inputType = input.inputType();

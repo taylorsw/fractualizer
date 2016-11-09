@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using Fractals;
 using SharpDX;
+using Util;
 
 namespace Mandelbasic
 {

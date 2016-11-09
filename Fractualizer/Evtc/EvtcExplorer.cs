@@ -4,6 +4,7 @@ using System.Windows.Forms;
 using Evtc;
 using Fractals;
 using SharpDX;
+using Util;
 using Point = System.Drawing.Point;
 
 namespace Mandelbasic
