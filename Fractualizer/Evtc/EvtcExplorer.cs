@@ -37,7 +37,7 @@ namespace Mandelbasic
             raytracer.camera.LookAt(Vector3.Zero);
 
             raytracer.lightManager.RemoveAllLights();
-            raytracer.lightManager.AddLight(new PointLight(new Vector3f(2, 0, -1)));
+            raytracer.lightManager.AddLight(new PointLight(new Vector3f(2, 0, -1), fVisualize: false));
 
             const int cballlight = 7;
             rgrailHoverBallLight = new RailHover[cballlight];
