@@ -12,9 +12,14 @@ v3 vkCameraOrtho;
 float fogA;
 v2 rsScreen;
 v2 rsViewPlane;
+int rglidLight[5];
 v3 rgptLight[5];
+float rgduCutoffLight[5];
 raytracer RaytracerFractal
 {
+	global int LID_POINTLIGHT = 0;
+	global int LID_BALLLIGHT = 1;
+
 	global int cmarch = 148;
 	global v3 ptOrigin = v3(0, 0, 0);
 
@@ -24,9 +29,9 @@ raytracer RaytracerFractal
 	}
 
 	global float duRadiusLight = 0.01;
-	float DuDeLight(v3 ptPos, int iLight)
+	float DuDeLight(v3 ptPos, int ilight)
 	{
-		return DuDeSphere(ptPos, inputs.rgptLight[iLight], duRadiusLight);
+		return DuDeSphere(ptPos, inputs.rgptLight[ilight], duRadiusLight);
 	}
 
 	float DuDeObject(v3 ptPos)
@@ -43,13 +48,13 @@ raytracer RaytracerFractal
 		idHit = ID_FRACTAL;
 		float du = DuDeObject(ptPos);
 #ifdef VISUALIZE_LIGHTING
-		for (int iLight = 0; iLight < inputs.cLight; iLight++)
+		for (int ilight = 0; ilight < inputs.cLight; ilight++)
 		{
-			float duDeLight = DuDeLight(ptPos, iLight);
+			float duDeLight = DuDeLight(ptPos, ilight);
 			if (duDeLight < du)
 			{
 				du = duDeLight;
-				idHit = iLight;
+				idHit = ilight;
 			}
 		}
 #endif
@@ -183,10 +188,15 @@ raytracer RaytracerFractal
 		v3 colorTexture = color;
 		color = 0.1 * color;
 
-		for (int iLight = 0; iLight < inputs.cLight; iLight++)
+		for (int ilight = 0; ilight < inputs.cLight; ilight++)
 		{
+			v3 vkSurfaceToLight = inputs.rgptLight[ilight] - ptSurface;
+			if (inputs.rglidLight[ilight] == LID_BALLLIGHT)
+			{
+				if (length(vkSurfaceToLight) > inputs.rgduCutoffLight[ilight])
+					continue;
+			}
 			v3 vkNormal = VkNormal(ptSurface, duEpsilon);
-			v3 vkSurfaceToLight = inputs.rgptLight[iLight] - ptSurface;
 			v3 vkLightDir = normalize(vkSurfaceToLight);
 			v3 vkCameraDir = normalize(inputs.ptCamera - ptSurface);
 

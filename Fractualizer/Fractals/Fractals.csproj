@@ -58,9 +58,12 @@
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Camera.cs" />
     <Compile Include="FPLGenBase.cs" />
+    <Compile Include="RaytracerFractal.cs" />
     <Compile Include="Raytracer.cs" />
     <Compile Include="RaytracerFractal_Camera.cs" />
+    <Compile Include="RaytracerFractal_Light.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Fractal3d.cs" />

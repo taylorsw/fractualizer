@@ -36,7 +36,7 @@ namespace Mandelbasic
         public RailOrbit(DgUpdatePt dgUpdatePt, Vector3 ptCenter, Vector3 vkNormal, float agd_dtms) : base(dgUpdatePt)
         {
             this.ptCenter = ptCenter;
-            this.vkNormal = vkNormal;
+            this.vkNormal = vkNormal.Normalized();
             this.agd_dtms = agd_dtms;
         }
 

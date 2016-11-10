@@ -10,8 +10,6 @@ namespace Fractals
             return "_gen/" + GetType().Name + ".gen.hlsl";
         }
 
-        public virtual void ResetInputs() { }
-
         protected virtual void InitializeBuffer(Device device, DeviceContext deviceContext) { }
         protected virtual void UpdateBuffer(Device device, DeviceContext deviceContext) { }
 

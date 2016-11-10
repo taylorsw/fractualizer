@@ -200,11 +200,11 @@ namespace CodeGen
                         string stInputClassName, stInputClassMemberName;
                         Losa losaInputClass = LosaInputClass(stRaytracerClassName, raytracer.inputs(), out stInputClassName, out stInputClassMemberName);
                         Losa losaStructMemberAndBuffer = LosaClassMemberAndBuffer(stInputClassName, stInputClassMemberName);
-                        Losa losaConstructor = LneNew("public " + stRaytracerClassName + "(Scene scene, int width, int height) : base(scene, width, height) { " + stInputClassMemberName + " = new " + stInputClassName + "(); }");
+                        //Losa losaConstructor = LneNew("public " + stRaytracerClassName + "(Scene scene, int width, int height) : base(scene, width, height) { " + stInputClassMemberName + " = new " + stInputClassName + "(); }");
                         Losa losaBufferMethods = LosaBufferMethods(stInputClassMemberName, GenU.ibufferRaytracer);
                         Losa losaGlobals = LosaGlobals(raytracer.global());
                         Losa losaTracer = VisitTracer(raytracer.tracer());
-                        return losaInputClass + losaStructMemberAndBuffer + losaConstructor + losaBufferMethods + LneNew() + losaGlobals + losaTracer;
+                        return losaInputClass + losaStructMemberAndBuffer + losaBufferMethods + LneNew() + losaGlobals + losaTracer;
                     },
                     stRaytracerClassName,
                     "Raytracer"));
@@ -277,6 +277,7 @@ namespace CodeGen
         private Losa LosaInputFieldSingle(FPLParser.InputContext input)
         {
             Ipt ipt = _fplPreProcessor.mpinput_ipt[input];
+
             Losa losaField =
                 LneNew("public ") + LosaInputDecl(input) + LneNew("{");
             using (idtrCur.New())
@@ -285,6 +286,7 @@ namespace CodeGen
                 losaField += LneNew("set { ") + LosaPaddedArray(input) + ".SetVal(rgbyte, " + ipt.ibyteOffset.ToString() + ", value); } ";
             }
             losaField += LneNew("}");
+
             return losaField;
         }
 
@@ -428,19 +430,6 @@ namespace CodeGen
             losaClassBody += losaClassConstructorVerbose;
 
             losaClassBody += LosaBufferMethods(stInputClassMemberName, GenU.ibufferFractal);
-
-            Losa losaReset =
-                LneNew("public override void ResetInputs()") + LneNew("{");
-            using (idtrCur.New())
-            {
-                foreach (FPLParser.InputContext input in rginput)
-                {
-                    if (input.literal() != null)
-                        losaReset += LneNew(stInputClassMemberName + ".") + LosaDefaultAssignment(input);
-                }
-            }
-            losaReset += LneNew("}");
-            losaClassBody += losaReset;
 
 
             Dictionary<string, List<FPLParser.InputContext>> mpstType_rginput = new Dictionary<string, List<FPLParser.InputContext>>(rginput.Length);
@@ -592,7 +581,7 @@ namespace CodeGen
 
         public override Losa VisitGlobalVal(FPLParser.GlobalValContext global)
         {
-            return LneNew("static ") + VisitLocalDecl(global.localDecl());
+            return LneNew("public static readonly ") + VisitLocalDecl(global.localDecl());
         }
 
         public override Losa VisitInstantiation(FPLParser.InstantiationContext instantiation)

@@ -154,12 +154,6 @@ namespace Fractals
 
         public abstract Vector4d RgbaTrace(Vector2d pos);
 
-        public void ResetSceneAndCamera()
-        {
-            scene.ResetScene();
-            camera.ResetCamera();
-        }
-
         public override void Dispose()
         {
             pixelShader.Dispose();
@@ -186,11 +180,6 @@ namespace Fractals
         internal void UpdateBuffers(Device device, DeviceContext deviceContext)
         {
             fractal.Update(device, deviceContext);
-        }
-
-        public void ResetScene()
-        {
-            fractal.ResetInputs();
         }
 
         public void Dispose()

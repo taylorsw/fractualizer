@@ -6,45 +6,28 @@ using Util;
 
 namespace Fractals
 {
-    public abstract class Camera
-    {
-        public abstract void ResetCamera();
-        public abstract void MoveTo(Vector3 pt);
-        public abstract void MoveBy(Vector3 vk);
-        public abstract void RotateCamera(float dagrUp, float dagrRight);
-        public abstract void RotateCamera(Vector3 vkAxis, float dagr);
-        public abstract void RollBy(float dagd);
-        public abstract void Orbit(Vector3 axis, float dagd);
-        public abstract void LookAt(Vector3 pt);
-
-        public abstract Vector3 ptCamera { get; }
-        public abstract Vector3 vkCamera { get; }
-        public abstract Vector3 vkCameraOrtho { get; }
-        public abstract Vector3 ptPlaneCenter { get; }
-        public abstract Vector3 vkCameraRight { get; }
-        public abstract Vector2 rsScreen { get; }
-        public abstract Vector2 rsViewPlane { get; }
-        public abstract float duNear { get; }
-    }
-
     partial class RaytracerFractal
     {
         public override Camera camera => cameraRF;
 
         #region CameraRF
-        private CameraRF cameraRF;
+        private readonly CameraRF cameraRF;
         private class CameraRF : Camera
         {
             private readonly RaytracerFractal raytracer;
 
-            public CameraRF(RaytracerFractal raytracer)
+            private const float dxView = 1;
+            public CameraRF(RaytracerFractal raytracer, int width, int height)
             {
                 this.raytracer = raytracer;
-            }
 
-            public override void ResetCamera()
-            {
-                raytracer._raytracerfractal.ResetInputs(raytracer.width, raytracer.height);
+                raytracer._raytracerfractal.ptCamera = Vector3.Zero;
+                raytracer._raytracerfractal.vkCamera = new Vector3(0, 0, 1);
+                raytracer._raytracerfractal.vkCameraOrtho = new Vector3(0, 1, 0);
+                raytracer._raytracerfractal.duNear = 0.5f;
+                raytracer._raytracerfractal.rsScreen = new Vector2(width, height);
+                raytracer._raytracerfractal.rsViewPlane = new Vector2(dxView, dxView * height / width);
+                raytracer._raytracerfractal.fogA = 1.0f;
             }
 
             public override void MoveTo(Vector3 pt)
@@ -143,31 +126,6 @@ namespace Fractals
             public override float duNear => raytracer._raytracerfractal.duNear;
         }
         #endregion
-
-        public override void Initialize(Device device, DeviceContext deviceContext)
-        {
-            cameraRF = new CameraRF(this);
-            _raytracerfractal.ResetInputs(width, height);
-            base.Initialize(device, deviceContext);
-        }
-
-        partial class _RaytracerFractal
-        {
-            private const float dxView = 1;
-            public void ResetInputs(int width, int height)
-            {
-                ptCamera = new Vector3(0, 0, -1.5f);
-                vkCamera = new Vector3(0, 0, 1);
-                vkCameraOrtho = new Vector3(0, 1, 0);
-                duNear = 0.5f;
-                rsScreen = new Vector2(width, height);
-                rsViewPlane = new Vector2(dxView, dxView * height / width);
-                cLight = 2;
-                fogA = 1.0f;
-                rgptLight[0] = new Vector3f(2, 0, -1);
-                rgptLight[1] = new Vector3f(-2, 0, -1.5f);
-            }
-        }
 
         public override void Dispose()
         {
