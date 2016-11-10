@@ -434,7 +434,10 @@ namespace CodeGen
             using (idtrCur.New())
             {
                 foreach (FPLParser.InputContext input in rginput)
-                    losaReset += LneNew(stInputClassMemberName + ".") + LosaDefaultAssignment(input);
+                {
+                    if (input.literal() != null)
+                        losaReset += LneNew(stInputClassMemberName + ".") + LosaDefaultAssignment(input);
+                }
             }
             losaReset += LneNew("}");
             losaClassBody += losaReset;

@@ -3,6 +3,7 @@ using System.Diagnostics;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
 using FPL;
+using Util;
 
 namespace CodeGen
 {
@@ -80,6 +81,7 @@ namespace CodeGen
             FPLParser.ArrayDeclContext arrayDecl = input.arrayDecl();
             if (arrayDecl != null)
             {
+                cbyte = U.RoundToByteOffset(cbyte);
                 try
                 {
                     int size = int.Parse(arrayDecl.expr().literal().literalInt().GetText());
