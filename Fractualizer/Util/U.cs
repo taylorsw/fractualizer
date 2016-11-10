@@ -110,6 +110,8 @@ namespace Util
         public static Vector3 PerspectiveDivide(this Vector4 v) => v.Xyz() / v.W;
         public static Vector3 Xyz(this Vector4 v) => new Vector3(v.X, v.Y, v.Z);
 
+        public static Vector3 VkUnitRand(this Random rand) => new Vector3(rand.NextFloat(-1, 1), rand.NextFloat(-1, 1), rand.NextFloat(-1, 1)).Normalized();
+
         public static bool IsOrthogonalTo(this Vector3 v, Vector3 v2)
         {
             return Math.Abs(Vector3.Dot(v, v2)) < 0.0001f;
