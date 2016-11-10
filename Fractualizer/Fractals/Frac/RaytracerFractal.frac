@@ -220,9 +220,10 @@ raytracer RaytracerFractal
 				specular = pow(cos, shininess);
 			}
 
+			v3 colorLight = inputs.rgrgbLight[ilight] * colorTexture;
 			color = color
-				+ 0.6 * lambertian * colorTexture
-				+ 0.6 * specular * colorTexture;
+				+ 0.6 * lambertian * colorLight
+				+ 0.6 * specular * colorLight;
 
 		}
 		return color;
