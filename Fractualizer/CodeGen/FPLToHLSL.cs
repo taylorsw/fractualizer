@@ -32,8 +32,8 @@ namespace CodeGen
         {
             Losa losaRaytracer = LosaInclude(GenU.stFractalInclude);
 
-            if (raytracer.input().Length > 0)
-                losaRaytracer += LosaInputs(raytracer.identifier(), raytracer.input(), GenU.ibufferRaytracer);
+            if (raytracer.inputs().input().Length > 0)
+                losaRaytracer += LosaInputs(raytracer.identifier(), raytracer.inputs(), GenU.ibufferRaytracer);
 
             losaRaytracer += LosaVisitGlobals(raytracer.global());
 
@@ -51,10 +51,10 @@ namespace CodeGen
         public override Losa VisitFractal(FPLParser.FractalContext fractal)
         {
             Losa losaProg = "";
-
-            if (fractal.input().Length > 0)
+            FPLParser.InputsContext inputs = fractal.inputs();
+            if (inputs.input().Length > 0)
             {
-                Losa losaInputs = LosaInputs(fractal.identifier(), fractal.input(), GenU.ibufferFractal);
+                Losa losaInputs = LosaInputs(fractal.identifier(), inputs, GenU.ibufferFractal);
                 losaProg += losaInputs;
             }
 
@@ -94,8 +94,9 @@ namespace CodeGen
                        input.arrayDecl() == null ? new FPLParser.ArrayDeclContext[0] : new[] {input.arrayDecl()}, null);
         }
 
-        private Losa LosaInputs(FPLParser.IdentifierContext identifier, FPLParser.InputContext[] rginput, int cbuffer)
+        private Losa LosaInputs(FPLParser.IdentifierContext identifier, FPLParser.InputsContext inputs, int cbuffer)
         {
+            FPLParser.InputContext[] rginput = inputs.input();
             Losa losaInputs = LneNew("cbuffer " + StNameFromIdentifier(identifier) + " : register(b" + cbuffer + ")") + LneNew("{");
             using (idtrCur.New())
             {

@@ -10,15 +10,28 @@ namespace CodeGen
     {
         private delegate Losa DgLosaCreator();
 
+        public class Ipt
+        {
+            public int ibyteOffset;
+
+            public Ipt(int ibyteOffset)
+            {
+                this.ibyteOffset = ibyteOffset;
+            }
+        }
+
         private class FPLPreProcessor : FPLBaseVisitor<int>
         {
             public readonly Dictionary<string, List<FPLParser.ArgModContext>> mpstFunc_rgargmod;
             public readonly Dictionary<string, FPLParser.InputContext> mpstIdentifier_input;
+            public readonly Dictionary<FPLParser.InputContext, Ipt> mpinput_ipt;
+            public int cbyteInputsTotal;
 
             public FPLPreProcessor()
             {
                 mpstFunc_rgargmod = new Dictionary<string, List<FPLParser.ArgModContext>>();
                 mpstIdentifier_input = new Dictionary<string, FPLParser.InputContext>();
+                mpinput_ipt = new Dictionary<FPLParser.InputContext, Ipt>();
             }
 
             public override int VisitProg(FPLParser.ProgContext context)
@@ -41,12 +54,29 @@ namespace CodeGen
                 return base.VisitFunc(func);
             }
 
-            public override int VisitInput(FPLParser.InputContext input)
+            public override int VisitInputs(FPLParser.InputsContext inputs)
             {
-                FPLParser.IdentifierContext identifier = input.identifier();
-                string stIdentifier = StFromIdentifier(identifier);
-                mpstIdentifier_input[stIdentifier] = input;
-                return base.VisitInput(input);
+                int cbyteMembers = 0;
+                int ibyteOffset = 0;
+                foreach (FPLParser.InputContext input in inputs.input())
+                {
+                    FPLParser.IdentifierContext identifier = input.identifier();
+                    string stIdentifier = StFromIdentifier(identifier);
+                    mpstIdentifier_input[stIdentifier] = input;
+
+                    int cbyteInput = SizeOf(input);
+                    int ibyteNextAlignment = Util.U.RoundToByteOffset(ibyteOffset);
+                    int cbyteDiff = ibyteNextAlignment - ibyteOffset;
+                    if (cbyteDiff != 0 && cbyteDiff < cbyteInput)
+                        ibyteOffset = ibyteNextAlignment;
+
+                    mpinput_ipt[input] = new Ipt(ibyteOffset);
+
+                    cbyteMembers = ibyteOffset + cbyteInput;
+                    ibyteOffset = ibyteOffset + cbyteInput;
+                }
+                cbyteInputsTotal = U.RoundToByteOffset(cbyteMembers);
+                return base.VisitInputs(inputs);
             }
 
             public static string StFromIdentifier(FPLParser.IdentifierContext identifier)
@@ -108,7 +138,6 @@ namespace CodeGen
             return LneNew("using System;") +
                    LneNew("using Fractals;") +
                    LneNew("using Util;") +
-                   LneNew("using System.Runtime.InteropServices;") +
                    LneNew("using SharpDX;") +
                    LneNew("using SharpDX.Direct3D11;");
         }
@@ -163,21 +192,21 @@ namespace CodeGen
         {
             Losa losaUsings = LosaUsings();
             FPLParser.IdentifierContext identifierRaytracer = raytracer.identifier();
-            string stClassName = StNameFromIdentifier(identifierRaytracer);
+            string stRaytracerClassName = StNameFromIdentifier(identifierRaytracer);
             Losa losaClass = LosaInNamespace(
                 () => LosaInClass(
                     () =>
                     {
-                        string stStructName, stStructMemberName;
-                        Losa losaStruct = LosaStruct(stClassName, false, raytracer.input(), out stStructName, out stStructMemberName);
-                        Losa losaStructMemberAndBuffer = LosaStructMemberAndBuffer(stStructName, stStructMemberName);
-                        Losa losaConstructor = LneNew("public " + stClassName + "(Scene scene, int width, int height) : base(scene, width, height) { }");
-                        Losa losaBufferMethods = LosaBufferMethods(stStructMemberName, GenU.ibufferRaytracer);
+                        string stInputClassName, stInputClassMemberName;
+                        Losa losaInputClass = LosaInputClass(stRaytracerClassName, raytracer.inputs(), out stInputClassName, out stInputClassMemberName);
+                        Losa losaStructMemberAndBuffer = LosaClassMemberAndBuffer(stInputClassName, stInputClassMemberName);
+                        Losa losaConstructor = LneNew("public " + stRaytracerClassName + "(Scene scene, int width, int height) : base(scene, width, height) { " + stInputClassMemberName + " = new " + stInputClassName + "(); }");
+                        Losa losaBufferMethods = LosaBufferMethods(stInputClassMemberName, GenU.ibufferRaytracer);
                         Losa losaGlobals = LosaGlobals(raytracer.global());
                         Losa losaTracer = VisitTracer(raytracer.tracer());
-                        return losaStruct + losaStructMemberAndBuffer + losaConstructor + losaBufferMethods + LneNew() + losaGlobals + losaTracer;
+                        return losaInputClass + losaStructMemberAndBuffer + losaConstructor + losaBufferMethods + LneNew() + losaGlobals + losaTracer;
                     },
-                    stClassName,
+                    stRaytracerClassName,
                     "Raytracer"));
             return losaUsings + losaClass;
         }
@@ -194,7 +223,7 @@ namespace CodeGen
             {
                 return LosaInClass(() =>
                 {
-                    Losa losaClassBody = LosaClassBodyInputsExtras(fractal.identifier(), fractal.input());
+                    Losa losaClassBody = LosaClassBodyInputsExtras(fractal.identifier(), fractal.inputs());
 
                     losaClassBody += LosaGlobals(fractal.global());
 
@@ -223,52 +252,83 @@ namespace CodeGen
                    VisitIdentifier(input.identifier());
         }
 
-        private Losa LosaStruct(string stProgName, bool fGenSingleton, FPLParser.InputContext[] rginput, out string stStructName, out string stStructMemberName)
+        private Losa LosaDefaultValueForInput(FPLParser.InputContext input)
         {
-            stStructName = StStructName(stProgName);
-            stStructMemberName = StStructMemberName(stProgName);
-            int cbyteMembers = 0;
-            Losa losaStruct =
-                LneNew("public partial struct " + stStructName) +
+            FPLParser.ArrayDeclContext arrayDecl = input.arrayDecl();
+            if (arrayDecl != null)
+            {
+                Ipt ipt = _fplPreProcessor.mpinput_ipt[input];
+                return "new " + LosaPaddedArray(input) + "(rgbyte, " + ipt.ibyteOffset.ToString() + ", " + VisitExpr(arrayDecl.expr()) + ");";
+            }
+
+            return (input.literal() == null
+                       ? "default(" + VisitInputType(input.inputType()) + ")"
+                       : VisitLiteral(input.literal())) + ";";
+        }
+
+        private Losa LosaDefaultAssignment(FPLParser.InputContext input)
+        {
+            return VisitIdentifier(input.identifier()) + " = " + LosaDefaultValueForInput(input);
+        }
+
+        private Losa LosaPaddedArray(FPLParser.InputContext input)
+            => "PaddedArray<" + VisitInputType(input.inputType()) + ">";
+
+        private Losa LosaInputFieldSingle(FPLParser.InputContext input)
+        {
+            Ipt ipt = _fplPreProcessor.mpinput_ipt[input];
+            Losa losaField =
+                LneNew("public ") + LosaInputDecl(input) + LneNew("{");
+            using (idtrCur.New())
+            {
+                losaField += LneNew("get { return ") + LosaPaddedArray(input) + ".ValFromRgbyte(rgbyte, " + ipt.ibyteOffset.ToString() + "); } ";
+                losaField += LneNew("set { ") + LosaPaddedArray(input) + ".SetVal(rgbyte, " + ipt.ibyteOffset.ToString() + ", value); } ";
+            }
+            losaField += LneNew("}");
+            return losaField;
+        }
+
+        private Losa LosaInputFieldArray(FPLParser.InputContext input)
+        {
+            Losa losaField = LneNew("public readonly ") + LosaPaddedArray(input) + " " + VisitIdentifier(input.identifier()) + ";";
+            return losaField;
+        }
+
+        private Losa LosaInputClass(string stProgName, FPLParser.InputsContext inputs, out string stClassName, out string stClassMemberName)
+        {
+            FPLParser.InputContext[] rginput = inputs.input();
+
+            stClassName = StStructName(stProgName);
+            stClassMemberName = StStructMemberName(stProgName);
+            Losa losaInputClass =
+                LneNew("public partial class " + stClassName) +
                 LneNew("{");
             using (idtrCur.New())
             {
-                if (fGenSingleton)
-                {
-                    Losa losaSingleton = LneNew("public static readonly " + stStructName + " I = new " + stStructName + "(");
-                    for (int iinput = 0; iinput < rginput.Length; iinput++)
-                    {
-                        FPLParser.InputContext input = rginput[iinput];
-                        losaSingleton += VisitIdentifier(input.identifier()) + ": " +
-                                         (input.literal() == null
-                                             ? "default(" + VisitInputType(input.inputType()) + ")"
-                                             : VisitLiteral(input.literal()));
-                        if (iinput < rginput.Length - 1)
-                            losaSingleton += ", ";
-                    }
-                    losaSingleton += ");";
-                    losaStruct += losaSingleton;
-                }
+                Losa losaRgbyte = LneNew("internal readonly byte[] rgbyte = new byte[" + _fplPreProcessor.cbyteInputsTotal + "];");
 
-                int ibyteOffset = 0;
+                losaInputClass += losaRgbyte;
+
                 foreach (FPLParser.InputContext input in rginput)
                 {
-                    int cbyteInput = SizeOf(input);
-                    int ibyteNextAlignment = Util.U.RoundToByteOffset(ibyteOffset);
-                    int cbyteDiff = ibyteNextAlignment - ibyteOffset;
-                    if (cbyteDiff != 0 && cbyteDiff < cbyteInput)
-                        ibyteOffset = ibyteNextAlignment;
-                    cbyteMembers = ibyteOffset + cbyteInput;
 
-                    Losa losaField =
-                        LneNew("[FieldOffset(" + ibyteOffset + ")]") +
-                        (LneNew("public ") + LosaInputDecl(input) + ";");
-                    ibyteOffset = ibyteOffset + cbyteInput;
-
-                    losaStruct += losaField;
+                    if (input.arrayDecl() != null)
+                        losaInputClass += LosaInputFieldArray(input);
+                    else
+                        losaInputClass += LosaInputFieldSingle(input);
                 }
 
-                Losa losaStructConstructorVerbose = LneNew("public " + stStructName + "(");
+                Losa losaConstructorEmpty = LneNew("public " + stClassName + "()");
+                losaConstructorEmpty += LneNew("{");
+                using (idtrCur.New())
+                {
+                    foreach (FPLParser.InputContext input in rginput)
+                        losaConstructorEmpty += LneNew() + LosaDefaultAssignment(input);
+                }
+                losaConstructorEmpty += LneNew("}");
+                losaInputClass += losaConstructorEmpty;
+
+                Losa losaStructConstructorVerbose = LneNew("public " + stClassName + "(");
                 for (int iinput = 0; iinput < rginput.Length; iinput++)
                 {
                     FPLParser.InputContext input = rginput[iinput];
@@ -281,25 +341,35 @@ namespace CodeGen
                 using (idtrCur.New())
                 {
                     foreach (FPLParser.InputContext input in rginput)
-                        losaStructConstructorVerbose += LneNew() + "this." + VisitIdentifier(input.identifier()) + " = " +
-                                      VisitIdentifier(input.identifier()) + ";";
+                    {
+                        if (input.arrayDecl() != null)
+                        {
+                            losaStructConstructorVerbose += LneNew("this.") + LosaDefaultAssignment(input);
+                            losaStructConstructorVerbose += LneNew("this.") + VisitIdentifier(input.identifier()) +
+                                                            ".CopyValues(" + VisitIdentifier(input.identifier()) +
+                                                            ", 0);";
+                        }
+                        else
+                        {
+                            losaStructConstructorVerbose += LneNew() + "this." + VisitIdentifier(input.identifier()) +
+                                                            " = " + VisitIdentifier(input.identifier()) + ";";
+                        }
+                    }
                 }
                 losaStructConstructorVerbose += LneNew("}");
-                losaStruct += losaStructConstructorVerbose;
+                losaInputClass += losaStructConstructorVerbose;
             }
-            losaStruct += LneNew("}");
+            losaInputClass += LneNew("}");
 
-            int cbyteTotal = Util.U.RoundToByteOffset(cbyteMembers);
-            Losa losaLayoutAttribute = LneNew("[StructLayout(LayoutKind.Explicit, Size=" + cbyteTotal + ")]");
-            return losaLayoutAttribute + losaStruct;
+            return losaInputClass;
         }
 
-        private Losa LosaStructMemberAndBuffer(string stStructName, string stStructMemberName)
+        private Losa LosaClassMemberAndBuffer(string stClassName, string stClassMemberName)
         {
-            Losa losaStructMemberAndBuffer =
-                LneNew("public " + stStructName + " " + stStructMemberName + ";") +
+            Losa losaClassMemberAndBuffer =
+                LneNew("public readonly " + stClassName + " " + stClassMemberName + ";") +
                 LneNew("private SharpDX.Direct3D11.Buffer buffer;");
-            return losaStructMemberAndBuffer;
+            return losaClassMemberAndBuffer;
         }
 
         private Losa LosaBufferMethods(string stStructMemberName, int ibuffer)
@@ -310,7 +380,7 @@ namespace CodeGen
             using (idtrCur.New())
             {
                 losaInitializeBuffer +=
-                    LneNew("buffer = U.BufferCreate(device, deviceContext, " + ibuffer + ", ref " + stStructMemberName + ");");
+                    LneNew("buffer = U.BufferCreate(device, deviceContext, " + ibuffer + ", " + stStructMemberName + ".rgbyte);");
             }
             losaInitializeBuffer += LneNew("}");
             Losa losaBufferMethods = losaInitializeBuffer;
@@ -320,46 +390,53 @@ namespace CodeGen
             using (idtrCur.New())
             {
                 losaUpdateBuffer +=
-                    LneNew("U.UpdateBuffer(device, deviceContext, buffer, ref " + stStructMemberName + ");");
+                    LneNew("U.UpdateBuffer(device, deviceContext, buffer, " + stStructMemberName + ".rgbyte);");
             }
             losaUpdateBuffer += LneNew("}");
             losaBufferMethods += losaUpdateBuffer;
             return losaBufferMethods;
         }
 
-        public Losa LosaClassBodyInputsExtras(FPLParser.IdentifierContext identifier, FPLParser.InputContext[] rginput)
+        public Losa LosaClassBodyInputsExtras(FPLParser.IdentifierContext identifier, FPLParser.InputsContext inputs)
         {
+            FPLParser.InputContext[] rginput = inputs.input();
             if (rginput.Length == 0)
                 return "";
             string stFractalName = StNameFromIdentifier(identifier);
 
-            string stStructName, stStructMemberName;
-            Losa losaClassBody = LosaStruct(stFractalName, true, rginput, out stStructName, out stStructMemberName);
+            string stInputClassName, stInputClassMemberName;
+            Losa losaClassBody = LosaInputClass(stFractalName, inputs, out stInputClassName, out stInputClassMemberName);
 
-            losaClassBody += LosaStructMemberAndBuffer(stStructName, stStructMemberName);
+            losaClassBody += LosaClassMemberAndBuffer(stInputClassName, stInputClassMemberName);
 
             Losa losaClassContstructorEmpty = LneNew("public " + stFractalName + "()") +
                                               LneNew("{");
             using (idtrCur.New())
             {
-                losaClassContstructorEmpty += LneNew("this." + stStructMemberName + " = " + stStructName + ".I;");
+                losaClassContstructorEmpty += LneNew("this." + stInputClassMemberName + " = new " + stInputClassName + "();");
             }
             losaClassContstructorEmpty += LneNew("}");
             losaClassBody += losaClassContstructorEmpty;
 
-            Losa losaClassConstructorVerbose = LneNew("public " + stFractalName + "(" + stStructName + " " + stStructMemberName + ")")
+            Losa losaClassConstructorVerbose = LneNew("public " + stFractalName + "(" + stInputClassName + " " + stInputClassMemberName + ")")
                 + LneNew("{");
             using (idtrCur.New())
             {
-                losaClassConstructorVerbose += LneNew("this." + stStructMemberName + " = " + stStructMemberName + ";");
+                losaClassConstructorVerbose += LneNew("this." + stInputClassMemberName + " = " + stInputClassMemberName + ";");
             }
             losaClassConstructorVerbose += LneNew("}");
             losaClassBody += losaClassConstructorVerbose;
 
-            losaClassBody += LosaBufferMethods(stStructMemberName, GenU.ibufferFractal);
+            losaClassBody += LosaBufferMethods(stInputClassMemberName, GenU.ibufferFractal);
 
             Losa losaReset =
-                LneNew("public override void ResetInputs() { " + stStructMemberName + " = " + stStructName + ".I; }");
+                LneNew("public override void ResetInputs()") + LneNew("{");
+            using (idtrCur.New())
+            {
+                foreach (FPLParser.InputContext input in rginput)
+                    losaReset += LneNew(stInputClassMemberName + ".") + LosaDefaultAssignment(input);
+            }
+            losaReset += LneNew("}");
             losaClassBody += losaReset;
 
 
@@ -392,7 +469,7 @@ namespace CodeGen
                     for (int iinput = 0; iinput < rginputForType.Count; iinput++)
                     {
                         FPLParser.InputContext input = rginputForType[iinput];
-                        losaInputGet += LneNew("if (iinput == " + iinput + ") return " + stStructMemberName + ".") + VisitIdentifier(input.identifier()) + ";";
+                        losaInputGet += LneNew("if (iinput == " + iinput + ") return " + stInputClassMemberName + ".") + VisitIdentifier(input.identifier()) + ";";
                     }
 
                     losaInputGet += LneNew("return base." + stGetMethodName + "(iinput);");
@@ -410,7 +487,7 @@ namespace CodeGen
                     for (int iinput = 0; iinput < rginputForType.Count; iinput++)
                     {
                         FPLParser.InputContext input = rginputForType[iinput];
-                        losaInputSet += LneNew("if (iinput == " + iinput + ") " + stStructMemberName + ".") + VisitIdentifier(input.identifier()) + " = val;";
+                        losaInputSet += LneNew("if (iinput == " + iinput + ") " + stInputClassMemberName + ".") + VisitIdentifier(input.identifier()) + " = val;";
                     }
 
                     losaInputSet += LneNew("base." + stSetMethodName + "(iinput, val);");

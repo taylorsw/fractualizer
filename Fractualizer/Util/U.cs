@@ -129,8 +129,9 @@ namespace Util
 
     public class PaddedArray<T> where T : struct
     {
-        public readonly byte[] rgbyte;
-        private readonly int ibyteStart, cvalArray, cbyteTWithPad;
+        private readonly byte[] rgbyte;
+        private readonly int ibyteStart, cbyteTWithPad;
+        public readonly int cvalArray;
 
         public PaddedArray(byte[] rgbyte, int ibyteStart, int cvalArray, int cbytePaddedTo = 16)
         {
@@ -138,6 +139,18 @@ namespace Util
             this.ibyteStart = ibyteStart;
             this.cvalArray = cvalArray;
             this.cbyteTWithPad = U.RoundToByteOffset(Marshal.SizeOf(typeof(T)), cbytePaddedTo);
+        }
+
+        public void CopyValues(T[] rgval, int ivalStart, int cval = int.MinValue)
+        {
+            if (cval == int.MinValue)
+                cval = cvalArray;
+
+            if (cval > cvalArray || ivalStart < 0 || ivalStart >= rgval.Length)
+                throw new ArgumentException();
+
+            for (int ival = ivalStart; ival < ivalStart + cval; ival++)
+                this[ival - ivalStart] = rgval[ival];
         }
 
         private int IbyteIndex(int ival)
@@ -155,19 +168,24 @@ namespace Util
 
         public static T ValFromRgbyte(byte[] rgbyte, int ibyteOffset)
         {
-            GCHandle handle = GCHandle.Alloc(rgbyte, GCHandleType.Pinned);
-            T stuff = (T)Marshal.PtrToStructure(handle.AddrOfPinnedObject(), typeof(T));
-            handle.Free();
-            return stuff;
+            unsafe
+            {
+                fixed (byte* p = &rgbyte[ibyteOffset])
+                {
+                    return (T)Marshal.PtrToStructure(new IntPtr(p), typeof(T));
+                }
+            }
         }
 
         public static void SetVal(byte[] rgbyte, int ibyteOffset, T val)
         {
-            int cbyteT = Marshal.SizeOf(val);
-            IntPtr ptr = Marshal.AllocHGlobal(cbyteT);
-            Marshal.StructureToPtr(val, ptr, true);
-            Marshal.Copy(ptr, rgbyte, ibyteOffset, cbyteT);
-            Marshal.FreeHGlobal(ptr);
+            unsafe
+            {
+                fixed (byte* p = &rgbyte[ibyteOffset])
+                {
+                    Marshal.StructureToPtr(val, new IntPtr(p), true);
+                }
+            }
         }
     }
 }

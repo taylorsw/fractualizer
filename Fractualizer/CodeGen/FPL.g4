@@ -3,12 +3,13 @@ grammar FPL;
 prog : pdefines (fractal | raytracer) ;
 pdefines : pdefine* ;
 
-raytracer : input* 'raytracer' identifier '{' global* tracer '}' ;
+raytracer : inputs 'raytracer' identifier '{' global* tracer '}' ;
 tracer : 'RgbaTrace(v4 pos)' block ;
 
-fractal : input* 'fractal' identifier '{' global* distanceEstimator '}' ;
+fractal : inputs 'fractal' identifier '{' global* distanceEstimator '}' ;
 distanceEstimator : 'DE(v3 pos)' block ;
 
+inputs : input* ;
 input : ((inputType identifier ('=' literal)?) | (inputType identifier arrayDecl)) ';' ;
 inputType : type ;
 

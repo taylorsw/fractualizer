@@ -50,7 +50,7 @@ namespace CodeGen
             }
         }
 
-        protected int SizeOf(FPLParser.InputContext input)
+        protected static int SizeOf(FPLParser.InputContext input)
         {
             FPLParser.InputTypeContext inputType = input.inputType();
             FPLParser.TypeContext type = inputType.type();

@@ -18,8 +18,8 @@ namespace Mandelbasic
             Cursor.Hide();
             CenterCursor();
             form.MouseMove += OnMouseMove;
-            railLight = new RailOrbit(pt => raytracer._raytracerfractal.ptLight = pt, Vector3.Zero, new Vector3(1, 1, 1), 60f / 1000);
-            railLight2 = new RailHover(pt => raytracer._raytracerfractal.ptLight2 = pt, scene.fractal, Vector3.Zero, new Vector3(0.3f, 0.4f, 0.7f), 0.08f, 0.15f, 0.15f, 1.0f);
+            railLight = new RailOrbit(pt => raytracer._raytracerfractal.rgptLight[0] = pt, Vector3.Zero, new Vector3(1, 1, 1), 60f / 1000);
+            railLight2 = new RailHover(pt => raytracer._raytracerfractal.rgptLight[1] = pt, scene.fractal, Vector3.Zero, new Vector3(0.3f, 0.4f, 0.7f), 0.08f, 0.15f, 0.15f, 1.0f);
         }
 
         private void CenterCursor()
@@ -74,9 +74,9 @@ namespace Mandelbasic
         public override void DoEvents(float dtms)
         {
             if (fLightFollows)
-                raytracer._raytracerfractal.ptLight = raytracer.camera.ptCamera;
+                raytracer._raytracerfractal.rgptLight[0] = raytracer.camera.ptCamera;
             //railLight.UpdatePt(raytracer._raytracerfractal.ptLight, dtms);
-            railLight2.UpdatePt(raytracer._raytracerfractal.ptLight2, dtms);
+            railLight2.UpdatePt(raytracer._raytracerfractal.rgptLight[1], dtms);
 
             float frMove = frMoveBase;
             if (IsKeyDown(Keys.ShiftKey))

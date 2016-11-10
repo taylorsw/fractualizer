@@ -30,10 +30,10 @@ namespace Mandelbasic
                 IsFullscreen = true //true
             };
 
-            raytracerI = new RaytracerFractal(new Scene(new Mandelbox()), width, height);
+            raytracerI = new RaytracerFractal(new Scene(new Mandelbulb()), width, height);
             renderForm.Show();
 
-            renderer = new Renderer(raytracer, renderForm);
+            renderer = new Renderer(raytracerI, renderForm);
 
             renderForm.Focus();
 

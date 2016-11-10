@@ -35,7 +35,7 @@ namespace Fractals
         private CameraRF cameraRF;
         private class CameraRF : Camera
         {
-            private RaytracerFractal raytracer;
+            private readonly RaytracerFractal raytracer;
 
             public CameraRF(RaytracerFractal raytracer)
             {
@@ -44,7 +44,7 @@ namespace Fractals
 
             public override void ResetCamera()
             {
-                raytracer._raytracerfractal = Initial(raytracer.width, raytracer.height);
+                raytracer._raytracerfractal.ResetInputs(raytracer.width, raytracer.height);
             }
 
             public override void MoveTo(Vector3 pt)
@@ -147,22 +147,27 @@ namespace Fractals
         public override void Initialize(Device device, DeviceContext deviceContext)
         {
             cameraRF = new CameraRF(this);
-            _raytracerfractal = Initial(width, height);
+            _raytracerfractal.ResetInputs(width, height);
             base.Initialize(device, deviceContext);
         }
 
-        private const float dxView = 1;
-        public static _RaytracerFractal Initial(int width, int height) => new _RaytracerFractal(
-            ptCamera: new Vector3(0, 0, -1.5f),
-            vkCamera: new Vector3(0, 0, 1),
-            vkCameraOrtho: new Vector3(0, 1, 0),
-            duNear: 0.5f,
-            rsScreen: new Vector2(width, height),
-            rsViewPlane: new Vector2(dxView, dxView*height/width),
-            cLight: 1,
-            fogA: 1.0f,
-            ptLight: new Vector3f(2, 0, -1), 
-            ptLight2: new Vector3f(-2, 0, -1.5f));
+        partial class _RaytracerFractal
+        {
+            private const float dxView = 1;
+            public void ResetInputs(int width, int height)
+            {
+                ptCamera = new Vector3(0, 0, -1.5f);
+                vkCamera = new Vector3(0, 0, 1);
+                vkCameraOrtho = new Vector3(0, 1, 0);
+                duNear = 0.5f;
+                rsScreen = new Vector2(width, height);
+                rsViewPlane = new Vector2(dxView, dxView * height / width);
+                cLight = 2;
+                fogA = 1.0f;
+                rgptLight[0] = new Vector3f(2, 0, -1);
+                rgptLight[1] = new Vector3f(-2, 0, -1.5f);
+            }
+        }
 
         public override void Dispose()
         {

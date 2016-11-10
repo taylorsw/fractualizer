@@ -122,8 +122,6 @@ namespace Fractals
                 for (int y = 0; y < imgHeight; y++)
                 {
                     Vector3d rgbd = rgrgColorScreenshot[x][y];
-                    if (rgbd.x < 0 || rgbd.y < 0 || rgbd.z < 0 || rgbd.x > 1 || rgbd.y > 1 || rgbd.z > 1)
-                        Debugger.Launch();
                     Color color = ProcessColor(rgbd);
                     bitmap.SetPixel(x, y, color);
                 }
