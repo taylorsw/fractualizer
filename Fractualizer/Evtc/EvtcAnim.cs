@@ -18,8 +18,8 @@ namespace Mandelbasic
             raytracer.camera.MoveTo(new Vector3(0, 0, -1.5f));
             raytracer.camera.LookAt(Vector3.Zero);
 
-            raytracer.lightManager.AddLight(new PointLight(new Vector3f(2, 0, -1)));
-            raytracer.lightManager.AddLight(new PointLight(new Vector3f(-2, 0, -1.5f)));
+            raytracer.lightManager.AddLight(new PointLight(new Vector3f(2, 0, -1), ColorU.rgbWhite));
+            raytracer.lightManager.AddLight(new PointLight(new Vector3f(-2, 0, -1.5f), ColorU.rgbWhite));
 
             railCam = new RailHover(
                 pt => raytracer.camera.MoveTo(pt), 

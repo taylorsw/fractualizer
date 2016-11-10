@@ -37,13 +37,13 @@ namespace Mandelbasic
             raytracer.camera.LookAt(Vector3.Zero);
 
             raytracer.lightManager.RemoveAllLights();
-            raytracer.lightManager.AddLight(new PointLight(new Vector3f(2, 0, -1), fVisualize: false));
+            raytracer.lightManager.AddLight(new PointLight(new Vector3f(2, 0, -1), ColorU.rgbWhite, fVisualize: false));
 
             const int cballlight = 7;
             rgrailHoverBallLight = new RailHover[cballlight];
             for (int iballlight = 0; iballlight < cballlight; iballlight++)
             {
-                raytracer.lightManager.AddLight(new BallLight(rand.VkUnitRand() * 2.0f, duCutoffBallLight));
+                raytracer.lightManager.AddLight(new BallLight(rand.VkUnitRand() * 2.0f, rand.VkUnitRand(), duCutoffBallLight));
 
                 int ilight = iballlight + 1;
                 RailHover railHover = new RailHover(pt => raytracer.lightManager[ilight].ptLight = pt, 

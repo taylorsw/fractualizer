@@ -14,15 +14,17 @@ namespace Fractals
     {
         public Klight klight;
         public Vector3 ptLight;
+        public Vector3 rgbLight;
         public bool fVisualize;
 
-        protected Light(Klight klight, Vector3 ptLight, bool fVisualize)
+        protected Light(Klight klight, Vector3 ptLight, Vector3 rgbLight, bool fVisualize)
         {
             this.klight = klight;
             this.ptLight = ptLight;
+            this.rgbLight = rgbLight;
             this.fVisualize = fVisualize;
         }
-        
+
         internal int LidGet()
         {
             return (int) klight;
@@ -33,19 +35,20 @@ namespace Fractals
             _raytracerfractal.rglidLight[ilight] = LidGet();
             _raytracerfractal.rgptLight[ilight] = ptLight;
             _raytracerfractal.rgfVisualizeLight[ilight] = fVisualize;
+            _raytracerfractal.rgrgbLight[ilight] = rgbLight;
         }
     }
 
     public class PointLight : Light
     {
-        public PointLight(Vector3 ptLight, bool fVisualize = true) : base(Klight.Point, ptLight, fVisualize) { }
+        public PointLight(Vector3 ptLight, Vector3 rgbLight, bool fVisualize = true) : base(Klight.Point, ptLight, rgbLight, fVisualize) { }
     }
 
     public class BallLight : Light
     {
         public float duCutoff;
 
-        public BallLight(Vector3 ptLight, float duCutoff, bool fVisualize = true) : base(Klight.Ball, ptLight, fVisualize)
+        public BallLight(Vector3 ptLight, Vector3 rgbLight, float duCutoff, bool fVisualize = true) : base(Klight.Ball, ptLight, rgbLight, fVisualize)
         {
             this.duCutoff = duCutoff;
         }

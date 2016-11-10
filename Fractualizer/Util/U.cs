@@ -129,6 +129,11 @@ namespace Util
         }
     }
 
+    public static class ColorU
+    {
+        public static readonly Vector3 rgbWhite = new Vector3(1, 1, 1);
+    }
+
     public class PaddedArray<T> where T : struct
     {
         private readonly byte[] rgbyte;

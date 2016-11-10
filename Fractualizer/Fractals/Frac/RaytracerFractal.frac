@@ -15,6 +15,7 @@ int rglidLight[10];
 v3 rgptLight[10];
 float rgduCutoffLight[10];
 bool rgfVisualizeLight[10];
+v3 rgrgbLight[10];
 raytracer RaytracerFractal
 {
 	global int LID_POINTLIGHT = 0;
@@ -175,15 +176,12 @@ raytracer RaytracerFractal
 		return lerp(color, fogColor, frFog);
 	}
 
-	global v3 WHITE = v3(1, 1, 1);
-	global v3 colorDiffuse = WHITE;
-	global v3 colorSpecular = WHITE;
 	global float shininess = 18.0;
 	global float sfEpsilonShadow = 5.0;
 	v3 ColorBP(v3 color, v3 ptSurface, int idHit, float duEpsilon)
 	{
 		if (idHit != ID_FRACTAL)
-			return WHITE;
+			return inputs.rgrgbLight[idHit];
 
 		v3 colorTexture = color;
 		color = 0.1 * color;
