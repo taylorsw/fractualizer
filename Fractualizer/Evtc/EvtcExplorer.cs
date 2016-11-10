@@ -12,6 +12,7 @@ namespace Mandelbasic
     {
         private Random rand = new Random(1990);
 
+        const int cballlight = 7;
         private RailHover[] rgrailHoverBallLight;
 
         const float duCutoffBallLight = 0.3f;
@@ -39,7 +40,6 @@ namespace Mandelbasic
             raytracer.lightManager.RemoveAllLights();
             raytracer.lightManager.AddLight(new PointLight(new Vector3f(2, 0, -1), ColorU.rgbWhite, fVisualize: false));
 
-            const int cballlight = 7;
             rgrailHoverBallLight = new RailHover[cballlight];
             for (int iballlight = 0; iballlight < cballlight; iballlight++)
             {
@@ -100,10 +100,13 @@ namespace Mandelbasic
                 case Keys.L:
                     fLightFollows = !fLightFollows;
                     break;
-                case Keys.NumPad8:
-                    controller.Resize(raytracer.width * 2, raytracer.height * 2);
-                    break;
             }
+        }
+
+        private void DimBallLights(float dbrightness)
+        {
+            for (int iballlight = 0; iballlight < cballlight; iballlight++)
+                raytracer.lightManager[iballlight + 1].brightness += dbrightness;
         }
 
         private const float frMoveBase = 0.1f;
@@ -136,6 +139,19 @@ namespace Mandelbasic
 
             if (IsKeyDown(Keys.D))
                 camera.MoveBy(Vector3.Cross(camera.vkCameraOrtho, camera.vkCamera) * duMove);
+
+            const float dbrightnessDim = 0.01f;
+
+            if (IsKeyDown(Keys.NumPad7))
+                raytracer.lightManager[0].brightness -= dbrightnessDim;
+            if (IsKeyDown(Keys.NumPad8))
+                raytracer.lightManager[0].brightness += dbrightnessDim;
+
+            if (IsKeyDown(Keys.NumPad4))
+                DimBallLights(-0.01f);
+
+            if (IsKeyDown(Keys.NumPad5))
+                DimBallLights(0.01f);
 
             if (IsKeyDown(Keys.P))
                 form.Close();

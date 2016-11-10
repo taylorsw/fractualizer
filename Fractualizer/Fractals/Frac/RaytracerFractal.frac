@@ -16,6 +16,7 @@ v3 rgptLight[10];
 float rgduCutoffLight[10];
 bool rgfVisualizeLight[10];
 v3 rgrgbLight[10];
+float rgbrightnessLight[10];
 raytracer RaytracerFractal
 {
 	global int LID_POINTLIGHT = 0;
@@ -220,7 +221,7 @@ raytracer RaytracerFractal
 				specular = pow(cos, shininess);
 			}
 
-			v3 colorLight = inputs.rgrgbLight[ilight] * colorTexture;
+			v3 colorLight = inputs.rgrgbLight[ilight] * colorTexture * inputs.rgbrightnessLight[ilight];
 			color = color
 				+ 0.6 * lambertian * colorLight
 				+ 0.6 * specular * colorLight;

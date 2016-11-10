@@ -15,13 +15,15 @@ namespace Fractals
         public Klight klight;
         public Vector3 ptLight;
         public Vector3 rgbLight;
+        public float brightness;
         public bool fVisualize;
 
-        protected Light(Klight klight, Vector3 ptLight, Vector3 rgbLight, bool fVisualize)
+        protected Light(Klight klight, Vector3 ptLight, Vector3 rgbLight, float brightness, bool fVisualize)
         {
             this.klight = klight;
             this.ptLight = ptLight;
             this.rgbLight = rgbLight;
+            this.brightness = brightness;
             this.fVisualize = fVisualize;
         }
 
@@ -34,21 +36,24 @@ namespace Fractals
         {
             _raytracerfractal.rglidLight[ilight] = LidGet();
             _raytracerfractal.rgptLight[ilight] = ptLight;
-            _raytracerfractal.rgfVisualizeLight[ilight] = fVisualize;
             _raytracerfractal.rgrgbLight[ilight] = rgbLight;
+            _raytracerfractal.rgbrightnessLight[ilight] = brightness;
+            _raytracerfractal.rgfVisualizeLight[ilight] = fVisualize;
         }
     }
 
     public class PointLight : Light
     {
-        public PointLight(Vector3 ptLight, Vector3 rgbLight, bool fVisualize = true) : base(Klight.Point, ptLight, rgbLight, fVisualize) { }
+        public PointLight(Vector3 ptLight, Vector3 rgbLight, float brightness = 1.0f, bool fVisualize = true) : base(Klight.Point, ptLight, rgbLight, brightness, fVisualize)
+        {
+        }
     }
 
     public class BallLight : Light
     {
         public float duCutoff;
 
-        public BallLight(Vector3 ptLight, Vector3 rgbLight, float duCutoff, bool fVisualize = true) : base(Klight.Ball, ptLight, rgbLight, fVisualize)
+        public BallLight(Vector3 ptLight, Vector3 rgbLight, float duCutoff, float brightness = 1.0f, bool fVisualize = true) : base(Klight.Ball, ptLight, rgbLight, brightness, fVisualize)
         {
             this.duCutoff = duCutoff;
         }
