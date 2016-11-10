@@ -21,13 +21,13 @@ namespace Mandelbasic
         
         public ControllerMandelbasic()
         {
-            int width = 1920; //Screen.PrimaryScreen.Bounds.Width;
-            int height = 1080; //Screen.PrimaryScreen.Bounds.Height;
+            int width = Renderer.fFullscreen ? Screen.PrimaryScreen.Bounds.Width : 1920;
+            int height = Renderer.fFullscreen ? Screen.PrimaryScreen.Bounds.Height : 1080;
             renderForm = new RenderForm("Fractualizer")
             {
                 ClientSize = new Size(width, height),
                 AllowUserResizing = true,
-                IsFullscreen = true //true
+                IsFullscreen = Renderer.fFullscreen
             };
 
             raytracerI = new RaytracerFractal(new Scene(new Mandelbulb()), width, height);
@@ -61,6 +61,12 @@ namespace Mandelbasic
 //            raytracer.width = width;
 //            raytracer.height = height;
 //            renderForm.ClientSize = new Size(width, height);
+        }
+
+        public override void Exit()
+        {
+            Dispose();
+            renderForm.Close();
         }
 
         public override void Dispose()

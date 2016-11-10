@@ -12,6 +12,8 @@ namespace Render
 {
     public class Renderer : IDisposable
     {
+        public static readonly bool fFullscreen = true;
+
         private readonly Raytracer raytracer;
 
         private D3D11.Device device;
@@ -53,7 +55,7 @@ namespace Render
 
             deviceContext.Draw(vertices.Length, 0);
 
-            swapChain.Present(1, PresentFlags.None);
+            swapChain.Present(1, PresentFlags.None);            
         }
 
         private void InitializeVertexShaders()
@@ -83,7 +85,7 @@ namespace Render
                 Usage = Usage.RenderTargetOutput,
                 BufferCount = 1,
                 OutputHandle = renderForm.Handle,
-                IsWindowed = true,
+                IsWindowed = !fFullscreen,
                 Flags = SwapChainFlags.AllowModeSwitch
             };
             D3D11.Device.CreateWithSwapChain(DriverType.Hardware, D3D11.DeviceCreationFlags.None, swapChainDesc, out device, out swapChain);

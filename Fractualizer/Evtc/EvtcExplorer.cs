@@ -91,6 +91,9 @@ namespace Mandelbasic
         {
             switch (keyEventArgs.KeyCode)
             {
+                case Keys.P:
+                    controller.Exit();
+                    break;
                 case Keys.T:
                     Setup();
                     break;
@@ -152,9 +155,6 @@ namespace Mandelbasic
 
             if (IsKeyDown(Keys.NumPad5))
                 DimBallLights(0.01f);
-
-            if (IsKeyDown(Keys.P))
-                form.Close();
 
             if (scene.fractal.cinputFloat > 0)
             {

@@ -11,6 +11,7 @@ namespace Evtc
     {
         public abstract RaytracerFractal raytracer { get; }
         public abstract void Resize(int width, int height);
+        public abstract void Exit();
         public abstract void Dispose();
     }
 }
