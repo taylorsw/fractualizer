@@ -14,8 +14,8 @@ v2 rsScreen;
 v2 rsViewPlane;
 
 // Color
-float sfR = 1.0;
-float sfG = 0.0;
+float sfR = 0.0;
+float sfG = 1.0;
 float sfB = 1.0;
 
 // Light

@@ -35,7 +35,7 @@ namespace Mandelbasic
             rgrailHoverBallLight = new RailHover[cballlight];
             for (int iballlight = 0; iballlight < cballlight; iballlight++)
             {
-                raytracer.lightManager.AddLight(new BallLight(rand.VkUnitRand() * 2.0f, rand.VkUnitRand(0.2f), duCutoffBallLight, brightness: 1.5f));
+                raytracer.lightManager.AddLight(new BallLight(rand.VkUnitRand() * 2.0f, new Vector3(0, rand.NextFloat(0.2f, 1.0f), rand.NextFloat(0.2f, 1.0f)), duCutoffBallLight, brightness: 1.5f));
 
                 int ilight = iballlight;
                 RailHover railHover = new RailHover(pt => raytracer.lightManager[ilight].ptLight = pt,
@@ -55,19 +55,23 @@ namespace Mandelbasic
 
         public override void DoEvents(float dtms)
         {
-//            scene.camera.param += du * 0.0014f;
-//
-//            if (scene.camera.param < 2)
-//                du = 1;
-//            else if (scene.camera.param > 8.5)
-//                du = -1;
-//
-//            scene.camera.param2 += du2 * 0.000014f;
-//
-//            if (scene.camera.param2 < 1.0)
-//                du2 = 1;
-//            else if (scene.camera.param2 > 3.0)
-//                du2 = -1;
+            Mandelbulb mandelbulb = scene.fractal as Mandelbulb;
+            if (mandelbulb != null)
+            {
+                mandelbulb._mandelbulb.param += du * 0.014f;
+
+                if (mandelbulb._mandelbulb.param < 2)
+                    du = 1;
+                else if (mandelbulb._mandelbulb.param > 8)
+                    du = -1;
+
+                mandelbulb._mandelbulb.param2 += du2 * 0.00014f;
+
+                if (mandelbulb._mandelbulb.param2 < 1.0)
+                    du2 = 1;
+                else if (mandelbulb._mandelbulb.param2 > 3.0)
+                    du2 = -1;
+            }
 
             railCam.UpdatePt(camera.ptCamera, dtms);
             for (int irailHover = 0; irailHover < rgrailHoverBallLight.Length; irailHover++)

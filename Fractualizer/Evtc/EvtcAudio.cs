@@ -14,7 +14,7 @@ namespace Mandelbasic
         public EvtcAudio(Form form, Controller controller) : base(form, controller)
         {
             processor = new AudioProcessor();
-            processor.StartProcessor("Resources/callonme.mp3");
+            processor.StartProcessor("Resources/dontletmedown.mp3");
         }
 
         public override void DoEvents(float dtms)
