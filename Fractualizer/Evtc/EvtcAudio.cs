@@ -24,7 +24,7 @@ namespace Mandelbasic
             {
                 scene.fractal.SetInputFloat(0,
                     scene.fractal.GetInputFloat(0) +
-                    du*Math.Abs(0.015f*(processor.val - duRange/2)/duRange));
+                    du*Math.Abs(0.015f*(processor.energy - duRange/2)/duRange));
             }
         }
     }
