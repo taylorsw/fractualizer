@@ -10,9 +10,7 @@ namespace Mandelbasic
 {
     public class EvtcExplorer : EvtcUserDecode
     {
-        private Random rand = new Random(1990);
-
-        const int cballlight = 7;
+        const int cballlight = 35;
         private RailHover[] rgrailHoverBallLight;
 
         const float duCutoffBallLight = 0.3f;

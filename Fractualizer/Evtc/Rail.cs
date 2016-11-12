@@ -52,8 +52,8 @@ namespace Mandelbasic
     public class RailHover : RailOrbit
     {
         private readonly Fractal3d fractal;
-        private readonly float duHoverMin;
-        private readonly float duHoverMax;
+        public float duHoverMin;
+        public float duHoverMax;
         private readonly float sfTravelMax;
 
         public RailHover(

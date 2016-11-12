@@ -19,12 +19,12 @@ float sfG = 0.0;
 float sfB = 1.0;
 
 // Light
-int rglidLight[10];
-v3 rgptLight[10];
-float rgduCutoffLight[10];
-bool rgfVisualizeLight[10];
-v3 rgrgbLight[10];
-float rgbrightnessLight[10];
+int rglidLight[40];
+v3 rgptLight[40];
+float rgduCutoffLight[40];
+bool rgfVisualizeLight[40];
+v3 rgrgbLight[40];
+float rgbrightnessLight[40];
 
 raytracer RaytracerFractal
 {

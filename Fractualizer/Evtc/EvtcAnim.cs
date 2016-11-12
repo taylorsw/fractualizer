@@ -10,9 +10,11 @@ namespace Mandelbasic
     public class EvtcAnim : Evtc
     {
         private readonly RailHover railCam;
-        private readonly RailOrbit railLight1;
-        private readonly RailHover railLight2;
-        
+
+        const int cballlight = 35;
+        const float duCutoffBallLight = 0.3f;
+        protected readonly RailHover[] rgrailHoverBallLight;
+
         public EvtcAnim(Form form, Controller controller) : base(form, controller)
         {
             raytracer.camera.MoveTo(new Vector3(0, 0, -1.5f));
@@ -27,12 +29,26 @@ namespace Mandelbasic
                 ptCenter: Vector3.Zero, 
                 vkNormal: new Vector3(scene.rand.NextFloat(-1.0f, 1.0f), scene.rand.NextFloat(-1.0f, 1.0f), scene.rand.NextFloat(-1.0f, 1.0f)), 
                 agd_dtms: 20f / 1000,
-                duHoverMin: 0.05f,
-                duHoverMax: 0.1f,
-                sfTravelMax: 2);
+                duHoverMin: 0.3f,
+                duHoverMax: 0.5f,
+                sfTravelMax: 3);
 
-            railLight1 = new RailOrbit(pt => raytracer.lightManager[0].ptLight = pt, Vector3.Zero, new Vector3(1, 1, 1), 60f / 1000);
-            railLight2 = new RailHover(pt => raytracer.lightManager[1].ptLight = pt, scene.fractal, Vector3.Zero, new Vector3(0.3f, 0.4f, 0.7f), 0.1f, 0.1f, 0.3f, 2.0f);
+            rgrailHoverBallLight = new RailHover[cballlight];
+            for (int iballlight = 0; iballlight < cballlight; iballlight++)
+            {
+                raytracer.lightManager.AddLight(new BallLight(rand.VkUnitRand() * 2.0f, rand.VkUnitRand(0.2f), duCutoffBallLight));
+
+                int ilight = iballlight;
+                RailHover railHover = new RailHover(pt => raytracer.lightManager[ilight].ptLight = pt,
+                    scene.fractal,
+                    Vector3.Zero,
+                    rand.VkUnitRand(),
+                    rand.NextFloat(0.01f, 0.05f),
+                    duCutoffBallLight / 5,
+                    duCutoffBallLight / 5,
+                    10.0f);
+                rgrailHoverBallLight[iballlight] = railHover;
+            }
         }
 
         protected float du = -1;
@@ -55,14 +71,17 @@ namespace Mandelbasic
 //                du2 = -1;
 
             railCam.UpdatePt(camera.ptCamera, dtms);
-            railLight1.UpdatePt(raytracer.lightManager[0].ptLight, dtms);
-            railLight2.UpdatePt(raytracer.lightManager[1].ptLight, dtms);
+            for (int irailHover = 0; irailHover < rgrailHoverBallLight.Length; irailHover++)
+            {
+                int ilight = irailHover;
+                rgrailHoverBallLight[irailHover].UpdatePt(raytracer.lightManager[ilight].ptLight, dtms);
+            }
 
             const float dagdRoll = 0.01f;
             camera.RollBy(dagdRoll);
 
             camera.LookAt(Vector3.Zero);
-            camera.RotateCamera(camera.vkCameraRight, MathUtil.DegreesToRadians(45));
+            camera.RotateCamera(camera.vkCameraRight, MathUtil.DegreesToRadians(20));
         }
     }
 }

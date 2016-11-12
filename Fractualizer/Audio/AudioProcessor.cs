@@ -25,8 +25,9 @@ namespace Audio
     {
         private readonly Queue<FrameInfo> qframeInfo = new Queue<FrameInfo>();
         private readonly int cFrameSample;
-        public double energyAvg, dEnergyAvg;        
-        public double energyLast;
+        public double energyAvg, dEnergyAvg;
+        public FrameInfo frameInfoLast => frameInfoLastI;
+        private FrameInfo frameInfoLastI;
         public FrameInfo[] RgframeInfo() => qframeInfo.ToArray();
 
         public BandData(int cFrameSample)
@@ -43,12 +44,12 @@ namespace Audio
             return avg/cFrameSample;
         }
 
-
         public void AddFrameInfo(FrameInfo frameInfo)
         {
             qframeInfo.Enqueue(frameInfo);
             energyAvg += frameInfo.energy/cFrameSample;
             dEnergyAvg += frameInfo.dEnergy/cFrameSample;
+            frameInfoLastI = frameInfo;
             if (qframeInfo.Count > cFrameSample)
             {
                 var frameInfoOldest = qframeInfo.Dequeue();
@@ -83,26 +84,44 @@ namespace Audio
     public class AudioProcessor
     {
         private const int cFrameSample = 10;
-        private const int cBand = 32;
+        private const int cBand = 1;
         private readonly BandData[] rgbandData = new BandData[cBand];
-        private float valI;
-        private float minI = float.MaxValue;
-        private float maxI = float.MinValue;
-        public float energy
+
+        private bool fBeatI;
+
+        public bool fBeat
         {
-            get { lock (this) { return valI; } }
-            set { lock (this) { valI = value; } }
+            get
+            {
+                lock (this)
+                {
+                    bool fBeatT = fBeatI;
+                    fBeatI = false;
+                    return fBeatT;                    
+                }
+            }
+
+            private set { lock (this) { fBeatI = value; } }
         }
-        public float min
-        {
-            get { lock (this) { return minI; } }
-            set { lock (this) { minI = value; } }
-        }
-        public float max
-        {
-            get { lock (this) { return maxI; } }
-            set { lock (this) { maxI = value; } }
-        }
+
+        //private float valI;
+        //private float minI = float.MaxValue;
+        //private float maxI = float.MinValue;
+        //public float energy
+        //{
+        //    get { lock (this) { return valI; } }
+        //    set { lock (this) { valI = value; } }
+        //}
+        //public float min
+        //{
+        //    get { lock (this) { return minI; } }
+        //    set { lock (this) { minI = value; } }
+        //}
+        //public float max
+        //{
+        //    get { lock (this) { return maxI; } }
+        //    set { lock (this) { maxI = value; } }
+        //}
 
         public event Action<FrameInfo[]> OnFft;
 
@@ -149,7 +168,7 @@ namespace Audio
 
                 double logEnergy = Math.Log(Math.Max(energy, energyMin));
                 var bandData = rgbandData[iBand];
-                double dEnergy = energy - bandData.energyLast;
+                double dEnergy = energy - bandData.frameInfoLast.energy;
                 if (dEnergy < 0)
                     dEnergy = 0;
                 //else
@@ -157,15 +176,31 @@ namespace Audio
 
                 //var c = 100;
                 //bool fBeat = dEnergy > c * bandData.EnergyVariance() && energy > 1e-8;
-                bool fBeat = logEnergy > .7 * bandData.EnergyAvg();
+                bool fBeat = logEnergy > .85 * bandData.EnergyAvg();
+                if (iBand == 0 && fBeat)
+                {
+                    var rgframeInfoT = bandData.RgframeInfo();
+                    var c = rgframeInfoT.Length;
+                    bool fRecentBeat = false;
+                    for (int iBeat = c - 2; iBeat < c; iBeat++)
+                    {
+                        if (rgframeInfoT[iBeat].fBeat)
+                        {
+                            fRecentBeat = true;
+                            break;
+                        }
+                    }
+
+                    if (!fRecentBeat)
+                        this.fBeat = true;
+                }
+
                 beats[iBand] = fBeat;
 
                 var frameInfo = new FrameInfo(energy: logEnergy, dEnergy: dEnergy, fBeat: fBeat);
                 rgframeInfo[iBand] = frameInfo;
                 bandData.AddFrameInfo(frameInfo);
-                bandData.energyLast = energy;
-            }
-
+            }            
             OnFft?.Invoke(rgframeInfo);
         }
 
