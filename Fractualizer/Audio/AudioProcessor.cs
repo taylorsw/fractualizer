@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using NAudio.Dsp;
 using NAudio.Wave;
@@ -24,12 +25,22 @@ namespace Audio
     {
         private readonly Queue<FrameInfo> qframeInfo = new Queue<FrameInfo>();
         private readonly int cFrameSample;
-        public double energyAvg, dEnergyAvg;
+        public double energyAvg, dEnergyAvg;        
         public double energyLast;
+        public FrameInfo[] RgframeInfo() => qframeInfo.ToArray();
 
         public BandData(int cFrameSample)
         {
             this.cFrameSample = cFrameSample;
+        }
+
+        public double EnergyAvg()
+        {
+            double avg = 0;
+            foreach (var fi in qframeInfo)
+                avg += fi.energy;
+
+            return avg/cFrameSample;
         }
 
 
@@ -71,7 +82,7 @@ namespace Audio
 
     public class AudioProcessor
     {
-        private const int cFrameSample = 48;
+        private const int cFrameSample = 10;
         private const int cBand = 32;
         private readonly BandData[] rgbandData = new BandData[cBand];
         private float valI;
@@ -104,7 +115,7 @@ namespace Audio
 
             try
             {
-                const int csampleFft = 1024;
+                const int csampleFft = 2048;
                 waveOut = new WaveOut { DesiredLatency = 200 };
                 var reader = new AudioFileReader(filename);
                 var sampleProvider = reader.ToSampleProvider();
@@ -122,6 +133,7 @@ namespace Audio
             }
         }
 
+        public const double energyMin = 1e-30;
         private void OnFftCalculated(object sender, FftEventArgs e)
         {
             var freqs = e.Result.Take(e.Result.Length/2).ToArray();
@@ -131,10 +143,11 @@ namespace Audio
             var rgframeInfo = new FrameInfo[cBand];
             for (int iBand = 0; iBand < cBand; iBand++)
             {
-                energy = 0;
+                double energy = 0;
                 for (int iFreq = iBand*cFreqBand; iFreq < (iBand + 1)*cFreqBand; iFreq++)
                     energy += Length2(freqs[iFreq]);
 
+                double logEnergy = Math.Log(Math.Max(energy, energyMin));
                 var bandData = rgbandData[iBand];
                 double dEnergy = energy - bandData.energyLast;
                 if (dEnergy < 0)
@@ -142,14 +155,12 @@ namespace Audio
                 //else
                 //    dEnergy *= dEnergy;
 
-                //var c = 1000000000000 * bandData.DEnergyVariance();
-                var c = 5;
-                bool fBeat = dEnergy > c * bandData.EnergyVariance() && energy > 1e-8;
+                //var c = 100;
+                //bool fBeat = dEnergy > c * bandData.EnergyVariance() && energy > 1e-8;
+                bool fBeat = logEnergy > .7 * bandData.EnergyAvg();
                 beats[iBand] = fBeat;
-                max = Math.Max(energy, max);
-                min = Math.Min(energy, min);
 
-                var frameInfo = new FrameInfo(energy, dEnergy, fBeat);
+                var frameInfo = new FrameInfo(energy: logEnergy, dEnergy: dEnergy, fBeat: fBeat);
                 rgframeInfo[iBand] = frameInfo;
                 bandData.AddFrameInfo(frameInfo);
                 bandData.energyLast = energy;

@@ -33,7 +33,7 @@ namespace AudioDemo
 
             var processor = new AudioProcessor();
             processor.OnFft += DrawRgframeInfo;
-            processor.StartProcessor("Resources/drums.mp3");
+            processor.StartProcessor("Resources/callonme.mp3");
         }
 
         void DrawRgframeInfo(FrameInfo[] rgframeInfo)
@@ -46,8 +46,8 @@ namespace AudioDemo
                 var rect = new Rectangle();
                 rect.Fill = fi.fBeat ? Brushes.Red : Brushes.Green;
                 rect.Width = 1024d / rgframeInfo.Length;
-                //rect.Height = 50000000 * fi.energy;
-                rect.Height = 500;
+                rect.Height = 20 * (fi.energy - Math.Log(AudioProcessor.energyMin));
+                //rect.Height = 500;
                 Canvas.SetLeft(rect, i * rect.Width);
                 canvas.Children.Add(rect);
             }
