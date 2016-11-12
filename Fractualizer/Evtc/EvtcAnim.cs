@@ -21,7 +21,6 @@ namespace Mandelbasic
             raytracer.camera.LookAt(Vector3.Zero);
 
             raytracer.lightManager.AddLight(new PointLight(new Vector3f(2, 0, -1), ColorU.rgbWhite));
-            raytracer.lightManager.AddLight(new PointLight(new Vector3f(-2, 0, -1.5f), ColorU.rgbWhite));
 
             railCam = new RailHover(
                 pt => raytracer.camera.MoveTo(pt), 
@@ -36,7 +35,7 @@ namespace Mandelbasic
             rgrailHoverBallLight = new RailHover[cballlight];
             for (int iballlight = 0; iballlight < cballlight; iballlight++)
             {
-                raytracer.lightManager.AddLight(new BallLight(rand.VkUnitRand() * 2.0f, rand.VkUnitRand(0.2f), duCutoffBallLight));
+                raytracer.lightManager.AddLight(new BallLight(rand.VkUnitRand() * 2.0f, rand.VkUnitRand(0.2f), duCutoffBallLight, brightness: 1.5f));
 
                 int ilight = iballlight;
                 RailHover railHover = new RailHover(pt => raytracer.lightManager[ilight].ptLight = pt,
@@ -81,7 +80,7 @@ namespace Mandelbasic
             camera.RollBy(dagdRoll);
 
             camera.LookAt(Vector3.Zero);
-            camera.RotateCamera(camera.vkCameraRight, MathUtil.DegreesToRadians(20));
+            camera.RotateCamera(camera.vkCameraRight, MathUtil.DegreesToRadians(10));
         }
     }
 }

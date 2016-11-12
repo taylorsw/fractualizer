@@ -17,23 +17,12 @@ namespace Mandelbasic
             processor.StartProcessor("Resources/callonme.mp3");
         }
 
-        const float duHoverMin = 0.1f;
-        const float duHoverMax = 0.3f;
-        const float duHover = 0.05f;
         public override void DoEvents(float dtms)
         {
             base.DoEvents(dtms);
             bool fBeat = processor.fBeat;
             if (!fBeat)
             {
-                foreach (var railHover in rgrailHoverBallLight)
-                {
-                    if (railHover.duHoverMin > duHoverMin)
-                    {
-                        railHover.duHoverMin -= duHover;
-                        railHover.duHoverMax -= duHover;
-                    }
-                }
                 return;
             }
 
@@ -41,12 +30,6 @@ namespace Mandelbasic
             {
                 var light = raytracer.lightManager[i];
                 light.rgbLight = Vector3.One - light.rgbLight;
-            }
-
-            foreach (var railHover in rgrailHoverBallLight)
-            {
-                railHover.duHoverMin = duHoverMin * 3;
-                railHover.duHoverMax = duHoverMax * 3;
             }
         }
     }

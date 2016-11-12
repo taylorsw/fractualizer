@@ -157,6 +157,7 @@ raytracer RaytracerFractal
 	// Basic orbit-trapping color
 	v3 ColorOT(v3 marched)
 	{
+		return v3(0, 1, 0);
 #ifdef SPHERE
 		return v3(1.0, 0.0, 0.0);
 #endif
