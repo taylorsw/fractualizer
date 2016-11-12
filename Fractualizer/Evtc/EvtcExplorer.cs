@@ -149,12 +149,30 @@ namespace Mandelbasic
                 raytracer.lightManager[0].brightness -= dbrightnessDim;
             if (IsKeyDown(Keys.NumPad8))
                 raytracer.lightManager[0].brightness += dbrightnessDim;
-
             if (IsKeyDown(Keys.NumPad4))
                 DimBallLights(-0.01f);
-
             if (IsKeyDown(Keys.NumPad5))
                 DimBallLights(0.01f);
+
+            const float dsf = 0.01f;
+            if (IsKeyDown(Keys.NumPad1))
+            {
+                raytracer._raytracerfractal.sfR += dsf;
+                if (raytracer._raytracerfractal.sfR > 1.0)
+                    raytracer._raytracerfractal.sfR = 0.0f;
+            }
+            if (IsKeyDown(Keys.NumPad2))
+            {
+                raytracer._raytracerfractal.sfG += dsf;
+                if (raytracer._raytracerfractal.sfG > 1.0)
+                    raytracer._raytracerfractal.sfG = 0.0f;
+            }
+            if (IsKeyDown(Keys.NumPad3))
+            {
+                raytracer._raytracerfractal.sfB += dsf;
+                if (raytracer._raytracerfractal.sfB > 1.0)
+                    raytracer._raytracerfractal.sfB = 0.0f;
+            }
 
             if (scene.fractal.cinputFloat > 0)
             {

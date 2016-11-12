@@ -3,6 +3,7 @@
 #define SHADOWS
 #define LIGHTING
 
+// Camera
 v3 ptCamera;
 float duNear;
 v3 vkCamera;
@@ -11,12 +12,20 @@ v3 vkCameraOrtho;
 float fogA;
 v2 rsScreen;
 v2 rsViewPlane;
+
+// Color
+float sfR = 1.0;
+float sfG = 0.0;
+float sfB = 1.0;
+
+// Light
 int rglidLight[10];
 v3 rgptLight[10];
 float rgduCutoffLight[10];
 bool rgfVisualizeLight[10];
 v3 rgrgbLight[10];
 float rgbrightnessLight[10];
+
 raytracer RaytracerFractal
 {
 	global int LID_POINTLIGHT = 0;
@@ -152,7 +161,11 @@ raytracer RaytracerFractal
 		return v3(1.0, 0.0, 0.0);
 #endif
 		float paramStandin = 8.0;
-		return v3(sin(marched.y * 7 + paramStandin * noise(marched * 10)), 0, sin(marched.x * 10 + (paramStandin / 2) * noise(marched * 10)));
+		return v3(
+			inputs.sfR * sin(marched.y * 7 + paramStandin * noise(marched * 10)), 
+			inputs.sfG * sin(marched.y * 8 + paramStandin * noise(marched * 10)), 
+			inputs.sfB * sin(marched.x * 10 + (paramStandin / 2) * noise(marched * 10)));
+
 		return normalize(
 			v3(
 				length(v3(-3, 0, 0) - marched) / 4.0, 
