@@ -1,15 +1,16 @@
 ﻿using System;
 using System.Windows.Forms;
-using Render;
 using Audio;
+using Evtc;
+using Fractals;
 
 namespace Mandelbasic
 {
-    class EvtcAudio : EvtcAnim
+    public class EvtcAudio : EvtcAnim
     {
         private readonly AudioProcessor processor;
 
-        public EvtcAudio(Form form, Scene scene) : base(form, scene)
+        public EvtcAudio(Form form, Controller controller) : base(form, controller)
         {
             processor = new AudioProcessor();
             processor.StartProcessor("Resources/lovesosa.mp3");
@@ -19,7 +20,12 @@ namespace Mandelbasic
         {
             base.DoEvents(dtms);
             float duRange = processor.max - processor.min;
-            scene.camera.param += du * Math.Abs(0.015f * (processor.energy - duRange / 2) / duRange);
+            if (scene.fractal.cinputFloat > 0)
+            {
+                scene.fractal.SetInputFloat(0,
+                    scene.fractal.GetInputFloat(0) +
+                    du*Math.Abs(0.015f*(processor.energy - duRange/2)/duRange));
+            }
         }
     }
 }

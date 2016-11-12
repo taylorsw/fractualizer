@@ -28,7 +28,7 @@
 		z = clamp(z, -foldingLimit, foldingLimit) * 2.0 - z;
 	}
 
-	DE()
+	DE(v3 pos)
 	{
 		float sf = 2;
 		float sfNormalizing = 3 * (sf + 1) / (sf - 1);

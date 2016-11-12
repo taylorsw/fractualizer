@@ -1,19 +1,34 @@
 grammar FPL;
 
-fractal : input* 'fractal' identifier '{' global* distanceEstimator '}' ;
+prog : pdefines (fractal | raytracer) ;
+pdefines : pdefine* ;
 
-input : arg ;
+raytracer : inputs 'raytracer' identifier '{' global* tracer '}' ;
+tracer : 'RgbaTrace(v4 pos)' block ;
 
-distanceEstimator : 'DE()' block ;
+fractal : inputs 'fractal' identifier '{' global* distanceEstimator '}' ;
+distanceEstimator : 'DE(v3 pos)' block ;
+
+inputs : input* ;
+input : ((inputType identifier ('=' literal)?) | (inputType identifier arrayDecl)) ';' ;
+inputType : type ;
 
 global : globalVal | func ;
 globalVal : 'global' localDecl ';' ;
+
+pdefine : '#define' identifier ;
+defCond : ((pifdef | pifndef) identifier) | pendif | pelse ;
+pifdef: '#ifdef' ;
+pifndef: '#ifndef' ;
+pendif: '#endif' ;
+pelse: '#else' ;
+
 func : retType identifier '(' arglist ')' block ;
 arglist : arg?
 		| arg (',' arg)*
 		;
 arg : argMod? type identifier ;
-argMod : 'ref' ;
+argMod : 'ref' | 'out' ;
 
 block : '{' blockStat* '}' ;
 
@@ -22,7 +37,8 @@ blockStat
 	| stat
 	;
 
-localDecl : type identifier '=' expr;
+localDecl : (type identifier ('=' expr)?) | (type identifier arrayDecl+);
+arrayDecl : '[' expr ']' ;
 
 stat 
 	: block
@@ -31,6 +47,7 @@ stat
 	| expr ';'
 	| ';'
 	| keywordExpr
+	| defCond
 	;
 
 keywordExpr
@@ -64,7 +81,10 @@ parExpr : '(' expr ')' ;
 
 expr 
 	: identifier
+	| inputAccess
+	| fractalAccess
 	| expr '.' identifier
+	| expr '[' expr ']'
 	| instantiation
 	| funcCall
 	| parExpr
@@ -72,8 +92,14 @@ expr
 	| expr assignmentOp expr
 	| expr unaryOp
 	| (prefixUnaryOp | unaryOp) expr
+	| expr ternary
 	| literal
 	;
+
+inputAccess : 'inputs.' identifier ;
+fractalAccess : 'fractal.' (identifier | funcCall) ;
+
+ternary : '?' expr ':' expr ;
 
 funcCall : identifier '(' exprList? ')' ;
 
@@ -122,7 +148,14 @@ prefixUnaryOp :
 	;
 
 retType : type | 'void' ;
-type : 'float' | 'int' | 'v3' | 'v4' ;
+type : FloatType | IntType | BoolType | V2Type | V3Type | V4Type;
+
+V2Type : 'v2' ;
+V3Type : 'v3' ;
+V4Type : 'v4' ;
+BoolType : 'bool' ;
+FloatType : 'float' ;
+IntType : 'int' ;
 
 literal :
 	literalInt
@@ -134,17 +167,16 @@ literalFloat : FloatLiteral;
 
 identifier : ID ;
 
-ID : Letter LetterOrDigit* ;
+ID : Nondigit (Nondigit | Digit)* ;
 
 IntLiteral : DecimalNumeral;
 
 FloatLiteral : [0-9]+.[0-9]+ ;
 
 fragment
-Letter : [a-zA-Z] ;
-
-fragment
-LetterOrDigit : [a-aA-z0-9$_] ;
+Nondigit
+    :   [a-zA-Z_]
+    ;
 
 fragment
 DecimalNumeral

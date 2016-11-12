@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Drawing;
+using Fractals;
 using SharpDX.Windows;
 using SharpDX.DXGI;
 using D3D11 = SharpDX.Direct3D11;
@@ -11,8 +12,9 @@ namespace Render
 {
     public class Renderer : IDisposable
     {
-        private readonly IHaveScene ihs;
-        private Scene scene => ihs.scene;
+        public static readonly bool fFullscreen = false;
+
+        private readonly Raytracer raytracer;
 
         private D3D11.Device device;
         private D3D11.DeviceContext deviceContext;
@@ -35,11 +37,12 @@ namespace Render
             new D3D11.InputElement("POSITION", 0, Format.R32G32B32_Float, 0)
         };
 
-        public Renderer(IHaveScene ihs, RenderForm renderForm)
+        public Renderer(Raytracer raytracer, RenderForm renderForm)
         {
-            this.ihs = ihs;
+            this.raytracer = raytracer;
             InitializeDeviceResources(renderForm);
-            InitializeShaders();
+            InitializeVertexShaders();
+            raytracer.Initialize(device, deviceContext);
         }
 
         public void Render()
@@ -48,14 +51,14 @@ namespace Render
 
             deviceContext.InputAssembler.SetVertexBuffers(0, new D3D11.VertexBufferBinding(triangleVertexBuffer, Utilities.SizeOf<Vector3>(), 0));
 
-            scene.UpdateBuffers(device, deviceContext);
+            raytracer.Update(device, deviceContext);
 
             deviceContext.Draw(vertices.Length, 0);
 
-            swapChain.Present(1, PresentFlags.None);
+            swapChain.Present(1, PresentFlags.None);            
         }
 
-        private void InitializeShaders()
+        private void InitializeVertexShaders()
         {
             triangleVertexBuffer = D3D11.Buffer.Create<Vector3>(device, D3D11.BindFlags.VertexBuffer, vertices);
 
@@ -70,13 +73,11 @@ namespace Render
             deviceContext.InputAssembler.PrimitiveTopology = PrimitiveTopology.TriangleList;
             inputLayout = new D3D11.InputLayout(device, inputSignature, inputElements);
             deviceContext.InputAssembler.InputLayout = inputLayout;
-
-            scene.Initialize(device, deviceContext);
         }
 
         private void InitializeDeviceResources(RenderForm renderForm)
         {
-            ModeDescription backBufferDesc = new ModeDescription(renderForm.Width, renderForm.Height, new Rational(120, 1), Format.R8G8B8A8_UNorm);
+            ModeDescription backBufferDesc = new ModeDescription(raytracer.width, raytracer.height, new Rational(120, 1), Format.R8G8B8A8_UNorm);
             SwapChainDescription swapChainDesc = new SwapChainDescription
             {
                 ModeDescription = backBufferDesc,
@@ -84,7 +85,7 @@ namespace Render
                 Usage = Usage.RenderTargetOutput,
                 BufferCount = 1,
                 OutputHandle = renderForm.Handle,
-                IsWindowed = true,
+                IsWindowed = !fFullscreen,
                 Flags = SwapChainFlags.AllowModeSwitch
             };
             D3D11.Device.CreateWithSwapChain(DriverType.Hardware, D3D11.DeviceCreationFlags.None, swapChainDesc, out device, out swapChain);
@@ -98,7 +99,7 @@ namespace Render
             deviceContext.OutputMerger.SetRenderTargets(renderTargetView);
             
             // Set viewport
-            viewport = new Viewport(0, 0, renderForm.Width, renderForm.Height);
+            viewport = new Viewport(0, 0, raytracer.width, raytracer.height);
             deviceContext.Rasterizer.SetViewport(viewport);
         }
 
@@ -112,7 +113,7 @@ namespace Render
             swapChain.Dispose();
             device.Dispose();
             deviceContext.Dispose();
-            scene.Dispose();
+            raytracer.Dispose();
         }
     }
 }

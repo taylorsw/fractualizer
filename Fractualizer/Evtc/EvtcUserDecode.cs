@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Windows.Forms;
-using Render;
+using Evtc;
+using Fractals;
 using SharpDX;
 using Point = System.Drawing.Point;
 
@@ -12,27 +13,11 @@ namespace Mandelbasic
     {
         private readonly HashSet<Keys> mpkeys;
 
-        protected EvtcUserDecode(Form form, Scene scene) : base(form, scene)
+        protected EvtcUserDecode(Form form, Controller controller) : base(form, controller)
         {
             mpkeys = new HashSet<Keys>();
             form.KeyDown += OnKeyDown;
             form.KeyUp += OnKeyUp;
-            form.KeyPress += OnKeyPress;
-        }
-
-        private void OnKeyPress(object sender, KeyPressEventArgs keyPressEventArgs)
-        {
-            char charUpper = char.ToUpper(keyPressEventArgs.KeyChar);
-
-            switch (charUpper)
-            {
-                case 'T':
-                    scene.camera = Scene.Camera.Initial(form.Width, form.Height);
-                    break;
-                case 'G':
-                    Debug.WriteLine(scene.camera);
-                    break;
-            }
         }
 
         private void OnKeyDown(object sender, KeyEventArgs keyEventArgs)
@@ -42,8 +27,11 @@ namespace Mandelbasic
 
         private void OnKeyUp(object sender, KeyEventArgs keyEventArgs)
         {
+            OnKeyUp(keyEventArgs);
             mpkeys.Remove(keyEventArgs.KeyCode);
         }
+
+        protected virtual void OnKeyUp(KeyEventArgs keyEventArgs) { }
 
         protected bool IsKeyDown(Keys keyCode)
         {
@@ -69,12 +57,12 @@ namespace Mandelbasic
 
             float frScreenX = vkMouseDelta.X / form.Width;
             float frScreenY = vkMouseDelta.Y / form.Height;
-            float ddxScene = scene.camera.rsViewPlane.X * frScreenX;
-            float ddyScene = scene.camera.rsViewPlane.Y * frScreenY;
+            float ddxScene = camera.rsViewPlane.X * frScreenX;
+            float ddyScene = camera.rsViewPlane.Y * frScreenY;
 
-            Vector3 ptPlane = scene.camera.ptPlaneCenter
-                   + scene.camera.vkCameraRight * ddxScene
-                   + scene.camera.vkCameraDown * ddyScene;
+            Vector3 ptPlane = camera.ptPlaneCenter
+                   + camera.vkCameraRight * ddxScene
+                   + camera.vkCameraOrtho * ddyScene;
 
             return ptPlane;
         }

@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
 using Fractals;
-using Render;
 using SharpDX;
+using Util;
 
 namespace Mandelbasic
 {
@@ -36,7 +36,7 @@ namespace Mandelbasic
         public RailOrbit(DgUpdatePt dgUpdatePt, Vector3 ptCenter, Vector3 vkNormal, float agd_dtms) : base(dgUpdatePt)
         {
             this.ptCenter = ptCenter;
-            this.vkNormal = vkNormal;
+            this.vkNormal = vkNormal.Normalized();
             this.agd_dtms = agd_dtms;
         }
 
@@ -78,7 +78,7 @@ namespace Mandelbasic
         {
             // Get orbit value and DE
             Vector3 ptRotated = base.PtUpdated(ptCur, dtms);
-            double duDE = fractal.DuEstimate(ptRotated);
+            double duDE = fractal.DuDeFractalOrCache(ptRotated);
 
             // Calculate distance we will travel along that arc
             float duOrbitTravel = sfTravelMax * (ptCur - ptRotated).Length();
@@ -99,8 +99,6 @@ namespace Mandelbasic
                             ? duOrbitTravel 
                             : duOrbitTravel < duHoverMin ? duHoverMin : duOrbitTravel
                         : duAdjustMaxAbs);
-
-            //Debug.WriteLine("Orbit: {0}, Adjust: {1}, Chosen: {2}", duOrbitTravel, duAdjustMax, duAdjustFinal);
 
             ptRotated += vkFromCenter.Normalized()*duAdjustFinal;
             return ptRotated;
