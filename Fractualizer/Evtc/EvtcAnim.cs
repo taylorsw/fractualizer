@@ -11,7 +11,7 @@ namespace Mandelbasic
     {
         private readonly RailHover railCam;
 
-        const int cballlight = 35;
+        const int cballlight = 20;
         const float duCutoffBallLight = 0.3f;
         protected readonly RailHover[] rgrailHoverBallLight;
 
@@ -20,7 +20,8 @@ namespace Mandelbasic
             raytracer.camera.MoveTo(new Vector3(0, 0, -1.5f));
             raytracer.camera.LookAt(Vector3.Zero);
 
-            raytracer.lightManager.AddLight(new PointLight(new Vector3f(2, 0, -1), ColorU.rgbWhite));
+            Light pointLight = new PointLight(new Vector3f(2, 0, -1), new Vector3(0.5f, 0.5f, 0.5f), brightness: 0.3f, fVisualize: false);
+            raytracer.lightManager.AddLight(pointLight);
 
             railCam = new RailHover(
                 pt => raytracer.camera.MoveTo(pt), 
@@ -55,6 +56,8 @@ namespace Mandelbasic
 
         public override void DoEvents(float dtms)
         {
+            raytracer.lightManager[0].ptLight = raytracer.camera.ptCamera;
+
             Mandelbulb mandelbulb = scene.fractal as Mandelbulb;
             if (mandelbulb != null)
             {

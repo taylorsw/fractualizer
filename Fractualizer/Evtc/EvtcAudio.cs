@@ -26,7 +26,9 @@ namespace Mandelbasic
                 return;
             }
 
-            for (int i = 0; i < raytracer.lightManager.clight; i++)
+            Light pointLight = raytracer.lightManager[0];
+            pointLight.brightness = pointLight.brightness < 1 ? 2 : 0.3f;
+            for (int i = 1; i < raytracer.lightManager.clight; i++)
             {
                 var light = raytracer.lightManager[i];
                 light.rgbLight = Vector3.One - light.rgbLight;
