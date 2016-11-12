@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.25123.0
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Render", "Render\Render.csproj", "{5FD1E68E-47A1-402C-AB2E-285BD5ADE19A}"
 EndProject
@@ -14,6 +14,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fractals", "Fractals\Fractals.csproj", "{59B2A913-CE09-42FD-A7B0-4AB79CEF8E33}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeGen.Test", "Test\CodeGen.Test\CodeGen.Test.csproj", "{5F20DFE2-CB50-4F92-B1BF-F7714CDBBB17}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AudioDemo", "..\AudioDemo\AudioDemo\AudioDemo.csproj", "{5C9160C5-5ACE-4CA8-A70D-F47E09AF8582}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -45,6 +47,10 @@ Global
 		{5F20DFE2-CB50-4F92-B1BF-F7714CDBBB17}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5F20DFE2-CB50-4F92-B1BF-F7714CDBBB17}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5F20DFE2-CB50-4F92-B1BF-F7714CDBBB17}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5C9160C5-5ACE-4CA8-A70D-F47E09AF8582}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5C9160C5-5ACE-4CA8-A70D-F47E09AF8582}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5C9160C5-5ACE-4CA8-A70D-F47E09AF8582}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5C9160C5-5ACE-4CA8-A70D-F47E09AF8582}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

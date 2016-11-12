@@ -19,7 +19,7 @@ namespace Mandelbasic
         {
             base.DoEvents(dtms);
             float duRange = processor.max - processor.min;
-            scene.camera.param += du * Math.Abs(0.015f * (processor.val - duRange / 2) / duRange);
+            scene.camera.param += du * Math.Abs(0.015f * (processor.energy - duRange / 2) / duRange);
         }
     }
 }
