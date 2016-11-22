@@ -10,8 +10,9 @@ namespace Mandelbasic
 {
     public class EvtcExplorer : EvtcUserDecode
     {
-        const int cballlight = 35;
+        const int cballlight = 3;
         private RailHover[] rgrailHoverBallLight;
+        private SpotLight spotLight;
 
         const float duCutoffBallLight = 0.3f;
         public EvtcExplorer(Form form, Controller controller) : base(form, controller)
@@ -54,6 +55,9 @@ namespace Mandelbasic
                     10.0f);
                 rgrailHoverBallLight[iballlight] = railHover;
             }
+
+            spotLight = new SpotLight(raytracer.camera.ptCamera, new Vector3(1, 1, 1), raytracer.camera.vkCamera, (float)Math.Cos(MathUtil.DegreesToRadians(5f)));
+            raytracer.lightManager.AddLight(spotLight);
         }
 
         private void CenterCursor()
@@ -181,6 +185,9 @@ namespace Mandelbasic
                 if (IsKeyDown(Keys.E))
                     scene.fractal.SetInputFloat(0, scene.fractal.GetInputFloat(0) + dParam);
             }
+
+            spotLight.ptLight = camera.ptCamera;
+            spotLight.vkLight = camera.vkCamera;
         }
     }
 }
