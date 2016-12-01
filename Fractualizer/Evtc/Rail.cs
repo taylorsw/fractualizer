@@ -17,33 +17,43 @@ namespace Mandelbasic
             this.dgUpdatePt = dgUpdatePt;
         }
 
-        public void UpdatePt(Vector3 ptCur, float dtms)
+        public void UpdatePt(float dtms)
         {
-            Vector3 ptUpdated = PtUpdated(ptCur, dtms);
+            Vector3 ptUpdated = PtUpdated(dtms);
             Debug.Assert(ptUpdated.IsFinite());
             dgUpdatePt(ptUpdated);
         }
 
-        protected abstract Vector3 PtUpdated(Vector3 ptCur, float dtms);
+        protected abstract Vector3 PtUpdated(float dtms);
     }
 
     public class RailOrbit : Rail
     {
-        protected readonly Vector3 ptCenter;
+        protected readonly Vector3 ptCenter, ptInitial;
         protected readonly Vector3 vkNormal;
-        protected readonly float agd_dtms;
+        protected readonly float dtmsRevolution;
+        protected float dtmsCur { get; private set; }
 
-        public RailOrbit(DgUpdatePt dgUpdatePt, Vector3 ptCenter, Vector3 vkNormal, float agd_dtms) : base(dgUpdatePt)
+        public RailOrbit(DgUpdatePt dgUpdatePt, Vector3 ptCenter, Vector3 ptInitial, Vector3 vkNormal, float dtmsRevolution) : base(dgUpdatePt)
         {
             this.ptCenter = ptCenter;
+            this.ptInitial = ptInitial;
             this.vkNormal = vkNormal.Normalized();
-            this.agd_dtms = agd_dtms;
+            this.dtmsRevolution = dtmsRevolution;
+            this.dtmsCur = 0;
         }
 
-        protected override Vector3 PtUpdated(Vector3 ptCur, float dtms)
+        protected override Vector3 PtUpdated(float dtms)
         {
-            Vector3 vkFromCenter = ptCur - ptCenter;
-            Matrix matRotate = Matrix.RotationAxis(vkNormal, MathUtil.DegreesToRadians(dtms * agd_dtms));
+            dtmsCur = (dtmsCur + dtms)%dtmsRevolution;
+            return PtFromDtms(dtmsCur);
+        }
+
+        protected Vector3 PtFromDtms(float dtms)
+        {
+            Debug.Assert(dtms >= 0 && dtms < dtmsRevolution);
+            Vector3 vkFromCenter = ptInitial - ptCenter;
+            Matrix matRotate = Matrix.RotationAxis(vkNormal, MathUtil.DegreesToRadians(360 * dtms / dtmsRevolution));
             Vector3 vkRotated = Vector3.Transform(vkFromCenter, matRotate).PerspectiveDivide();
             return ptCenter + vkRotated;
         }
@@ -59,13 +69,14 @@ namespace Mandelbasic
         public RailHover(
             DgUpdatePt dgUpdatePt, 
             Fractal3d fractal, 
-            Vector3 ptCenter, 
-            Vector3 vkNormal, 
-            float agd_dtms, // angular speed at which the 
+            Vector3 ptCenter,
+            Vector3 ptInitial,
+            Vector3 vkNormal,
+            float dtmsRevolution, // angular speed at which the 
             float duHoverMin, // the minimum distance the point will hover above the fractal - guaranteed
             float duHoverMax, // the maximum distance the point will hover above the fractal - best attempt
             float sfTravelMax // determines the maximum speed the hover will climb/drop relative to its orbiting speed
-            ) : base(dgUpdatePt, ptCenter, vkNormal, agd_dtms)
+            ) : base(dgUpdatePt, ptCenter, ptInitial, vkNormal, dtmsRevolution)
         {
             this.fractal = fractal;
             this.duHoverMin = duHoverMin;
@@ -74,10 +85,11 @@ namespace Mandelbasic
             this.sfTravelMax = sfTravelMax;
         }
 
-        protected override Vector3 PtUpdated(Vector3 ptCur, float dtms)
+        protected override Vector3 PtUpdated(float dtms)
         {
             // Get orbit value and DE
-            Vector3 ptRotated = base.PtUpdated(ptCur, dtms);
+            Vector3 ptCur = PtFromDtms(dtmsCur);
+            Vector3 ptRotated = base.PtUpdated(dtms);
             double duDE = fractal.DuDeFractalOrCache(ptRotated);
 
             // Calculate distance we will travel along that arc
