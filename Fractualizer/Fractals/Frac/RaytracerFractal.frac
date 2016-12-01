@@ -21,6 +21,8 @@ float sfB = 1.0;
 // Light
 int rglidLight[40];
 v3 rgptLight[40];
+v3 rgvkLight[40];
+float rgcosCutoffLight[40];
 float rgduCutoffLight[40];
 bool rgfVisualizeLight[40];
 v3 rgrgbLight[40];
@@ -30,8 +32,9 @@ raytracer RaytracerFractal
 {
 	global int LID_POINTLIGHT = 0;
 	global int LID_BALLLIGHT = 1;
+	global int LID_SPOTLIGHT = 2;
 
-	global int cmarch = 148;
+	global int cmarch = 48;
 	global v3 ptOrigin = v3(0, 0, 0);
 
 	float DuDeSphere(v3 ptPos, v3 ptCenter, float duRadius)
@@ -190,8 +193,8 @@ raytracer RaytracerFractal
 		return lerp(color, fogColor, frFog);
 	}
 
-	global float shininess = 18.0;
-	global float sfEpsilonShadow = 5.0;
+	global float shininess = 10.0;
+	global float sfEpsilonShadow = 2.0;
 	v3 ColorBP(v3 color, v3 ptSurface, int idHit, float duEpsilon)
 	{
 		if (idHit != ID_FRACTAL)
@@ -203,13 +206,19 @@ raytracer RaytracerFractal
 		for (int ilight = 0; ilight < inputs.cLight; ilight++)
 		{
 			v3 vkSurfaceToLight = inputs.rgptLight[ilight] - ptSurface;
+			v3 vkLightDir = normalize(vkSurfaceToLight);
 			if (inputs.rglidLight[ilight] == LID_BALLLIGHT)
 			{
 				if (length(vkSurfaceToLight) > inputs.rgduCutoffLight[ilight])
 					continue;
 			}
+			else if (inputs.rglidLight[ilight] == LID_SPOTLIGHT)
+			{				
+				if (dot(inputs.rgvkLight[ilight], -vkLightDir) < inputs.rgcosCutoffLight[ilight])
+					continue;
+			}
+
 			v3 vkNormal = VkNormal(ptSurface, duEpsilon);
-			v3 vkLightDir = normalize(vkSurfaceToLight);
 			v3 vkCameraDir = normalize(inputs.ptCamera - ptSurface);
 
 	#ifdef SHADOWS
@@ -266,7 +275,7 @@ raytracer RaytracerFractal
 
 		float duEpsilon;
 		int idHit;
-		float sfEpsilon = 2.0;
+		float sfEpsilon = 1.0;
 		v4 ptMarched = PtMarch(inputs.ptCamera, vkRay, sfEpsilon, duMarchLimit, true, idHit, duEpsilon);
 
 		float duMarched = length(v3(ptMarched.x, ptMarched.y, ptMarched.z) - inputs.ptCamera);
