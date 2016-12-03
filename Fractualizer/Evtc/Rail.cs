@@ -10,46 +10,62 @@ namespace Mandelbasic
     {
         public delegate void DgUpdatePt(Vector3 pt);
 
+        protected float dtmsCur;
+        protected readonly float dtmsRevolution;
+
+        protected Rail(float dtmsRevolution)
+        {
+            this.dtmsCur = 0;
+            this.dtmsRevolution = dtmsRevolution;
+        }
+
+        public virtual void UpdateDtms(float dtms)
+        {
+            dtmsCur = (dtmsCur + dtms)%dtmsRevolution;
+        }
+    }
+
+    public abstract class RailPt : Rail
+    {
         private readonly DgUpdatePt dgUpdatePt;
 
-        protected Rail(DgUpdatePt dgUpdatePt)
+        protected RailPt(DgUpdatePt dgUpdatePt, float dtmsRevolution) : base(dtmsRevolution)
         {
             this.dgUpdatePt = dgUpdatePt;
         }
-
+        
+        public abstract Vector3 PtCur();
         public void UpdatePt(float dtms)
         {
-            Vector3 ptUpdated = PtUpdated(dtms);
+            UpdateDtms(dtms);
+            Vector3 ptUpdated = PtCur();
             Debug.Assert(ptUpdated.IsFinite());
             dgUpdatePt(ptUpdated);
         }
-
-        protected abstract Vector3 PtUpdated(float dtms);
     }
 
-    public class RailOrbit : Rail
+    public class RailOrbit : RailPt
     {
-        protected readonly Vector3 ptCenter, ptInitial;
-        protected readonly Vector3 vkNormal;
-        protected readonly float dtmsRevolution;
-        protected float dtmsCur { get; private set; }
+        protected readonly Vector3 ptCenter, ptInitial, vkNormal;
 
-        public RailOrbit(DgUpdatePt dgUpdatePt, Vector3 ptCenter, Vector3 ptInitial, Vector3 vkNormal, float dtmsRevolution) : base(dgUpdatePt)
+        public RailOrbit(DgUpdatePt dgUpdatePt, Vector3 ptCenter, Vector3 ptInitial, Vector3 vkNormal, float dtmsRevolution) : base(dgUpdatePt, dtmsRevolution)
         {
             this.ptCenter = ptCenter;
             this.ptInitial = ptInitial;
             this.vkNormal = vkNormal.Normalized();
-            this.dtmsRevolution = dtmsRevolution;
-            this.dtmsCur = 0;
         }
 
-        protected override Vector3 PtUpdated(float dtms)
+        public override Vector3 PtCur()
         {
-            dtmsCur = (dtmsCur + dtms)%dtmsRevolution;
             return PtFromDtms(dtmsCur);
         }
 
         protected Vector3 PtFromDtms(float dtms)
+        {
+            return PtGet(ptInitial, ptCenter, vkNormal, dtms, dtmsRevolution);
+        }
+
+        public static Vector3 PtGet(Vector3 ptInitial, Vector3 ptCenter, Vector3 vkNormal, float dtms, float dtmsRevolution)
         {
             Debug.Assert(dtms >= 0 && dtms < dtmsRevolution);
             Vector3 vkFromCenter = ptInitial - ptCenter;
@@ -59,20 +75,53 @@ namespace Mandelbasic
         }
     }
 
+    public class RailSpotlight : Rail
+    {
+        private readonly DgUpdatePt dgUpdateVkSpotlight;
+        private float agdRadius;
+        private Vector3 vkNormal;
+        public RailSpotlight(DgUpdatePt dgUpdateVkSpotlight, float agdRadius, Vector3 vkNormal, float dtmsRevolution) : base(dtmsRevolution)
+        {
+            this.dgUpdateVkSpotlight = dgUpdateVkSpotlight;
+            this.agdRadius = agdRadius;
+            this.vkNormal = vkNormal;
+        }
+
+        public void SetVkNormal(Vector3 vkNormal)
+        {
+            Debug.Assert(vkNormal.IsNormalized);
+            this.vkNormal = vkNormal;
+        }
+
+        public void SetAgdRadius(float agdRadius)
+        {
+            Debug.Assert(agdRadius >= 0 && agdRadius < 360);
+            this.agdRadius = agdRadius;
+        }
+
+        public void UpdateVkSpotlight(float dtms)
+        {
+            UpdateDtms(dtms);
+            Vector3 ptCenter = Vector3.Zero;
+            Vector3 ptInitial = new Vector3(0, (float)Math.Tan(MathUtil.DegreesToRadians(agdRadius / 2)), 0);
+            Vector3 vkSpotlight = (RailOrbit.PtGet(ptInitial, ptCenter, vkNormal, dtmsCur, dtmsRevolution) + vkNormal).Normalized();
+            dgUpdateVkSpotlight(vkSpotlight);
+        }
+    }
+
     public class RailHover : RailOrbit
     {
         private readonly Fractal3d fractal;
-        public float duHoverMin;
-        public float duHoverMax;
-        private readonly float sfTravelMax;
+        private readonly float sfTravelMax, duHoverMin, duHoverMax;
+        private float dtmsPrev, duAdjustPrev;
 
         public RailHover(
             DgUpdatePt dgUpdatePt, 
-            Fractal3d fractal, 
+            Fractal3d fractal,
             Vector3 ptCenter,
             Vector3 ptInitial,
             Vector3 vkNormal,
-            float dtmsRevolution, // angular speed at which the 
+            float dtmsRevolution,
             float duHoverMin, // the minimum distance the point will hover above the fractal - guaranteed
             float duHoverMax, // the maximum distance the point will hover above the fractal - best attempt
             float sfTravelMax // determines the maximum speed the hover will climb/drop relative to its orbiting speed
@@ -83,21 +132,28 @@ namespace Mandelbasic
             this.duHoverMax = duHoverMax;
             Debug.Assert(sfTravelMax >= 1.0);
             this.sfTravelMax = sfTravelMax;
+            this.dtmsPrev = duAdjustPrev = 0;
         }
 
-        protected override Vector3 PtUpdated(float dtms)
+        public override void UpdateDtms(float dtms)
         {
-            // Get orbit value and DE
-            Vector3 ptCur = PtFromDtms(dtmsCur);
-            Vector3 ptRotated = base.PtUpdated(dtms);
-            double duDE = fractal.DuDeFractalOrCache(ptRotated);
+            dtmsPrev = dtmsCur;
+            base.UpdateDtms(dtms);
+        }
+
+        private Vector3 AdjustedTowardsCenter(Vector3 pt, float duAdjust) => pt + (pt - ptCenter).Normalized()*duAdjust;
+
+        public override Vector3 PtCur()
+        {
+            Vector3 ptPrev = AdjustedTowardsCenter(PtFromDtms(dtmsPrev), duAdjustPrev);
+            Vector3 ptCur = AdjustedTowardsCenter(PtFromDtms(dtmsCur), duAdjustPrev);
+            double duDE = fractal.DuDeFractalOrCache(ptCur);
 
             // Calculate distance we will travel along that arc
-            float duOrbitTravel = sfTravelMax * (ptCur - ptRotated).Length();
+            float duOrbitTravel = sfTravelMax * (ptPrev - ptCur).Length();
 
             // Calculate the maximum amount we should adjust the location towards the center of the fractal
-            Vector3 vkFromCenter = ptRotated - ptCenter;
-            float duAdjustMax = duHoverMax - (float) duDE;
+            float duAdjustMax = duHoverMax - (float)duDE;
             int sign = Math.Sign(duAdjustMax);
             float duAdjustMaxAbs = Math.Abs(duAdjustMax);
 
@@ -105,15 +161,16 @@ namespace Mandelbasic
             // Can be less than the amount needed to bring the point to within duHoverMax
             // However, it will always ensure that the point is not closer than duHoverMin
             float duAdjustFinal =
-                sign * 
-                    (duAdjustMaxAbs > duOrbitTravel 
-                        ?  sign < 0 
-                            ? duOrbitTravel 
+                sign *
+                    (duAdjustMaxAbs > duOrbitTravel
+                        ? sign < 0
+                            ? duOrbitTravel
                             : duOrbitTravel < duHoverMin ? duHoverMin : duOrbitTravel
                         : duAdjustMaxAbs);
 
-            ptRotated += vkFromCenter.Normalized()*duAdjustFinal;
-            return ptRotated;
+            ptCur = AdjustedTowardsCenter(ptCur, duAdjustFinal);
+            duAdjustPrev += duAdjustFinal;
+            return ptCur;
         }
     }
 }

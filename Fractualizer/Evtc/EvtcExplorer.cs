@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Windows.Forms;
 using Evtc;
 using Fractals;
@@ -10,11 +11,10 @@ namespace Mandelbasic
 {
     public class EvtcExplorer : EvtcUserDecode
     {
-        private RailOrbit railPointLight, railSpotlight;
-
-
-        const int cballlight = 0;
+        const int cballlight = 15;
         private RailHover[] rgrailHoverBallLight;
+        private RailSpotlight railSpotlight;
+        private SpotLight spotlight;
 
         const float duCutoffBallLight = 0.3f;
         public EvtcExplorer(Form form, Controller controller) : base(form, controller)
@@ -39,23 +39,16 @@ namespace Mandelbasic
             raytracer.camera.LookAt(Vector3.Zero);
 
             raytracer.lightManager.RemoveAllLights();
-            raytracer.lightManager.AddLight(new PointLight(new Vector3f(2, 0, -1), ColorU.rgbWhite, fVisualize: true));
-
-            railPointLight = new RailOrbit(
-                pt => raytracer.lightManager[0].ptLight = pt,
-                Vector3.Zero,
-                new Vector3(2, 0, 0),
-                new Vector3(0, 0, 1),
-                5000);
+            raytracer.lightManager.AddLight(new PointLight(new Vector3f(2, 0, -1), ColorU.rgbWhite, fVisualize: false));
 
             rgrailHoverBallLight = new RailHover[cballlight];
             for (int iballlight = 0; iballlight < cballlight; iballlight++)
             {
-                raytracer.lightManager.AddLight(new BallLight(rand.VkUnitRand() * 2.0f, rand.VkUnitRand(), duCutoffBallLight));
+                BallLight ballLight = new BallLight(rand.VkUnitRand() * 2.0f, rand.VkUnitRand(), duCutoffBallLight);
+                raytracer.lightManager.AddLight(ballLight);
 
-                int ilight = iballlight + 1;
                 RailHover railHover = new RailHover(
-                    dgUpdatePt: pt => raytracer.lightManager[ilight].ptLight = pt, 
+                    dgUpdatePt: pt => ballLight.ptLight = pt,
                     fractal: scene.fractal,
                     ptCenter: Vector3.Zero,
                     ptInitial: rand.VkUnitRand() * 2,
@@ -66,6 +59,14 @@ namespace Mandelbasic
                     sfTravelMax: 10.0f);
                 rgrailHoverBallLight[iballlight] = railHover;
             }
+
+            spotlight = new SpotLight(camera.ptCamera, Vector3.One, Vector3.One, 4);
+            raytracer.lightManager.AddLight(spotlight);
+            railSpotlight = new RailSpotlight(
+                dgUpdateVkSpotlight: vk => spotlight.vkLight = vk,
+                agdRadius: 50,
+                vkNormal: camera.vkCamera,
+                dtmsRevolution: 1500);
         }
 
         private void CenterCursor()
@@ -125,16 +126,14 @@ namespace Mandelbasic
         private const float frMoveBase = 0.1f;
         public override void DoEvents(float dtms)
         {
-            railPointLight.UpdatePt(dtms);
-
             if (fLightFollows)
                 raytracer.lightManager[0].ptLight = raytracer.camera.ptCamera;
 
-            for (int irailHover = 0; irailHover < rgrailHoverBallLight.Length; irailHover++)
-            {
-                int ilight = irailHover + 1;
-                rgrailHoverBallLight[irailHover].UpdatePt(dtms);
-            }
+            foreach (RailHover railHover in rgrailHoverBallLight)
+                railHover.UpdatePt(dtms);
+
+            railSpotlight.UpdateVkSpotlight(dtms);
+            //spotlight.ptLight = camera.ptCamera;
 
             float frMove = frMoveBase;
             if (IsKeyDown(Keys.ShiftKey))
