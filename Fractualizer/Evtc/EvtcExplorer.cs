@@ -195,15 +195,16 @@ namespace Mandelbasic
                     raytracer._raytracerfractal.sfB = 0.0f;
             }
 
-            if (scene.fractal.cinputFloat > 0)
-            {
-                float dParam = 0.01f;
-                if (IsKeyDown(Keys.Z))
-                    scene.fractal.SetInputFloat(0, scene.fractal.GetInputFloat(0) - dParam);
-
-                if (IsKeyDown(Keys.C))
-                    scene.fractal.SetInputFloat(0, scene.fractal.GetInputFloat(0) + dParam);
-            }
+            float dParam1 = 0.01f;
+            float dParam2 = 0.005f;
+            if (IsKeyDown(Keys.Z) && scene.fractal.cinputFloat >= 1)
+                scene.fractal.SetInputFloat(0, scene.fractal.GetInputFloat(0) - dParam1);
+            if (IsKeyDown(Keys.X) && scene.fractal.cinputFloat >= 1)
+                scene.fractal.SetInputFloat(0, scene.fractal.GetInputFloat(0) + dParam1);
+            if (IsKeyDown(Keys.C) && scene.fractal.cinputFloat >= 2)
+                scene.fractal.SetInputFloat(1, scene.fractal.GetInputFloat(1) - dParam2);
+            if (IsKeyDown(Keys.V) && scene.fractal.cinputFloat >= 2)
+                scene.fractal.SetInputFloat(1, scene.fractal.GetInputFloat(1) + dParam2);
         }
     }
 }
