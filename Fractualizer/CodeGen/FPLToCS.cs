@@ -90,8 +90,10 @@ namespace CodeGen
         private static readonly Dictionary<string, string> mpstBuiltinFpl_stCs = new Dictionary<string, string>
         {
             {"length", "Vector3d.Length"},
-            {"dot", "Vector3d.Dot" },
-            {"cross", "Vector3d.Cross" },
+            {"distance", "Vector3d.Distance"},
+            {"dot", "Vector3d.Dot"},
+            {"cross", "Vector3d.Cross"},
+            {"saturate", "Vector3d.Saturate"},
             {"lerp", "U.Lerp" },
             {"clamp", "U.Clamp"},
             {"floor", "U.Floor"},

@@ -168,7 +168,11 @@ namespace Util
         public static double Dot(Vector3d v1, Vector3d v2) => v1.x*v2.x + v1.y*v2.y + v1.z*v2.z;
         public static double Length(Vector3d v) => Math.Sqrt(Length2(v));
         public static double Length2(Vector3d v) => Dot(v, v);
+        public static Vector3d Saturate(Vector3d v) => Apply(v, Saturate);
+        public static Vector3d Apply(Vector3d v, Func<double, double> dg) => new Vector3d(dg(v.x), dg(v.y), dg(v.z));
+        public static double Distance(Vector3d v1, Vector3d v2) => Length(v1 - v2);
         public static Vector3d Cross(Vector3d v1, Vector3d v2) => new Vector3d(v1.y * v2.z - v1.z * v2.y, v1.z * v2.x - v1.x * v2.z, v1.x * v2.y - v1.y * v2.x);
+        private static double Saturate(double d) => Math.Max(0, Math.Min(1, d));
     }
 
     public struct Vector4d
