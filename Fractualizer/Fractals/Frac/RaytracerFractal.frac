@@ -136,27 +136,6 @@ raytracer RaytracerFractal
 		return v4(pt, MARCHED_TIMEOUT);
 	}
 
-	float hash(float n)
-	{
-		return frac(sin(n)*43758.5453);
-	}
-
-	float noise(v3 x)
-	{
-		// The noise function returns a value in the range -1.0f -> 1.0f
-
-		v3 p = floor(x);
-		v3 f = frac(x);
-
-		f = f*f*(3.0-2.0*f);
-		float n = p.x + p.y*57.0 + 113.0*p.z;
-
-		return lerp(lerp(lerp( hash(n+0.0), hash(n+1.0),f.x),
-					   lerp( hash(n+57.0), hash(n+58.0),f.x),f.y),
-				   lerp(lerp( hash(n+113.0), hash(n+114.0),f.x),
-					   lerp( hash(n+170.0), hash(n+171.0),f.x),f.y),f.z);
-	}
-
 	global float PI = 3.14159265358979323;
 	global v3 colorA = v3(0, 0, 0);
 	global v3 colorB = v3(0.6, 0.6, 0.6);
@@ -166,25 +145,6 @@ raytracer RaytracerFractal
 		float u = 0.5 + (atan(d.z / d.x)) / (2 * PI);
 		float v = 0.5 - (asin(d.y)) / PI;
 		return colorA * u + colorB * v;
-	}
-
-	// Basic orbit-trapping color
-	v3 ColorOT(v3 marched)
-	{
-#ifdef SPHERE
-		return v3(1.0, 0.0, 0.0);
-#endif
-		float paramStandin = 8.0;
-		return v3(
-			inputs.sfR * sin(marched.y * 7 + paramStandin * noise(marched * 10)), 
-			inputs.sfG * sin(marched.y * 8 + paramStandin * noise(marched * 10)), 
-			inputs.sfB * sin(marched.x * 10 + (paramStandin / 2) * noise(marched * 10)));
-
-		return normalize(
-			v3(
-				length(v3(-3, 0, 0) - marched) / 4.0, 
-				length(v3(3, 0, 0) - marched) / 4.0, 
-				0.5 + length(-marched) / 2.0));
 	}
 
 	// Ambient Occlusion
