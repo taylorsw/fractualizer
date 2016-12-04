@@ -93,7 +93,7 @@ namespace Util
         public static void UpdateBuffer(Device device, DeviceContext deviceContext, SharpDX.Direct3D11.Buffer buffer, byte[] rgbyte)
         {
             DataStream dataStream;
-            deviceContext.MapSubresource(buffer, MapMode.WriteNoOverwrite, MapFlags.None, out dataStream);
+            deviceContext.MapSubresource(buffer, MapMode.WriteDiscard, MapFlags.None, out dataStream);
             dataStream.Write(rgbyte, 0, rgbyte.Length);
             dataStream.Dispose();
             deviceContext.UnmapSubresource(buffer, 0);

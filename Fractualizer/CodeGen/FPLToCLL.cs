@@ -55,23 +55,23 @@ namespace CodeGen
         {
             FPLParser.InputTypeContext inputType = input.inputType();
             FPLParser.TypeContext type = inputType.type();
-            int cbyte;
+            int cbyteType;
             if (type.BoolType() != null)
-                cbyte = 1;
+                cbyteType = 1;
             else if (type.FloatType() != null || type.IntType() != null)
-                cbyte = 4;
+                cbyteType = 4;
             else
             {
                 switch (inputType.type().GetText())
                 {
                     case "v2":
-                        cbyte = 2 * 4;
+                        cbyteType = 2 * 4;
                         break;
                     case "v3":
-                        cbyte = 3 * 4;
+                        cbyteType = 3 * 4;
                         break;
                     case "v4":
-                        cbyte = 4 * 4;
+                        cbyteType = 4 * 4;
                         break;
                     default:
                         Error("Size of type " + inputType.type().GetText() + " not defined.");
@@ -81,11 +81,14 @@ namespace CodeGen
             FPLParser.ArrayDeclContext arrayDecl = input.arrayDecl();
             if (arrayDecl != null)
             {
-                cbyte = U.RoundToByteOffset(cbyte);
+                int cbyteTypeRounded = U.RoundToByteOffset(cbyteType);
                 try
                 {
                     int size = int.Parse(arrayDecl.expr().literal().literalInt().GetText());
-                    cbyte *= size;
+                    
+                    // last element can be packed if next variable will not straddly float4 bound
+                    int cbyteTotal = (cbyteTypeRounded * (size - 1)) + cbyteType;
+                    return cbyteTotal;
                 }
                 catch (Exception)
                 {
@@ -93,7 +96,7 @@ namespace CodeGen
                     throw;
                 }
             }
-            return cbyte;
+            return cbyteType;
         }
 
         public override Losa VisitFunc(FPLParser.FuncContext func)
