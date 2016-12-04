@@ -34,7 +34,7 @@ raytracer RaytracerFractal
 	global int LID_BALLLIGHT = 1;
 	global int LID_SPOTLIGHT = 2;
 
-	global int cmarch = 48;
+	global int cmarch = 100;
 	global v3 ptOrigin = v3(0, 0, 0);
 
 	float DuDeSphere(v3 ptPos, v3 ptCenter, float duRadius)
@@ -155,6 +155,17 @@ raytracer RaytracerFractal
 					   lerp( hash(n+57.0), hash(n+58.0),f.x),f.y),
 				   lerp(lerp( hash(n+113.0), hash(n+114.0),f.x),
 					   lerp( hash(n+170.0), hash(n+171.0),f.x),f.y),f.z);
+	}
+
+	global float PI = 3.14159265358979323;
+	global v3 colorA = v3(0, 0, 0);
+	global v3 colorB = v3(1, 1, 1);
+	v3 ColorBG(v3 vkRay)
+	{
+		v3 d = -normalize(vkRay);
+		float u = 0.5 + (atan(d.z / d.x)) / (2 * PI);
+		float v = 0.5 - (asin(d.y)) / PI;
+		return colorA * u + colorB * v;
 	}
 
 	// Basic orbit-trapping color
@@ -280,7 +291,13 @@ raytracer RaytracerFractal
 
 		float duMarched = length(v3(ptMarched.x, ptMarched.y, ptMarched.z) - inputs.ptCamera);
 
-		if (ptMarched.w == MARCHED_LIMIT || ptMarched.w == MARCHED_TIMEOUT)
+		if (ptMarched.w == MARCHED_LIMIT)
+		{
+			v3 colorBG = ColorBG(vkRay);
+			return v4(colorBG, 1);
+		}
+
+		if (ptMarched.w == MARCHED_TIMEOUT)
 			return v4(0, 0, 0, 1);
 
 		v3 color = fractal.Color(ptMarched);
