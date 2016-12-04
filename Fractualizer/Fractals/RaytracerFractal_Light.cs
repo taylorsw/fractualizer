@@ -71,10 +71,10 @@ namespace Fractals
         public Vector3 vkLight;
         public float cosCutoff;
 
-        public SpotLight(Vector3 ptLight, Vector3 rgbLight, Vector3 vkLight, float cosCutoff, float brightness = 1.0f, bool fVisualize = false) : base(Klight.Spotlight, ptLight, rgbLight, brightness, fVisualize)
+        public SpotLight(Vector3 ptLight, Vector3 rgbLight, Vector3 vkLight, float agdRadius, float brightness = 1.0f, bool fVisualize = false) : base(Klight.Spotlight, ptLight, rgbLight, brightness, fVisualize)
         {
             this.vkLight = vkLight;
-            this.cosCutoff = cosCutoff;
+            cosCutoff = (float)Math.Cos(MathUtil.DegreesToRadians(agdRadius));
         }
 
         internal override void SyncWithBuffer(RaytracerFractal._RaytracerFractal _raytracerfractal, int ilight)

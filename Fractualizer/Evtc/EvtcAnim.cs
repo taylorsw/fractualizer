@@ -26,9 +26,10 @@ namespace Mandelbasic
             railCam = new RailHover(
                 pt => raytracer.camera.MoveTo(pt), 
                 scene.fractal,
-                ptCenter: Vector3.Zero, 
+                ptCenter: Vector3.Zero,
+                ptInitial: raytracer.camera.ptCamera,
                 vkNormal: new Vector3(scene.rand.NextFloat(-1.0f, 1.0f), scene.rand.NextFloat(-1.0f, 1.0f), scene.rand.NextFloat(-1.0f, 1.0f)), 
-                agd_dtms: 20f / 1000,
+                dtmsRevolution: 20000,
                 duHoverMin: 0.3f,
                 duHoverMax: 0.5f,
                 sfTravelMax: 3);
@@ -39,14 +40,16 @@ namespace Mandelbasic
                 raytracer.lightManager.AddLight(new BallLight(rand.VkUnitRand() * 2.0f, new Vector3(0, rand.NextFloat(0.2f, 1.0f), rand.NextFloat(0.2f, 1.0f)), duCutoffBallLight, brightness: 1.5f));
 
                 int ilight = iballlight;
-                RailHover railHover = new RailHover(pt => raytracer.lightManager[ilight].ptLight = pt,
-                    scene.fractal,
-                    Vector3.Zero,
-                    rand.VkUnitRand(),
-                    rand.NextFloat(0.01f, 0.05f),
-                    duCutoffBallLight / 5,
-                    duCutoffBallLight / 5,
-                    10.0f);
+                RailHover railHover = new RailHover(
+                    dgUpdatePt: pt => raytracer.lightManager[ilight].ptLight = pt,
+                    fractal: scene.fractal,
+                    ptCenter: Vector3.Zero,
+                    ptInitial: rand.VkUnitRand() * 2,
+                    vkNormal: rand.VkUnitRand(),
+                    dtmsRevolution: rand.NextFloat(5000, 10000),
+                    duHoverMin: duCutoffBallLight / 5,
+                    duHoverMax: duCutoffBallLight / 5,
+                    sfTravelMax: 10.0f);
                 rgrailHoverBallLight[iballlight] = railHover;
             }
         }
@@ -76,11 +79,11 @@ namespace Mandelbasic
                     du2 = -1;
             }
 
-            railCam.UpdatePt(camera.ptCamera, dtms);
+            railCam.UpdatePt(dtms);
             for (int irailHover = 0; irailHover < rgrailHoverBallLight.Length; irailHover++)
             {
                 int ilight = irailHover;
-                rgrailHoverBallLight[irailHover].UpdatePt(raytracer.lightManager[ilight].ptLight, dtms);
+                rgrailHoverBallLight[irailHover].UpdatePt(dtms);
             }
 
             const float dagdRoll = 0.01f;

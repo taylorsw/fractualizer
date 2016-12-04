@@ -39,7 +39,7 @@ namespace Mandelbasic
 
             stopwatch = new Stopwatch();
 
-            evtc = new EvtcAudio(renderForm, this);
+            evtc = new EvtcExplorer(renderForm, this);
         }
 
         public void Run()
