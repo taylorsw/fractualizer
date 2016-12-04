@@ -44,7 +44,7 @@ namespace Mandelbasic
             rgrailHoverBallLight = new RailHover[cballlight];
             for (int iballlight = 0; iballlight < cballlight; iballlight++)
             {
-                BallLight ballLight = new BallLight(rand.VkUnitRand() * 2.0f, rand.VkUnitRand(), duCutoffBallLight);
+                BallLight ballLight = new BallLight(rand.VkUnitRand() * 2.0f, rand.VkUnitRand(), duCutoffBallLight, fVisualize: false);
                 raytracer.lightManager.AddLight(ballLight);
 
                 RailHover railHover = new RailHover(
@@ -124,6 +124,7 @@ namespace Mandelbasic
         }
 
         private const float frMoveBase = 0.1f;
+        private const float dagdRoll = (float)360/(60*4);
         public override void DoEvents(float dtms)
         {
             if (fLightFollows)
@@ -150,6 +151,15 @@ namespace Mandelbasic
 
             if (IsKeyDown(Keys.A))
                 camera.MoveBy(Vector3.Cross(camera.vkCamera, camera.vkCameraOrtho) * duMove);
+
+            if (IsKeyDown(Keys.D))
+                camera.MoveBy(Vector3.Cross(camera.vkCameraOrtho, camera.vkCamera) * duMove);
+
+            if (IsKeyDown(Keys.Q))
+                camera.RollBy(-dagdRoll);
+
+            if (IsKeyDown(Keys.E))
+                camera.RollBy(dagdRoll);
 
             if (IsKeyDown(Keys.D))
                 camera.MoveBy(Vector3.Cross(camera.vkCameraOrtho, camera.vkCamera) * duMove);
@@ -188,10 +198,10 @@ namespace Mandelbasic
             if (scene.fractal.cinputFloat > 0)
             {
                 float dParam = 0.01f;
-                if (IsKeyDown(Keys.Q))
+                if (IsKeyDown(Keys.Z))
                     scene.fractal.SetInputFloat(0, scene.fractal.GetInputFloat(0) - dParam);
 
-                if (IsKeyDown(Keys.E))
+                if (IsKeyDown(Keys.C))
                     scene.fractal.SetInputFloat(0, scene.fractal.GetInputFloat(0) + dParam);
             }
         }

@@ -159,7 +159,7 @@ raytracer RaytracerFractal
 
 	global float PI = 3.14159265358979323;
 	global v3 colorA = v3(0, 0, 0);
-	global v3 colorB = v3(1, 1, 1);
+	global v3 colorB = v3(0.6, 0.6, 0.6);
 	v3 ColorBG(v3 vkRay)
 	{
 		v3 d = -normalize(vkRay);
