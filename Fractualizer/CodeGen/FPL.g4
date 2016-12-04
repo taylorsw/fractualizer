@@ -6,8 +6,9 @@ pdefines : pdefine* ;
 raytracer : inputs 'raytracer' identifier '{' global* tracer '}' ;
 tracer : 'RgbaTrace(v4 pos)' block ;
 
-fractal : inputs 'fractal' identifier '{' global* distanceEstimator '}' ;
+fractal : inputs 'fractal' identifier '{' global* distanceEstimator colorFunc '}' ;
 distanceEstimator : 'DE(v3 pos)' block ;
+colorFunc : 'v3 Color(v3 pt)' block ;
 
 inputs : input* ;
 input : ((inputType identifier ('=' literal)?) | (inputType identifier arrayDecl)) ';' ;

@@ -61,6 +61,7 @@ namespace CodeGen
             losaProg += LosaVisitGlobals(fractal.global());
 
             losaProg += VisitDistanceEstimator(fractal.distanceEstimator());
+            losaProg += VisitColorFunc(fractal.colorFunc());
 
             return losaProg;
         }
@@ -111,6 +112,11 @@ namespace CodeGen
         {
             Losa losaDE = LneNew("float DuDeFractal(float3 pos)") + VisitBlock(distanceEstimator.block());
             return losaDE;
+        }
+
+        public override Losa VisitColorFunc(FPLParser.ColorFuncContext context)
+        {
+            return LneNew("float3 Color(float3 pt)") + VisitBlock(context.block());
         }
 
         public override Losa VisitFuncCall(FPLParser.FuncCallContext funcCall)

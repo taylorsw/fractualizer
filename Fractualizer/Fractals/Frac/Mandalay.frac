@@ -76,4 +76,9 @@
 	{
 		return DuDeMandalay(10 * pos) / 10;
 	}
+
+	v3 Color(v3 pt)
+	{
+		return v3(1, 1, 1);
+	)
 }

@@ -2,38 +2,64 @@
 float param2 = 1.0;
 fractal Mandelbulb
 {
-	DE(v3 pos)
+	global float Bailout = 5;
+	global int iterations = 10;
+
+	v3 Iterate(v3 ptInitial, v3 ptCur, ref float dr)
 	{
 		float Power = inputs.param;
-		int iterations = 10;
-		float Bailout = 5;
+		float r = length(ptCur);
+		// convert to polar coordinates
+		float theta = acos(ptCur.z / r) / inputs.param2;
+		float phi = atan(ptCur.y / ptCur.x) * inputs.param2;
+		dr = pow(r, Power - 1.0) * Power * dr + 1.0;
 
+		// scale and rotate the point
+		float zr = pow(r, Power);
+		theta = theta * Power;
+		phi = phi * Power;
+
+		// convert back to cartesian coordinates
+		ptCur = zr * v3(
+			sin(theta) * cos(phi),
+			sin(phi) * sin(theta),
+			cos(theta));
+
+		return ptCur + ptInitial;
+	}
+
+	DE(v3 pos)
+	{
 		v3 z = pos;
 		float dr = 1.0;
-		float r = 0.0;
+		float r = 0;
 		for (int i = 0; i < iterations; i++)
 		{
-			r = length(z);
-			if (r > Bailout)
+			if ((r = length(z)) > Bailout)
 				break;
-			
-			// convert to polar coordinates
-			float theta = acos(z.z / r) / inputs.param2;
-			float phi = atan(z.y / z.x) * inputs.param2;
-			dr = pow(r, Power - 1.0) * Power * dr + 1.0;
 
-			// scale and rotate the point
-			float zr = pow(r, Power);
-			theta = theta * Power;
-			phi = phi * Power;
-
-			// convert back to cartesian coordinates
-			z = zr * v3(
-				sin(theta) * cos(phi),
-				sin(phi) * sin(theta),
-				cos(theta));
-			z += pos;
+			z = Iterate(pos, z, dr);
 		}
 		return 0.5 * log(r) * r / dr;
 	}
+
+	v3 Color(v3 pt)
+	{
+		v3 trap = v3(1e6, 1e6, 1e6);
+		v3 z = pt;
+		float dr = 1.0;
+		float r = 0;
+		for (int i = 0; i < iterations; i++)
+		{
+			if ((r = length(z)) > Bailout)
+				break;
+
+			if (r < length(trap))
+				trap = z;
+
+			z = Iterate(pt, z, dr);
+		}
+
+		return v3(1, 1, 1) - trap;
+	)
 }

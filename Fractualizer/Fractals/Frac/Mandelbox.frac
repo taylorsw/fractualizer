@@ -46,4 +46,9 @@
 		float r = length(pos);
 		return r / abs(dr) / sfNormalizing;
 	}
+
+	v3 Color(v3 pt)
+	{
+		return v3(1, 1, 1);
+	)
 }

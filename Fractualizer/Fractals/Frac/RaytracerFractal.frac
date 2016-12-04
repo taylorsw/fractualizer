@@ -283,7 +283,7 @@ raytracer RaytracerFractal
 		if (ptMarched.w == MARCHED_LIMIT || ptMarched.w == MARCHED_TIMEOUT)
 			return v4(0, 0, 0, 1);
 
-		v3 color = ColorOT(ptMarched);
+		v3 color = fractal.Color(ptMarched);
 
 #ifndef SPHERE
 		color = ColorAO(color, ptMarched.w);

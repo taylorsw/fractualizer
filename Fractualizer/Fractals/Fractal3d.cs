@@ -79,6 +79,8 @@ namespace Fractals
         }
         #endregion
 
+        protected internal abstract Vector3d Color(Vector3d pt);
+
         public override void Dispose()
         {
         }

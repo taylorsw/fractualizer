@@ -230,6 +230,7 @@ namespace CodeGen
                     losaClassBody += LosaGlobals(fractal.global());
 
                     losaClassBody += VisitDistanceEstimator(fractal.distanceEstimator());
+                    losaClassBody += VisitColorFunc(fractal.colorFunc());
                     return losaClassBody;
                 },
                 StNameFromIdentifier(fractal.identifier()),
@@ -501,6 +502,11 @@ namespace CodeGen
         {
             Losa losa = LneNew("protected internal override double DuDeFractal(Vector3d pos)") + VisitBlock(distanceEstimator.block());
             return losa;
+        }
+
+        public override Losa VisitColorFunc(FPLParser.ColorFuncContext context)
+        {
+            return LneNew("protected internal override Vector3d Color(Vector3d pt)") + VisitBlock(context.block());
         }
 
         public override Losa VisitFuncCall(FPLParser.FuncCallContext funcCall)
