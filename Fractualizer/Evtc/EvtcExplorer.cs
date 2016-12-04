@@ -114,6 +114,12 @@ namespace Mandelbasic
                 case Keys.L:
                     fLightFollows = !fLightFollows;
                     break;
+                case Keys.Space:
+                    if (IsKeyDown(Keys.ControlKey))
+                        raytracer.lightManager.RemoveLight(raytracer.lightManager.clight - 1);
+                    else
+                        raytracer.lightManager.AddLight(new PointLight(camera.ptCamera, Vector3.One, fVisualize: false));
+                    break;
             }
         }
 
