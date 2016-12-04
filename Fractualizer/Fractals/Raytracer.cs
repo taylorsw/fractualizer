@@ -97,9 +97,12 @@ namespace Fractals
 
             int duxProgress = 0;
             int duxPerProg = imgWidth / 100;
+            ParallelOptions parallelOptions = new ParallelOptions();
+            parallelOptions.MaxDegreeOfParallelism = Environment.ProcessorCount;
             Parallel.For(
                 0,
                 imgWidth,
+                parallelOptions,
                 x =>
                 {
                     Parallel.For(
