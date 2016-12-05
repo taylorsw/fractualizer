@@ -24,92 +24,69 @@ namespace AudioDemo
     public partial class MainWindow : Window
     {
         private bool toggle;
-                
+        private readonly AudioProcessor processor = new AudioProcessor();
+
         public MainWindow()
         {
             InitializeComponent();
             var canvas = new Canvas();
             AddChild(canvas);
+            PreviewKeyDown += OnKeyDown;
 
-            var processor = new AudioProcessor();
-            processor.OnFft += DrawRgframeInfo;
+            //processor.OnFrameInfoCalculated += DrawRgframeInfo;
+            processor.OnBandDataCalculated += DrawBandData;
             processor.StartProcessor("Resources/callonme.mp3");
+        }
+
+        void OnKeyDown(object o, KeyEventArgs e)
+        {
+            switch (e.Key)
+            {
+                case Key.Q:
+                    processor.a /= 1.05f;
+                    break;
+                case Key.W:
+                    processor.a *= 1.05f;
+                    break;
+                case Key.A:
+                    processor.b /= 1.05f;
+                    break;
+                case Key.S:
+                    processor.b *= 1.05f;
+                    break;
+            }
+        }
+
+        void DrawBandData(BandData bandData)
+        {
+            DrawBarChart(bandData.qframeInfo.Select(fi => new Tuple<double, bool>(fi.dEnergy, fi.fBeat)).ToArray());
         }
 
         void DrawRgframeInfo(FrameInfo[] rgframeInfo)
         {
-            var canvas = (Canvas)Content;
-            canvas.Children.Clear();
-            for (int i = 0; i < rgframeInfo.Length; i++)
-            {
-                var fi = rgframeInfo[i];
-                var rect = new Rectangle();
-                rect.Fill = fi.fBeat ? Brushes.Red : Brushes.Green;
-                rect.Width = 1024d / rgframeInfo.Length;
-                rect.Height = 20 * (fi.energy - Math.Log(AudioProcessor.energyMin));
-                //rect.Height = 500;
-                Canvas.SetLeft(rect, i * rect.Width);
-                canvas.Children.Add(rect);
-            }
+            DrawBarChart(rgframeInfo.Select(fi => new Tuple<double, bool>(fi.dEnergy, fi.fBeat)).ToArray());
         }
 
-        void DrawBeats(BitArray beats)
+        void DrawBarChart(Tuple<double, bool>[] data)
         {
             var canvas = (Canvas)Content;
             canvas.Children.Clear();
-            for (int i = 0; i < beats.Length; i++)
-            {
-                var rect = new Rectangle();
-                rect.Fill = beats[i] ? Brushes.Red : Brushes.Green;
-                rect.Width = 1024d / beats.Length;
-                rect.Height = 100;
-                Canvas.SetLeft(rect, i * rect.Width);
-                canvas.Children.Add(rect);
-            }
-        }
-
-        void DrawBarChart(Tuple<float, bool>[] data)
-        {
-            var canvas = (Canvas)Content;
-            canvas.Children.Clear();
-            var x = 0;
             for (int i = 0; i < data.Length; i++)
             {
-                float val = data[i].Item1;
+                var val = data[i].Item1;
                 var rect = new Rectangle();
                 rect.Fill = data[i].Item2 ? Brushes.Red : Brushes.Green;
                 rect.Width = 1024d / data.Length;
-                rect.Height = 20000 * val;
+                //rect.Height = 50 * val;
+                rect.Height = 500;
+                //rect.Height = Math.Max(200 * (val + 6), 0);
                 Canvas.SetLeft(rect, i * rect.Width);
                 canvas.Children.Add(rect);
             }
-        }
-
-        void DrawBarChart(Complex[] result)
-        {
-            result = result.Take(result.Length/2).ToArray();
-            var canvas = (Canvas)Content;
-            canvas.Children.Clear();
-            var x = 0;
-            var nBatches = result.Length;
-            var batchSize = result.Length/nBatches;
-            for (int i = 0; i < nBatches; i++)
-            {
-                float sum = 0;
-                for (int j = i*batchSize; j < (i + 1)*batchSize; j++)
-                {
-                    sum += result[j].X*result[j].X + result[j].Y*result[j].Y;
-                }
-
-                var rms = Math.Sqrt(sum)/batchSize;
-
-                var rect = new Rectangle();
-                rect.Fill = Brushes.Green;
-                rect.Width = 1024d / result.Length;
-                rect.Height = 200000 * rms;
-                Canvas.SetLeft(rect, i * rect.Width);
-                canvas.Children.Add(rect);
-            }
+            var panel = new StackPanel();
+            panel.Children.Add(new TextBlock {Text = "a: " + processor.a});
+            panel.Children.Add(new TextBlock {Text = "b: " + processor.b});
+            canvas.Children.Add(panel);
         }
     }
 }
