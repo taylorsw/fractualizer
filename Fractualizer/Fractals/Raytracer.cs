@@ -97,9 +97,12 @@ namespace Fractals
 
             int duxProgress = 0;
             int duxPerProg = imgWidth / 100;
+            ParallelOptions parallelOptions = new ParallelOptions();
+            parallelOptions.MaxDegreeOfParallelism = Environment.ProcessorCount;
             Parallel.For(
                 0,
                 imgWidth,
+                parallelOptions,
                 x =>
                 {
                     Parallel.For(
@@ -163,12 +166,12 @@ namespace Fractals
 
     public class Scene : IDisposable
     {
-        public readonly Random rand = new Random(1984);
-
+        public readonly Random rand;
         public readonly Fractal3d fractal;
 
-        public Scene(Fractal3d fractal)
+        public Scene(Fractal3d fractal, int seed = 1992)
         {
+            this.rand = new Random(seed);
             this.fractal = fractal;
         }
 

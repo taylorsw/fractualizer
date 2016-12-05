@@ -11,14 +11,13 @@ namespace Mandelbasic
 {
     class ControllerMandelbasic : Controller
     {
-        public readonly RaytracerFractal raytracerI;
-        public override RaytracerFractal raytracer => raytracerI;
-
         private readonly RenderForm renderForm;
         private readonly Renderer renderer;
         private readonly Stopwatch stopwatch;
-        private readonly Evtc evtc;
-        
+
+        public readonly Stage stage;
+        public override RaytracerFractal raytracer => stage.raytracer;
+
         public ControllerMandelbasic()
         {
             int width = Renderer.fFullscreen ? Screen.PrimaryScreen.Bounds.Width : 1920;
@@ -30,16 +29,16 @@ namespace Mandelbasic
                 IsFullscreen = Renderer.fFullscreen
             };
 
-            raytracerI = new RaytracerFractal(new Scene(new Mandelbulb()), width, height);
+            stage = new StageMandelbulbAudioFlyover(renderForm, this, width, height);
+            stage.Setup();
+
             renderForm.Show();
 
-            renderer = new Renderer(raytracerI, renderForm);
+            renderer = new Renderer(stage.raytracer, renderForm);
 
             renderForm.Focus();
 
             stopwatch = new Stopwatch();
-
-            evtc = new EvtcExplorer(renderForm, this);
         }
 
         public void Run()
@@ -51,7 +50,7 @@ namespace Mandelbasic
         private void RunI()
         {
             stopwatch.Stop(); // probably should remove
-            evtc.DoEvents((float)stopwatch.ElapsedTicks / TimeSpan.TicksPerMillisecond);
+            stage.evtc.DoEvents((float)stopwatch.ElapsedTicks / TimeSpan.TicksPerMillisecond);
             stopwatch.Restart();
             renderer.Render();
         }

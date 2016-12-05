@@ -22,30 +22,30 @@ namespace Mandelbasic
             Cursor.Hide();
             CenterCursor();
             form.MouseMove += OnMouseMove;
-
-            Setup();
         }
 
-        private void Setup()
+        public override void Setup()
         {
-            Mandelbulb mandelbulb = raytracer.scene.fractal as Mandelbulb;
+            base.Setup();
+
+            Mandelbulb mandelbulb = scene.fractal as Mandelbulb;
             if (mandelbulb != null)
             {
                 mandelbulb._mandelbulb.param = 8.0f;
                 mandelbulb._mandelbulb.param2 = 1.0f;
             }
 
-            raytracer.camera.MoveTo(new Vector3(0, 0, -1.5f));
-            raytracer.camera.LookAt(Vector3.Zero);
+            camera.MoveTo(new Vector3(0, 0, -1.5f));
+            camera.LookAt(Vector3.Zero);
 
-            raytracer.lightManager.RemoveAllLights();
-            raytracer.lightManager.AddLight(new PointLight(new Vector3f(2, 0, -1), ColorU.rgbWhite, fVisualize: false));
+            lightManager.RemoveAllLights();
+            lightManager.AddLight(new PointLight(new Vector3f(2, 0, -1), ColorU.rgbWhite, fVisualize: false));
 
             rgrailHoverBallLight = new RailHover[cballlight];
             for (int iballlight = 0; iballlight < cballlight; iballlight++)
             {
-                BallLight ballLight = new BallLight(rand.VkUnitRand() * 2.0f, rand.VkUnitRand(), duCutoffBallLight);
-                raytracer.lightManager.AddLight(ballLight);
+                BallLight ballLight = new BallLight(rand.VkUnitRand() * 2.0f, rand.VkUnitRand(), duCutoffBallLight, fVisualize: false);
+                lightManager.AddLight(ballLight);
 
                 RailHover railHover = new RailHover(
                     dgUpdatePt: pt => ballLight.ptLight = pt,
@@ -61,7 +61,7 @@ namespace Mandelbasic
             }
 
             spotlight = new SpotLight(camera.ptCamera, Vector3.One, Vector3.One, 4);
-            raytracer.lightManager.AddLight(spotlight);
+            lightManager.AddLight(spotlight);
             railSpotlight = new RailSpotlight(
                 dgUpdateVkSpotlight: vk => spotlight.vkLight = vk,
                 agdRadius: 50,
@@ -114,20 +114,27 @@ namespace Mandelbasic
                 case Keys.L:
                     fLightFollows = !fLightFollows;
                     break;
+                case Keys.Space:
+                    if (IsKeyDown(Keys.ControlKey))
+                        lightManager.RemoveLight(lightManager.clight - 1);
+                    else
+                        lightManager.AddLight(new PointLight(camera.ptCamera, Vector3.One, fVisualize: false));
+                    break;
             }
         }
 
         private void DimBallLights(float dbrightness)
         {
             for (int iballlight = 0; iballlight < cballlight; iballlight++)
-                raytracer.lightManager[iballlight + 1].brightness += dbrightness;
+                lightManager[iballlight + 1].brightness += dbrightness;
         }
 
         private const float frMoveBase = 0.1f;
+        private const float dagdRoll = (float)360/(60*4);
         public override void DoEvents(float dtms)
         {
             if (fLightFollows)
-                raytracer.lightManager[0].ptLight = raytracer.camera.ptCamera;
+                lightManager[0].ptLight = camera.ptCamera;
 
             foreach (RailHover railHover in rgrailHoverBallLight)
                 railHover.UpdatePt(dtms);
@@ -154,12 +161,21 @@ namespace Mandelbasic
             if (IsKeyDown(Keys.D))
                 camera.MoveBy(Vector3.Cross(camera.vkCameraOrtho, camera.vkCamera) * duMove);
 
+            if (IsKeyDown(Keys.Q))
+                camera.RollBy(-dagdRoll);
+
+            if (IsKeyDown(Keys.E))
+                camera.RollBy(dagdRoll);
+
+            if (IsKeyDown(Keys.D))
+                camera.MoveBy(Vector3.Cross(camera.vkCameraOrtho, camera.vkCamera) * duMove);
+
             const float dbrightnessDim = 0.01f;
 
             if (IsKeyDown(Keys.NumPad7))
-                raytracer.lightManager[0].brightness -= dbrightnessDim;
+                lightManager[0].brightness -= dbrightnessDim;
             if (IsKeyDown(Keys.NumPad8))
-                raytracer.lightManager[0].brightness += dbrightnessDim;
+                lightManager[0].brightness += dbrightnessDim;
             if (IsKeyDown(Keys.NumPad4))
                 DimBallLights(-0.01f);
             if (IsKeyDown(Keys.NumPad5))
@@ -185,15 +201,16 @@ namespace Mandelbasic
                     raytracer._raytracerfractal.sfB = 0.0f;
             }
 
-            if (scene.fractal.cinputFloat > 0)
-            {
-                float dParam = 0.01f;
-                if (IsKeyDown(Keys.Q))
-                    scene.fractal.SetInputFloat(0, scene.fractal.GetInputFloat(0) - dParam);
-
-                if (IsKeyDown(Keys.E))
-                    scene.fractal.SetInputFloat(0, scene.fractal.GetInputFloat(0) + dParam);
-            }
+            float dParam1 = 0.01f;
+            float dParam2 = 0.005f;
+            if (IsKeyDown(Keys.Z) && scene.fractal.cinputFloat >= 1)
+                scene.fractal.SetInputFloat(0, scene.fractal.GetInputFloat(0) - dParam1);
+            if (IsKeyDown(Keys.X) && scene.fractal.cinputFloat >= 1)
+                scene.fractal.SetInputFloat(0, scene.fractal.GetInputFloat(0) + dParam1);
+            if (IsKeyDown(Keys.C) && scene.fractal.cinputFloat >= 2)
+                scene.fractal.SetInputFloat(1, scene.fractal.GetInputFloat(1) - dParam2);
+            if (IsKeyDown(Keys.V) && scene.fractal.cinputFloat >= 2)
+                scene.fractal.SetInputFloat(1, scene.fractal.GetInputFloat(1) + dParam2);
         }
     }
 }
