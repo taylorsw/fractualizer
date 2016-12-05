@@ -7,12 +7,13 @@ namespace Mandelbasic
 {
     public abstract class Evtc
     {
-        protected readonly Random rand = new Random(1990);
         protected readonly Form form;
         protected Controller controller;
         protected RaytracerFractal raytracer => controller.raytracer;
         protected Scene scene => raytracer.scene;
         protected Camera camera => raytracer.camera;
+        protected RaytracerFractal.LightManager lightManager => raytracer.lightManager;
+        protected Random rand => scene.rand;
 
         protected Evtc(Form form, Controller controller)
         {
@@ -20,6 +21,7 @@ namespace Mandelbasic
             this.controller = controller;
         }
 
+        public virtual void Setup() { }
         public abstract void DoEvents(float dtms);
     }
 }

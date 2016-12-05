@@ -2,7 +2,6 @@
 using System.Windows.Forms;
 using Audio;
 using Evtc;
-using Fractals;
 using SharpDX;
 
 namespace Mandelbasic
@@ -26,11 +25,9 @@ namespace Mandelbasic
                 return;
             }
 
-            Light pointLight = raytracer.lightManager[0];
-            pointLight.brightness = pointLight.brightness < 1 ? 2 : 0.3f;
-            for (int i = 1; i < raytracer.lightManager.clight; i++)
+            for (int i = 1; i < lightManager.clight; i++)
             {
-                var light = raytracer.lightManager[i];
+                var light = lightManager[i];
                 light.rgbLight = Vector3.One - light.rgbLight;
             }
         }
