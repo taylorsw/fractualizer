@@ -1,4 +1,5 @@
-﻿using System.Windows.Forms;
+﻿using System.Collections.Generic;
+using System.Windows.Forms;
 using Audio;
 using Evtc;
 using Fractals;
@@ -114,6 +115,8 @@ namespace Mandelbasic
             private float du2 = -1;
             public override void DoEvents(float dtms)
             {
+                base.DoEvents(dtms);
+
                 lightManager[0].ptLight = camera.ptCamera;
 
                 Mandelbulb mandelbulb = scene.fractal as Mandelbulb;
@@ -146,8 +149,184 @@ namespace Mandelbasic
 
                 camera.LookAt(Vector3.Zero);
                 camera.RotateCamera(camera.vkCameraRight, MathUtil.DegreesToRadians(10));
+            }
 
+            protected override void OnBeat()
+            {
+                base.OnBeat();
+                for (int ilight = 1; ilight < lightManager.clight; ilight++)
+                {
+                    lightManager[ilight].rgbLight = new Vector3(1, 1, 1) - lightManager[ilight].rgbLight;
+                }
+            }
+        }
+    }
+
+    public class StageMandelbulbAudioCloseup : Stage
+    {
+        public override RaytracerFractal raytracer { get; }
+        public override Evtc evtc { get; }
+
+        public StageMandelbulbAudioCloseup(Form form, Controller controller, int width, int height)
+        {
+            raytracer = new RaytracerFractal(new Scene(new Mandelbulb(), seed: 3002), width, height);
+            evtc = new EvtcMandelbulbAnim(form, controller);
+        }
+
+        public override void Setup()
+        {
+            base.Setup();
+            raytracer._raytracerfractal.colorB = new Vector3(235, 227, 172).Normalized();
+        }
+
+        public class Sptl
+        {
+            public readonly SpotLight spotlight;
+            public readonly RailSpotlight rail;
+            public readonly float agdRadiusMin, agdRadiusMax, dagd_dtmsRadius, agdRotationMin, agdRotationMax, dagd_dtmsRotation;
+
+            public Sptl(SpotLight spotlight, RailSpotlight rail, float agdRadiusMin, float agdRadiusMax, float dagd_dtmsRadius, float agdRotationMin, float agdRotationMax, float dagd_dtmsRotation)
+            {
+                this.spotlight = spotlight;
+                this.rail = rail;
+                this.agdRadiusMin = agdRadiusMin;
+                this.agdRadiusMax = agdRadiusMax;
+                this.dagd_dtmsRadius = dagd_dtmsRadius;
+                this.agdRotationMin = agdRotationMin;
+                this.agdRotationMax = agdRotationMax;
+                this.dagd_dtmsRotation = dagd_dtmsRotation;
+            }
+
+            private int signRadius = 1;
+            private int signRotation = 1;
+            public void Update(float dtms, Vector3 ptCamera)
+            {
+                spotlight.ptLight = ptCamera;
+                rail.UpdateVkSpotlight(dtms);
+
+                if (spotlight.agdRadius > agdRadiusMax)
+                    signRadius = -1;
+                else if (spotlight.agdRadius < agdRadiusMin)
+                    signRadius = 1;
+
+                if (rail.agdRadius > agdRotationMax)
+                    signRotation = -1;
+                else if (rail.agdRadius < agdRotationMin)
+                    signRotation = 1;
+
+                spotlight.agdRadius += signRadius * dagd_dtmsRadius;
+                rail.agdRadius += signRotation * dagd_dtmsRotation;
+            }
+        }
+
+        private class EvtcMandelbulbAnim : EvtcAudio
+        {
+            private RailHover railCam;
+            const int cspotlight = 30;
+            private Sptl[] rgsptl;
+
+            public EvtcMandelbulbAnim(Form form, Controller controller) : base(form, controller)
+            {
+            }
+
+            protected override string StSong() => "moby.mp3";
+            public override void Setup()
+            {
+                base.Setup();
+                camera.MoveTo(new Vector3(0, 0, -1.5f));
+                camera.LookAt(Vector3.Zero);
+
+                lightManager.AddLight(new PointLight(new Vector3f(2, 0, -1), Vector3.One, brightness: 0.05f, fVisualize: false));
+
+                const float duHover = 0.05f;
+                railCam = new RailHover(
+                    pt => camera.MoveTo(pt),
+                    scene.fractal,
+                    ptCenter: Vector3.Zero,
+                    ptInitial: camera.ptCamera,
+                    vkNormal: scene.rand.VkUnitRand(),
+                    dtmsRevolution: 50000,
+                    duHover: duHover,
+                    duduAdjustMax: duHover / 5,
+                    dududuAdjustMax: duHover / 10);
+
+                rgsptl = new Sptl[cspotlight];
+                for (int ispotlight = 0; ispotlight < cspotlight; ispotlight++)
+                {
+                    SpotLight spotlight = new SpotLight(
+                        ptLight: camera.ptCamera,
+                        rgbLight: Vector3.One,
+                        vkLight: rand.VkUnitRand(),
+                        agdRadius: rand.NextFloat(5, 30),
+                        brightness: rand.NextFloat(0.1f, 0.8f));
+                    lightManager.AddLight(spotlight);
+
+                    RailSpotlight railSpotlight = new RailSpotlight(
+                        dgUpdateVkSpotlight: vk => spotlight.vkLight = vk,
+                        agdRadius: rand.NextFloat(3, 20),
+                        vkNormal: rand.VkUnitRand(),
+                        dtmsRevolution: rand.NextFloat(1, 4) * 1000);
+                    float agdRadiusMin = rand.NextFloat(5, 10);
+                    float agdRadiusMax = rand.NextFloat(11, 20);
+                    float agdRotationMin = rand.NextFloat(3, 10);
+                    float agdRotationMax = rand.NextFloat(11, 20);
+                    rgsptl[ispotlight] = new Sptl(
+                        spotlight,
+                        railSpotlight,
+                        agdRadiusMin: agdRadiusMin,
+                        agdRadiusMax: agdRadiusMax,
+                        dagd_dtmsRadius: rand.NextFloat(1, 5) / 1000,
+                        agdRotationMin: agdRotationMin,
+                        agdRotationMax: agdRotationMax,
+                        dagd_dtmsRotation: rand.NextFloat(1, 5) / 1000);
+                }
+            }
+
+            private float du = -1;
+            private float du2 = -1;
+            public override void DoEvents(float dtms)
+            {
+                lightManager[0].ptLight = camera.ptCamera;
+
+                Mandelbulb mandelbulb = scene.fractal as Mandelbulb;
+                if (mandelbulb != null && false)
+                {
+                    mandelbulb._mandelbulb.param += du * 0.007f;
+
+                    if (mandelbulb._mandelbulb.param < 2.5)
+                        du = 1;
+                    else if (mandelbulb._mandelbulb.param > 8)
+                        du = -1;
+
+                    mandelbulb._mandelbulb.param2 += du2 * 0.00014f;
+
+                    if (mandelbulb._mandelbulb.param2 < 1.5)
+                        du2 = 1;
+                    else if (mandelbulb._mandelbulb.param2 > 3.5)
+                        du2 = -1;
+                }
+
+                foreach (Sptl sptl in rgsptl)
+                {
+                    sptl.Update(dtms, camera.ptCamera);
+                }
+
+                railCam.UpdatePt(dtms);
+                camera.LookAt(Vector3.Zero);
+
+                const float dagdRoll = 0.03f;
+                camera.RollBy(dagdRoll);
+                
                 base.DoEvents(dtms);
+            }
+
+            protected override void OnBeat()
+            {
+                base.OnBeat();
+                foreach (Sptl sptl in rgsptl)
+                {
+                    sptl.rail.SetVkNormal(rand.VkUnitRand());
+                }
             }
         }
     }
@@ -169,6 +348,8 @@ namespace Mandelbasic
             private Vector3 ptOrbitTrap;
             private RailPt railOrbitTrap;
 
+            private StageMandelbulbAudioCloseup.Sptl[] rgsptl;
+
             private const float duOrbitTrap = 2f;
             private int iptOrbitTrap;
             private static readonly Vector3[] rgptOrbitTrap =
@@ -188,11 +369,45 @@ namespace Mandelbasic
 
             protected override string StSong() => "dontletmedown.mp3";
 
+            private Vector3 VkSpotlight() => new Vector3(-1, rand.NextFloat(-1, 1), rand.NextFloat(-1, 1)).Normalized();
             public override void Setup()
             {
                 base.Setup();
                 pointLightCamera = new PointLight(camera.ptCamera, Vector3.One, brightness: 0.3f, fVisualize: false);
                 lightManager.AddLight(pointLightCamera);
+
+                const int cspotlight = 10;
+                rgsptl = new StageMandelbulbAudioCloseup.Sptl[cspotlight];
+                for (int ispotlight = 0; ispotlight < cspotlight; ispotlight++)
+                {
+                    SpotLight spotlight = new SpotLight(
+                        ptLight: camera.ptCamera,
+                        rgbLight: Vector3.One,
+                        vkLight: VkSpotlight(),
+                        agdRadius: rand.NextFloat(1, 2),
+                        brightness: rand.NextFloat(0.1f, 0.8f));
+                    lightManager.AddLight(spotlight);
+
+                    RailSpotlight railSpotlight = new RailSpotlight(
+                        dgUpdateVkSpotlight: vk => spotlight.vkLight = vk,
+                        agdRadius: rand.NextFloat(3, 20),
+                        vkNormal: VkSpotlight(),
+                        dtmsRevolution: rand.NextFloat(1, 4) * 300);
+                    float agdRadiusMin = rand.NextFloat(5, 10);
+                    float agdRadiusMax = rand.NextFloat(11, 20);
+                    float agdRotationMin = rand.NextFloat(3, 10);
+                    float agdRotationMax = rand.NextFloat(11, 20);
+                    rgsptl[ispotlight] = new StageMandelbulbAudioCloseup.Sptl(
+                        spotlight,
+                        railSpotlight,
+                        agdRadiusMin: agdRadiusMin,
+                        agdRadiusMax: agdRadiusMax,
+                        dagd_dtmsRadius: rand.NextFloat(1, 5) / 1000,
+                        agdRotationMin: agdRotationMin,
+                        agdRotationMax: agdRotationMax,
+                        dagd_dtmsRotation: rand.NextFloat(1, 5) / 1000);
+                }
+
                 camera.MoveTo(new Vector3(0.5f, -0.479544f, -0.5555527f));
             }
 
@@ -209,21 +424,34 @@ namespace Mandelbasic
                 railOrbitTrap?.UpdatePt(dtms);
                 ((Mandelbox) raytracer.scene.fractal)._mandelbox.ptTrap = ptOrbitTrap;
 
+                foreach (StageMandelbulbAudioCloseup.Sptl sptl in rgsptl)
+                {
+                    sptl.Update(du_dtms, camera.ptCamera);
+                }
+
                 base.DoEvents(dtms);
             }
 
             protected override void OnBeat()
             {
-                float dtmsBeatInterval = DtmsBeatInterval();
-                if (dtmsBeatInterval <= 0)
-                    return;
+                if (fDrop)
+                {
+                    float dtmsBeatInterval = DtmsBeatInterval();
+                    if (dtmsBeatInterval <= 0)
+                        return;
 
-                railOrbitTrap = new RailLinear(
-                    ptOrbitTrap,
-                    rgptOrbitTrap[iptOrbitTrap],
-                    dtmsBeatInterval / 8,
-                    pt => ptOrbitTrap = pt);
-                iptOrbitTrap = (iptOrbitTrap + 1)%rgptOrbitTrap.Length;
+                    railOrbitTrap = new RailLinear(
+                        ptOrbitTrap,
+                        rgptOrbitTrap[iptOrbitTrap],
+                        dtmsBeatInterval / 8,
+                        pt => ptOrbitTrap = pt);
+                    iptOrbitTrap = (iptOrbitTrap + 1) % rgptOrbitTrap.Length;
+                }
+                else
+                {
+                    foreach (var sptl in rgsptl)
+                        sptl.rail.SetVkNormal(VkSpotlight());
+                }
             }
         }
     }

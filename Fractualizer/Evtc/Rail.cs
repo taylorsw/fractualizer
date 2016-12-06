@@ -78,7 +78,7 @@ namespace Mandelbasic
     public class RailSpotlight : Rail
     {
         private readonly DgUpdatePt dgUpdateVkSpotlight;
-        private float agdRadius;
+        public float agdRadius;
         private Vector3 vkNormal;
         public RailSpotlight(DgUpdatePt dgUpdateVkSpotlight, float agdRadius, Vector3 vkNormal, float dtmsRevolution) : base(dtmsRevolution)
         {

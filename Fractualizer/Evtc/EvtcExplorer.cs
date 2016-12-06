@@ -11,12 +11,10 @@ namespace Mandelbasic
 {
     public class EvtcExplorer : EvtcUserDecode
     {
-        const int cballlight = 0;
+        const int cballlight = 20;
         private RailHover[] rgrailHoverBallLight;
         private RailSpotlight railSpotlight;
         private SpotLight spotlight;
-
-        private RailOrbit railTrap;
 
         const float duCutoffBallLight = 0.3f;
         public EvtcExplorer(Form form, Controller controller) : base(form, controller)
@@ -29,6 +27,8 @@ namespace Mandelbasic
         public override void Setup()
         {
             base.Setup();
+
+            raytracer._raytracerfractal.colorB = new Vector3f(0.1f, 0.2f, 0.1f);
 
             Mandelbulb mandelbulb = scene.fractal as Mandelbulb;
             if (mandelbulb != null)
@@ -46,7 +46,7 @@ namespace Mandelbasic
             rgrailHoverBallLight = new RailHover[cballlight];
             for (int iballlight = 0; iballlight < cballlight; iballlight++)
             {
-                BallLight ballLight = new BallLight(rand.VkUnitRand() * 2.0f, rand.VkUnitRand(), duCutoffBallLight, fVisualize: false);
+                BallLight ballLight = new BallLight(rand.VkUnitRand() * 2.0f, rand.VkUnitRand(), duCutoffBallLight);
                 lightManager.AddLight(ballLight);
 
                 RailHover railHover = new RailHover(
@@ -67,13 +67,6 @@ namespace Mandelbasic
 //                agdRadius: 50,
 //                vkNormal: camera.vkCamera,
 //                dtmsRevolution: 1500);
-
-            railTrap = new RailOrbit(
-                pt => ((Mandelbox)scene.fractal)._mandelbox.ptTrap = pt,
-                Vector3.Zero,
-                new Vector3(0.5f, 0, 0),
-                Vector3.One,
-                5000);
         }
 
         private void CenterCursor()
@@ -143,8 +136,6 @@ namespace Mandelbasic
         private const float dagdRoll = (float)360/(60*4);
         public override void DoEvents(float dtms)
         {
-            railTrap.UpdatePt(dtms);
-
             if (fLightFollows)
                 lightManager[0].ptLight = camera.ptCamera;
 

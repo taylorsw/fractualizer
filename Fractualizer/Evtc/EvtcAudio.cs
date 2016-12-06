@@ -12,11 +12,28 @@ namespace Mandelbasic
 
         public EvtcAudio(Form form, Controller controller) : base(form, controller)
         {
+            form.KeyUp += OnKeyUpKludge;
             processor = new AudioProcessor();
+        }
+
+        protected bool fDrop { get; private set; }
+        private void OnKeyUpKludge(object sender, KeyEventArgs args)
+        {
+            if (args.KeyCode == Keys.Space)
+            {
+                fDrop = !fDrop;
+                if (fDrop)
+                    OnDropBegin();
+                else
+                    OnDropEnd();
+            }
         }
 
         protected abstract string StSong();
         protected virtual void OnBeat() { }
+        protected virtual void OnDropBegin() { }
+        protected virtual void OnDropEnd() { }
+
         protected float DtmsBeatInterval() => processor.dtmsBeatInterval;
         public override void Setup()
         {

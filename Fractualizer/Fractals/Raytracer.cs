@@ -169,7 +169,7 @@ namespace Fractals
         public readonly Random rand;
         public readonly Fractal3d fractal;
 
-        public Scene(Fractal3d fractal, int seed = 1992)
+        public Scene(Fractal3d fractal, int seed = 1993)
         {
             this.rand = new Random(seed);
             this.fractal = fractal;

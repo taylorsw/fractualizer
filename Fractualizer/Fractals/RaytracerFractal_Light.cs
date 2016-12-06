@@ -69,17 +69,17 @@ namespace Fractals
     public class SpotLight : Light
     {
         public Vector3 vkLight;
-        public float cosCutoff;
+        public float agdRadius;
 
         public SpotLight(Vector3 ptLight, Vector3 rgbLight, Vector3 vkLight, float agdRadius, float brightness = 1.0f, bool fVisualize = false) : base(Klight.Spotlight, ptLight, rgbLight, brightness, fVisualize)
         {
             this.vkLight = vkLight;
-            cosCutoff = (float)Math.Cos(MathUtil.DegreesToRadians(agdRadius));
+            this.agdRadius = agdRadius;
         }
 
         internal override void SyncWithBuffer(RaytracerFractal._RaytracerFractal _raytracerfractal, int ilight)
         {
-            _raytracerfractal.rgcosCutoffLight[ilight] = cosCutoff;
+            _raytracerfractal.rgcosCutoffLight[ilight] = (float)Math.Cos(MathUtil.DegreesToRadians(agdRadius));
             _raytracerfractal.rgvkLight[ilight] = vkLight;
             base.SyncWithBuffer(_raytracerfractal, ilight);
         }

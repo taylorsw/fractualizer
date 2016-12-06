@@ -23,14 +23,14 @@ v3 colorA;
 v3 colorB;
 
 // Light
-int rglidLight[30];
-v3 rgptLight[30];
-v3 rgvkLight[30];
-float rgcosCutoffLight[30];
-float rgduCutoffLight[30];
-bool rgfVisualizeLight[30];
-v3 rgrgbLight[30];
-float rgbrightnessLight[30];
+int rglidLight[40];
+v3 rgptLight[40];
+v3 rgvkLight[40];
+float rgcosCutoffLight[40];
+float rgduCutoffLight[40];
+bool rgfVisualizeLight[40];
+v3 rgrgbLight[40];
+float rgbrightnessLight[40];
 
 raytracer RaytracerFractal
 {
