@@ -11,10 +11,12 @@ namespace Mandelbasic
 {
     public class EvtcExplorer : EvtcUserDecode
     {
-        const int cballlight = 15;
+        const int cballlight = 0;
         private RailHover[] rgrailHoverBallLight;
         private RailSpotlight railSpotlight;
         private SpotLight spotlight;
+
+        private RailOrbit railTrap;
 
         const float duCutoffBallLight = 0.3f;
         public EvtcExplorer(Form form, Controller controller) : base(form, controller)
@@ -60,13 +62,20 @@ namespace Mandelbasic
                 rgrailHoverBallLight[iballlight] = railHover;
             }
 
-            spotlight = new SpotLight(camera.ptCamera, Vector3.One, Vector3.One, 4);
-            lightManager.AddLight(spotlight);
-            railSpotlight = new RailSpotlight(
-                dgUpdateVkSpotlight: vk => spotlight.vkLight = vk,
-                agdRadius: 50,
-                vkNormal: camera.vkCamera,
-                dtmsRevolution: 1500);
+//            spotlight = new SpotLight(camera.ptCamera, Vector3.One, Vector3.One, 4);
+//            lightManager.AddLight(spotlight);
+//            railSpotlight = new RailSpotlight(
+//                dgUpdateVkSpotlight: vk => spotlight.vkLight = vk,
+//                agdRadius: 50,
+//                vkNormal: camera.vkCamera,
+//                dtmsRevolution: 1500);
+
+            railTrap = new RailOrbit(
+                pt => ((Mandelbox)scene.fractal)._mandelbox.ptTrap = pt,
+                Vector3.Zero,
+                new Vector3(0.5f, 0, 0),
+                Vector3.One,
+                5000);
         }
 
         private void CenterCursor()
@@ -120,6 +129,9 @@ namespace Mandelbasic
                     else
                         lightManager.AddLight(new PointLight(camera.ptCamera, Vector3.One, fVisualize: false));
                     break;
+                case Keys.G:
+                    Debug.WriteLine(camera.ptCamera);
+                    break;
             }
         }
 
@@ -133,13 +145,15 @@ namespace Mandelbasic
         private const float dagdRoll = (float)360/(60*4);
         public override void DoEvents(float dtms)
         {
+            railTrap.UpdatePt(dtms);
+
             if (fLightFollows)
                 lightManager[0].ptLight = camera.ptCamera;
 
             foreach (RailHover railHover in rgrailHoverBallLight)
                 railHover.UpdatePt(dtms);
 
-            railSpotlight.UpdateVkSpotlight(dtms);
+            //railSpotlight.UpdateVkSpotlight(dtms);
             //spotlight.ptLight = camera.ptCamera;
 
             float frMove = frMoveBase;

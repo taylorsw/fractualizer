@@ -18,15 +18,19 @@ float sfR = 0.0;
 float sfG = 1.0;
 float sfB = 1.0;
 
+// Skybox
+v3 colorA;
+v3 colorB;
+
 // Light
-int rglidLight[40];
-v3 rgptLight[40];
-v3 rgvkLight[40];
-float rgcosCutoffLight[40];
-float rgduCutoffLight[40];
-bool rgfVisualizeLight[40];
-v3 rgrgbLight[40];
-float rgbrightnessLight[40];
+int rglidLight[30];
+v3 rgptLight[30];
+v3 rgvkLight[30];
+float rgcosCutoffLight[30];
+float rgduCutoffLight[30];
+bool rgfVisualizeLight[30];
+v3 rgrgbLight[30];
+float rgbrightnessLight[30];
 
 raytracer RaytracerFractal
 {
@@ -34,7 +38,7 @@ raytracer RaytracerFractal
 	global int LID_BALLLIGHT = 1;
 	global int LID_SPOTLIGHT = 2;
 
-	global int cmarch = 100;
+	global int cmarch = 140;
 	global v3 ptOrigin = v3(0, 0, 0);
 
 	float DuDeSphere(v3 ptPos, v3 ptCenter, float duRadius)
@@ -137,14 +141,12 @@ raytracer RaytracerFractal
 	}
 
 	global float PI = 3.14159265358979323;
-	global v3 colorA = v3(0, 0, 0);
-	global v3 colorB = v3(0.6, 0.6, 0.6);
 	v3 ColorBG(v3 vkRay)
 	{
 		v3 d = -normalize(vkRay);
 		float u = 0.5 + (atan(d.z / d.x)) / (2 * PI);
 		float v = 0.5 - (asin(d.y)) / PI;
-		return colorA * u + colorB * v;
+		return inputs.colorA * u + inputs.colorB * v;
 	}
 
 	// Ambient Occlusion
@@ -246,7 +248,7 @@ raytracer RaytracerFractal
 
 		float duEpsilon;
 		int idHit;
-		float sfEpsilon = 1.0;
+		float sfEpsilon = 0.8;
 		v4 ptMarched = PtMarch(inputs.ptCamera, vkRay, sfEpsilon, duMarchLimit, true, idHit, duEpsilon);
 
 		float duMarched = length(v3(ptMarched.x, ptMarched.y, ptMarched.z) - inputs.ptCamera);

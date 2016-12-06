@@ -66,6 +66,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Audio\Audio.csproj">
+      <Project>{63100634-DB24-46CF-B631-63590F99EDD4}</Project>
+      <Name>Audio</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Evtc\Evtc.csproj">
       <Project>{85645d8b-62c2-4069-b89b-216ff5887371}</Project>
       <Name>Evtc</Name>

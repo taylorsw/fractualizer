@@ -35,7 +35,7 @@ namespace AudioDemo
 
             //processor.OnFrameInfoCalculated += DrawRgframeInfo;
             processor.OnBandDataCalculated += DrawBandData;
-            processor.StartProcessor("Resources/callonme.mp3");
+            processor.StartProcessor("Resources/dontletmedown.mp3");
         }
 
         void OnKeyDown(object o, KeyEventArgs e)

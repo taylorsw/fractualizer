@@ -451,6 +451,9 @@ namespace CodeGen
             foreach (string stTypeInput in mpstType_rginput.Keys)
             {
                 FPLParser.InputTypeContext inputType = mpstType_rginput[stTypeInput][0].inputType();
+                if (inputType.GetText() != "float" && inputType.GetText() != "int")
+                    continue;
+
                 List<FPLParser.InputContext> rginputForType = mpstType_rginput[stTypeInput];
 
                 string stTypeCap = char.ToUpper(stTypeInput[0]) + stTypeInput.Substring(1, stTypeInput.Length - 1);

@@ -205,6 +205,9 @@ namespace CodeGen
         public override Losa VisitExprList(FPLParser.ExprListContext exprList)
         {
             Losa losaExprList = "";
+            if (exprList == null)
+                return losaExprList;
+
             FPLParser.ExprContext[] rgexpr = exprList.expr();
             for (int iexpr = 0; iexpr < rgexpr.Length; iexpr++)
             {

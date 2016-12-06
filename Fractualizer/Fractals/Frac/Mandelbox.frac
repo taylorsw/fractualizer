@@ -1,4 +1,6 @@
-﻿fractal Mandelbox
+﻿v3 ptTrap;
+float sf = 2;
+fractal Mandelbox
 {
 	void sphereFold(ref v3 z, ref float dz)
 	{
@@ -40,7 +42,7 @@
 		v3 p = floor(x);
 		v3 f = frac(x);
 
-		f = f*f*(3.0-2.0*f);
+		f = f*f*(3.0-2.0*f.x);
 		float n = p.x + p.y*57.0 + 113.0*p.z;
 
 		return lerp(lerp(lerp( hash(n+0.0), hash(n+1.0),f.x),
@@ -49,35 +51,77 @@
 					   lerp( hash(n+170.0), hash(n+171.0),f.x),f.y),f.z);
 	}
 
+	global int Iterations = 20;
+	//global float sf = 2;
+	float SfNormalizing()
+	{
+		return 3 * (inputs.sf + 1) / (inputs.sf - 1);
+	}
+	v3 Iterate(v3 ptInitial, v3 pos, ref float dr)
+	{
+		boxFold(pos, dr);       // Reflect
+		sphereFold(pos, dr);    // Sphere Inversion
+
+		pos = inputs.sf * pos + ptInitial;  // Scale & Translate
+		dr = dr*abs(inputs.sf) + 1.0;
+		return pos;
+	}
+
+	float DuPt(v3 pt, v3 ptTarget)
+	{
+		return distance(pt, ptTarget);
+	}
+
+	float DuTrap(v3 pt)
+	{
+		return DuPt(pt, inputs.ptTrap);
+	}
+
+	v3 PtAdjusted(v3 pt)
+	{
+		float duAdjust = 1.0;
+ 		pt = v3(pt.x%duAdjust + duAdjust/2, pt.y, pt.z);
+		return pt * SfNormalizing();
+	}
+
 	DE(v3 pos)
 	{
-		float sf = 2;
-		float sfNormalizing = 3 * (sf + 1) / (sf - 1);
-		pos = pos * sfNormalizing;
-		int Iterations = 20;
+		pos = PtAdjusted(pos);
 		v3 offset = pos;
 		float dr = 1.0;
 		for (int n = 0; n < Iterations; n++) {
-			boxFold(pos, dr);       // Reflect
-			sphereFold(pos, dr);    // Sphere Inversion
-
-			pos = sf * pos + offset;  // Scale & Translate
-			dr = dr*abs(sf) + 1.0;
+			pos = Iterate(offset, pos, dr);
 		}
 		float r = length(pos);
-		return r / abs(dr) / sfNormalizing;
+		return r / abs(dr) / SfNormalizing();
 	}
 
 	v3 Color(v3 pt)
 	{
-		float sfR = 1;
-		float sfG = 1;
-		float sfB = 1;
-		float paramStandin = 8.0;
-		return v3(
-			sfR * sin(pt.y * 7 + paramStandin * noise(pt * 10)), 
-			sfG * sin(pt.y * 8 + paramStandin * noise(pt * 10)), 
-			sfB * sin(pt.x * 10 + (paramStandin / 2) * noise(pt * 10)));
-		return v3(1, 1, 1);
+		pt = PtAdjusted(pt);
+		v3 trap = v3(1e6, 1e6, 1e6);
+		v3 z = pt;
+		float dr = 1.0;
+		for (int i = 0; i < Iterations; i++)
+		{
+			z = Iterate(pt, z, dr);
+			if (DuTrap(z) < DuTrap(trap))
+				trap = z;
+		}
+
+		return v3(1, 1, 1) - trap;
 	)
+
+//	v3 Color(v3 pt)
+//	{
+//		float sfR = 1;
+//		float sfG = 1;
+//		float sfB = 1;
+//		float paramStandin = 8.0;
+//		return v3(
+//			sfR * sin(pt.y * 7 + paramStandin * noise(pt * 10)), 
+//			sfG * sin(pt.y * 8 + paramStandin * noise(pt * 10)), 
+//			sfB * sin(pt.x * 10 + (paramStandin / 2) * noise(pt * 10)));
+//		return v3(1, 1, 1);
+//	}
 }

@@ -27,7 +27,6 @@ namespace Util
 
         public static implicit operator Vector2(Vector2f v) => new Vector2(v.x, v.y);
         public static implicit operator Vector2f(Vector2 v) => new Vector2f(v);
-        public static implicit operator float(Vector2f v) => v.x;
         public static implicit operator Vector2f(Vector3f v) => new Vector2f(v.x, v.y);
 
         public static Vector2f operator +(Vector2f v1, Vector2f v2) => new Vector2f(v1.v + v2.v);
@@ -35,6 +34,8 @@ namespace Util
         public static Vector2f operator -(Vector2f v1) => new Vector2f(-v1.v);
         public static Vector2f operator *(float sf, Vector2f v) => new Vector2f(sf * v.v);
         public static Vector2f operator *(Vector2f v, float sf) => new Vector2f(sf * v.v);
+        public static Vector2f operator *(double sf, Vector2f v) => new Vector2f((float)sf * v.v);
+        public static Vector2f operator *(Vector2f v, double sf) => new Vector2f((float)sf * v.v);
         public static Vector2f operator *(Vector2f v1, Vector2f v2) => new Vector2f(v1.v * v2.v);
         public static Vector2f operator /(Vector2f v, float sf) => new Vector2f(v.v / sf);
 
@@ -62,7 +63,6 @@ namespace Util
 
         public static implicit operator Vector3(Vector3f v) => new Vector3(v.x, v.y, v.z);
         public static implicit operator Vector3f(Vector3 v) => new Vector3f(v);
-        public static implicit operator float(Vector3f v) => v.x;
         public static implicit operator Vector3f(Vector4f v) => new Vector3f(v.x, v.y, v.z);
 
         public static Vector3f operator +(Vector3f v1, Vector3f v2) => new Vector3f(v1.v + v2.v);
@@ -70,6 +70,8 @@ namespace Util
         public static Vector3f operator -(Vector3f v1) => new Vector3f(-v1.v);
         public static Vector3f operator *(float sf, Vector3f v) => new Vector3f(sf * v.v);
         public static Vector3f operator *(Vector3f v, float sf) => new Vector3f(sf * v.v);
+        public static Vector3f operator *(double sf, Vector3f v) => new Vector3f((float)sf * v.v);
+        public static Vector3f operator *(Vector3f v, double sf) => new Vector3f((float)sf * v.v);
         public static Vector3f operator *(Vector3f v1, Vector3f v2) => new Vector3f(v1.v * v2.v);
         public static Vector3f operator /(Vector3f v, float sf) => new Vector3f(v.v / sf);
 
@@ -98,13 +100,14 @@ namespace Util
 
         public static implicit operator Vector4(Vector4f v) => new Vector4(v.x, v.y, v.z, v.w);
         public static implicit operator Vector4f(Vector4 v) => new Vector4f(v);
-        public static implicit operator float(Vector4f v) => v.x;
 
         public static Vector4f operator +(Vector4f v1, Vector4f v2) => new Vector4f(v1.v + v2.v);
         public static Vector4f operator -(Vector4f v1, Vector4f v2) => v1 + (-v2);
         public static Vector4f operator -(Vector4f v1) => new Vector4f(-v1.v);
         public static Vector4f operator *(float sf, Vector4f v) => new Vector4f(sf * v.v);
         public static Vector4f operator *(Vector4f v, float sf) => new Vector4f(sf * v.v);
+        public static Vector4f operator *(double sf, Vector4f v) => new Vector4f((float)sf * v.v);
+        public static Vector4f operator *(Vector4f v, double sf) => new Vector4f((float)sf * v.v);
         public static Vector4f operator *(Vector4f v1, Vector4f v2) => new Vector4f(v1.v * v2.v);
         public static Vector4f operator /(Vector4f v, float sf) => new Vector4f(v.v / sf);
 
@@ -125,7 +128,6 @@ namespace Util
 
         public static implicit operator Vector2d(Vector2f v) => new Vector2d(v.x, v.y);
         public static implicit operator Vector2d(Vector2 v) => new Vector2d(v.X, v.Y);
-        public static implicit operator double(Vector2d v) => v.x;
         public static implicit operator Vector2d(Vector3d v) => new Vector2d(v.x, v.y);
 
         public static Vector2d operator +(Vector2d v1, Vector2d v2) => new Vector2d(v1.x + v2.x, v1.y + v2.y);
@@ -154,7 +156,6 @@ namespace Util
 
         public static implicit operator Vector3d(Vector3f v) => new Vector3d(v.x, v.y, v.z);
         public static implicit operator Vector3d(Vector3 v) => new Vector3d(v.X, v.Y, v.Z);
-        public static implicit operator double(Vector3d v) => v.x;
         public static implicit operator Vector3d(Vector4d v) => new Vector3d(v.x, v.y, v.z);
 
         public static Vector3d operator +(Vector3d v1, Vector3d v2) => new Vector3d(v1.x + v2.x, v1.y + v2.y, v1.z + v2.z);
@@ -164,6 +165,7 @@ namespace Util
         public static Vector3d operator *(Vector3d v, double sf) => sf * v;
         public static Vector3d operator *(Vector3d v1, Vector3d v2) => new Vector3d(v1.x * v2.x, v1.y * v2.y, v1.z * v2.z);
         public static Vector3d operator /(Vector3d v, double sf) => new Vector3d(v.x / sf, v.y / sf, v.z / sf);
+        public static Vector3d operator %(Vector3d v, double sf) => new Vector3d(v.x % sf, v.y % sf, v.z % sf);
 
         public static double Dot(Vector3d v1, Vector3d v2) => v1.x*v2.x + v1.y*v2.y + v1.z*v2.z;
         public static double Length(Vector3d v) => Math.Sqrt(Length2(v));
@@ -197,7 +199,6 @@ namespace Util
 
         public static implicit operator Vector4d(Vector4f v) => new Vector4d(v.x, v.y, v.z, v.w);
         public static implicit operator Vector4d(Vector4 v) => new Vector4d(v.X, v.Y, v.Z, v.W);
-        public static implicit operator double(Vector4d v) => v.x;
 
         public static Vector4d operator +(Vector4d v1, Vector4d v2) => new Vector4d(v1.x + v2.x, v1.y + v2.y, v1.z + v2.z, v1.w + v2.w);
         public static Vector4d operator -(Vector4d v1, Vector4d v2) => v1 + (-v2);
