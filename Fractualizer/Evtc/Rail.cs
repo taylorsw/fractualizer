@@ -173,4 +173,23 @@ namespace Mandelbasic
             return ptCur;
         }
     }
+
+    public class RailLinear : RailPt
+    {
+        private readonly Vector3 ptStart, ptEnd;
+        private readonly float dtms;
+        public RailLinear(Vector3 ptStart, Vector3 ptEnd, float dtms, DgUpdatePt dgUpdatePt) : base(dgUpdatePt, float.PositiveInfinity)
+        {
+            this.ptStart = ptStart;
+            this.ptEnd = ptEnd;
+            this.dtms = dtms;
+        }
+
+        public override Vector3 PtCur()
+        {
+            float tms = Math.Min(dtmsCur, dtms);
+            float fr = tms/dtms;
+            return (1 - fr)*ptStart + fr*ptEnd;
+        }
+    }
 }
