@@ -29,7 +29,7 @@ namespace Mandelbasic
                 IsFullscreen = Renderer.fFullscreen
             };
 
-            stage = new StageMandelbulbAudioFlyover(renderForm, this, width, height);
+            stage = new StageMandelboxFlythroughAudio(renderForm, this, width, height);
             stage.Setup();
 
             renderForm.Show();
