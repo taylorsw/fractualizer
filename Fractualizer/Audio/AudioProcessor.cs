@@ -133,6 +133,10 @@ namespace Audio
 
         public event Action<FrameInfo[]> OnFrameInfoCalculated;
         public event Action<BandData> OnBandDataCalculated;
+        public float dtmsBeatInterval => tempoCur * dtmsFrame;
+        private const int cSamplePerFrame = 2048;
+        private const float dtmsSample = 1 / 44.1f;
+        private const float dtmsFrame = cSamplePerFrame*dtmsSample;
 
         private WaveOut waveOut;
 
@@ -143,13 +147,12 @@ namespace Audio
 
             try
             {
-                const int csampleFft = 2048;
                 waveOut = new WaveOut { DesiredLatency = 200 };
                 var reader = new AudioFileReader(filename);
                 var sampleProvider = reader.ToSampleProvider();
-                var aggregator = new SampleAggregator(sampleProvider, csampleFft);
+                var aggregator = new SampleAggregator(sampleProvider, cSamplePerFrame);
                 aggregator.PerformFFT = true;
-                aggregator.NotificationCount = csampleFft;
+                aggregator.NotificationCount = cSamplePerFrame;
                 aggregator.FftCalculated += OnFftCalculated;
                 waveOut.Init(aggregator);
                 waveOut.Play();

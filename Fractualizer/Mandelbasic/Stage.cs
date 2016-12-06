@@ -166,6 +166,24 @@ namespace Mandelbasic
         private class EvtcAcidHighway : EvtcAudio
         {
             private PointLight pointLightCamera;
+            private Vector3 ptOrbitTrap;
+            private RailPt railOrbitTrap;
+
+            private const float duOrbitTrap = 2f;
+            private int iptOrbitTrap;
+            private static readonly Vector3[] rgptOrbitTrap =
+            {
+                duOrbitTrap * new Vector3(1, 1, 1),
+                duOrbitTrap * new Vector3(1, 1, -1),
+                duOrbitTrap * new Vector3(1, -1, -1),
+                duOrbitTrap * new Vector3(-1, -1, -1),
+                duOrbitTrap * new Vector3(-1, 1, -1),
+                duOrbitTrap * new Vector3(-1, 1, 1),
+                duOrbitTrap * new Vector3(-1, -1, 1),
+                duOrbitTrap * new Vector3(1, -1, 1),
+            };
+
+
             public EvtcAcidHighway(Form form, Controller controller) : base(form, controller) { }
 
             protected override string StSong() => "dontletmedown.mp3";
@@ -175,7 +193,7 @@ namespace Mandelbasic
                 base.Setup();
                 pointLightCamera = new PointLight(camera.ptCamera, Vector3.One, brightness: 0.3f, fVisualize: false);
                 lightManager.AddLight(pointLightCamera);
-                camera.MoveTo(new Vector3(0.1548655f, -0.479544f, -0.5555527f));
+                camera.MoveTo(new Vector3(0.5f, -0.479544f, -0.5555527f));
             }
 
             public override void DoEvents(float dtms)
@@ -188,8 +206,24 @@ namespace Mandelbasic
                 camera.RollBy(dagd_dtms * dtms);
 
                 pointLightCamera.ptLight = camera.ptCamera;
+                railOrbitTrap?.UpdatePt(dtms);
+                ((Mandelbox) raytracer.scene.fractal)._mandelbox.ptTrap = ptOrbitTrap;
 
                 base.DoEvents(dtms);
+            }
+
+            protected override void OnBeat()
+            {
+                float dtmsBeatInterval = DtmsBeatInterval();
+                if (dtmsBeatInterval <= 0)
+                    return;
+
+                railOrbitTrap = new RailLinear(
+                    ptOrbitTrap,
+                    rgptOrbitTrap[iptOrbitTrap],
+                    dtmsBeatInterval / 8,
+                    pt => ptOrbitTrap = pt);
+                iptOrbitTrap = (iptOrbitTrap + 1)%rgptOrbitTrap.Length;
             }
         }
     }

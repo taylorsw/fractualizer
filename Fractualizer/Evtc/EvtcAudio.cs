@@ -16,6 +16,8 @@ namespace Mandelbasic
         }
 
         protected abstract string StSong();
+        protected virtual void OnBeat() { }
+        protected float DtmsBeatInterval() => processor.dtmsBeatInterval;
         public override void Setup()
         {
             base.Setup();
@@ -24,16 +26,9 @@ namespace Mandelbasic
 
         public override void DoEvents(float dtms)
         {
-            bool fBeat = processor.fBeat;
-            if (!fBeat)
+            if (processor.fBeat)
             {
-                return;
-            }
-
-            for (int i = 1; i < lightManager.clight; i++)
-            {
-                var light = lightManager[i];
-                light.rgbLight = Vector3.One - light.rgbLight;
+                OnBeat();
             }
         }
     }
