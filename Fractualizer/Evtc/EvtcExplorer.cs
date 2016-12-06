@@ -56,9 +56,7 @@ namespace Mandelbasic
                     ptInitial: rand.VkUnitRand() * 2,
                     vkNormal: rand.VkUnitRand(),
                     dtmsRevolution: rand.NextFloat(5000, 10000),
-                    duHoverMin: duCutoffBallLight/5, 
-                    duHoverMax: duCutoffBallLight/5, 
-                    sfTravelMax: 10.0f);
+                    duHover: duCutoffBallLight/5);
                 rgrailHoverBallLight[iballlight] = railHover;
             }
 

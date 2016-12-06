@@ -112,8 +112,8 @@ namespace Mandelbasic
     public class RailHover : RailOrbit
     {
         private readonly Fractal3d fractal;
-        private readonly float sfTravelMax, duHoverMin, duHoverMax;
-        private float dtmsPrev, duAdjustPrev;
+        private readonly float duHover, duduAdjustMax, dududuAdjustMax;
+        private float dtmsPrev, duAdjustPrev, duduAdjustPrev;
 
         public RailHover(
             DgUpdatePt dgUpdatePt, 
@@ -122,17 +122,16 @@ namespace Mandelbasic
             Vector3 ptInitial,
             Vector3 vkNormal,
             float dtmsRevolution,
-            float duHoverMin, // the minimum distance the point will hover above the fractal - guaranteed
-            float duHoverMax, // the maximum distance the point will hover above the fractal - best attempt
-            float sfTravelMax // determines the maximum speed the hover will climb/drop relative to its orbiting speed
+            float duHover, // the distance the point will hover above the fractal - best attempt
+            float duduAdjustMax = float.PositiveInfinity, // the max velocity the point will towards/away from the fractal
+            float dududuAdjustMax = float.PositiveInfinity // the max acceleration the point can have
             ) : base(dgUpdatePt, ptCenter, ptInitial, vkNormal, dtmsRevolution)
         {
             this.fractal = fractal;
-            this.duHoverMin = duHoverMin;
-            this.duHoverMax = duHoverMax;
-            Debug.Assert(sfTravelMax >= 1.0);
-            this.sfTravelMax = sfTravelMax;
             this.dtmsPrev = duAdjustPrev = 0;
+            this.duHover = duHover;
+            this.duduAdjustMax = Math.Abs(duduAdjustMax);
+            this.dududuAdjustMax = Math.Abs(dududuAdjustMax);
         }
 
         public override void UpdateDtms(float dtms)
@@ -142,34 +141,34 @@ namespace Mandelbasic
         }
 
         private Vector3 AdjustedTowardsCenter(Vector3 pt, float duAdjust) => pt + (pt - ptCenter).Normalized()*duAdjust;
+        public Vector3 PtPrev() => AdjustedTowardsCenter(PtFromDtms(dtmsPrev), duAdjustPrev);
 
         public override Vector3 PtCur()
         {
-            Vector3 ptPrev = AdjustedTowardsCenter(PtFromDtms(dtmsPrev), duAdjustPrev);
             Vector3 ptCur = AdjustedTowardsCenter(PtFromDtms(dtmsCur), duAdjustPrev);
             double duDE = fractal.DuDeFractalOrCache(ptCur);
 
-            // Calculate distance we will travel along that arc
-            float duOrbitTravel = sfTravelMax * (ptPrev - ptCur).Length();
-
             // Calculate the maximum amount we should adjust the location towards the center of the fractal
-            float duAdjustMax = duHoverMax - (float)duDE;
-            int sign = Math.Sign(duAdjustMax);
-            float duAdjustMaxAbs = Math.Abs(duAdjustMax);
+            float duduAdjust = duHover - (float)duDE;
+            int sign = Math.Sign(duduAdjust);
 
-            // Computes the final hover adjustment. 
-            // Can be less than the amount needed to bring the point to within duHoverMax
-            // However, it will always ensure that the point is not closer than duHoverMin
-            float duAdjustFinal =
-                sign *
-                    (duAdjustMaxAbs > duOrbitTravel
-                        ? sign < 0
-                            ? duOrbitTravel
-                            : duOrbitTravel < duHoverMin ? duHoverMin : duOrbitTravel
-                        : duAdjustMaxAbs);
+            float dududuAdjust = Math.Abs(duduAdjust - duduAdjustPrev);
+            if (dududuAdjust > dududuAdjustMax)
+            {
+                dududuAdjust = dududuAdjustMax;
+                if (duduAdjust > duduAdjustPrev)
+                    duduAdjust = duduAdjustPrev + dududuAdjust;
+                else
+                    duduAdjust = duduAdjustPrev - dududuAdjust;
+            }
 
-            ptCur = AdjustedTowardsCenter(ptCur, duAdjustFinal);
-            duAdjustPrev += duAdjustFinal;
+            if (Math.Abs(duduAdjust) > duduAdjustMax)
+                duduAdjust = duduAdjustMax * sign;
+
+            ptCur = AdjustedTowardsCenter(ptCur, duduAdjust);
+            duAdjustPrev += duduAdjust;
+            duduAdjustPrev = duduAdjust;
+
             return ptCur;
         }
     }

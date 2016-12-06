@@ -80,6 +80,7 @@ namespace Mandelbasic
 
                 lightManager.AddLight(new PointLight(new Vector3f(2, 0, -1), Vector3.One, brightness: 0.05f, fVisualize: false));
 
+                const float duHover = 0.6f;
                 railCam = new RailHover(
                     pt => camera.MoveTo(pt),
                     scene.fractal,
@@ -87,9 +88,9 @@ namespace Mandelbasic
                     ptInitial: camera.ptCamera,
                     vkNormal: scene.rand.VkUnitRand(),
                     dtmsRevolution: 20000,
-                    duHoverMin: 0.2f,
-                    duHoverMax: 0.5f,
-                    sfTravelMax: 3);
+                    duHover: duHover,
+                    duduAdjustMax: duHover / 5,
+                    dududuAdjustMax: duHover / 10);
 
                 rgrailHoverBallLight = new RailHover[cballlight];
                 for (int iballlight = 0; iballlight < cballlight; iballlight++)
@@ -104,9 +105,7 @@ namespace Mandelbasic
                         ptInitial: rand.VkUnitRand() * 2,
                         vkNormal: rand.VkUnitRand(),
                         dtmsRevolution: rand.NextFloat(5000, 10000),
-                        duHoverMin: duCutoffBallLight / 5,
-                        duHoverMax: duCutoffBallLight / 5,
-                        sfTravelMax: 10.0f);
+                        duHover: duCutoffBallLight / 5);
                     rgrailHoverBallLight[iballlight] = railHover;
                 }
             }
