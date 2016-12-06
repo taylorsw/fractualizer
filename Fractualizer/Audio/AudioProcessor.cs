@@ -128,8 +128,8 @@ namespace Audio
             private set { lock (this) { fBeatI = value; } }
         }
 
-        public float a = 8;
-        public float b = -10f;
+        public float a = 6;
+        public float b = -1000f;
 
         public event Action<FrameInfo[]> OnFrameInfoCalculated;
         public event Action<BandData> OnBandDataCalculated;
@@ -231,13 +231,13 @@ namespace Audio
                 cFrameSinceBeat = (cFrameSinceBeat + 1)%tempoCur;
             }
 
-            //bool fCurrentBeat = fFoundBeat && cFrameSinceBeat == 0;
+            bool fCurrentBeat = fFoundBeat && cFrameSinceBeat == 0;
             //bool fCurrentBeat = beats[iBandBest];
-            //bool fCurrentBeat = beats.Contains(true);
-            bool fCurrentBeat = beats[0];
             if (fCurrentBeat)
                 this.fBeat = true;
 
+            //bool fCurrentBeat = beats.Contains(true);
+            //bool fCurrentBeat = beats[0];
             bandDataAvg.AddFrameInfo(new FrameInfo(0, 0, fCurrentBeat));
             OnFrameInfoCalculated?.Invoke(rgframeInfo);
             OnBandDataCalculated?.Invoke(bandDataAvg);

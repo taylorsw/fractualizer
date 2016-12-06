@@ -147,6 +147,8 @@ namespace Mandelbasic
 
                 camera.LookAt(Vector3.Zero);
                 camera.RotateCamera(camera.vkCameraRight, MathUtil.DegreesToRadians(10));
+
+                base.DoEvents(dtms);
             }
         }
     }
@@ -187,6 +189,8 @@ namespace Mandelbasic
                 camera.RollBy(dagd_dtms * dtms);
 
                 pointLightCamera.ptLight = camera.ptCamera;
+
+                base.DoEvents(dtms);
             }
         }
     }
