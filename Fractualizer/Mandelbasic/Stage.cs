@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.Windows.Forms;
 using Audio;
 using Evtc;
@@ -50,7 +51,7 @@ namespace Mandelbasic
 
         public StageMandelbulbAudioFlyover(Form form, Controller controller, int width, int height)
         {
-            raytracer = new RaytracerFractal(new Scene(new Mandelbulb()), width, height);
+            raytracer = new RaytracerFractal(new Scene(new Mandelbulb(), seed: 102), width, height);
             evtc = new EvtcMandelbulbAnim(form, controller);
         }
 
@@ -64,7 +65,7 @@ namespace Mandelbasic
         {
             private RailHover railCam;
 
-            const int cballlight = 20;
+            const int cballlight = 25;
             const float duCutoffBallLight = 0.3f;
             private RailHover[] rgrailHoverBallLight;
 
@@ -79,7 +80,7 @@ namespace Mandelbasic
                 camera.MoveTo(new Vector3(0, 0, -1.5f));
                 camera.LookAt(Vector3.Zero);
 
-                lightManager.AddLight(new PointLight(new Vector3f(2, 0, -1), Vector3.One, brightness: 0.05f, fVisualize: false));
+                lightManager.AddLight(new PointLight(new Vector3f(2, 0, -1), Vector3.One, brightness: 0.4f, fVisualize: false));
 
                 const float duHover = 0.6f;
                 railCam = new RailHover(
@@ -96,7 +97,9 @@ namespace Mandelbasic
                 rgrailHoverBallLight = new RailHover[cballlight];
                 for (int iballlight = 0; iballlight < cballlight; iballlight++)
                 {
-                    BallLight ballLight = new BallLight(rand.VkUnitRand() * 2.0f, new Vector3(0, rand.NextFloat(0.2f, 1.0f), rand.NextFloat(0.2f, 1.0f)), duCutoffBallLight, brightness: 1.5f, fVisualize: false);
+                    BallLight ballLight = new BallLight(rand.VkUnitRand()*2.0f,
+                        new Vector3(0, rand.NextFloat(0.2f, 1.0f), rand.NextFloat(0.2f, 1.0f)), duCutoffBallLight,
+                        brightness: rand.NextFloat(1.5f, 2.5f), fVisualize: false);
                     lightManager.AddLight(ballLight);
 
                     RailHover railHover = new RailHover(
@@ -154,7 +157,7 @@ namespace Mandelbasic
             protected override void OnBeat()
             {
                 base.OnBeat();
-                for (int ilight = 1; ilight < lightManager.clight; ilight++)
+                for (int ilight = 2; ilight < lightManager.clight; ilight++)
                 {
                     lightManager[ilight].rgbLight = new Vector3(1, 1, 1) - lightManager[ilight].rgbLight;
                 }
@@ -347,6 +350,8 @@ namespace Mandelbasic
             private PointLight pointLightCamera;
             private Vector3 ptOrbitTrap;
             private RailPt railOrbitTrap;
+            private RailBounceBetween railSf;
+            private Mandelbox mandelbox => (Mandelbox) scene.fractal;
 
             private StageMandelbulbAudioCloseup.Sptl[] rgsptl;
 
@@ -367,7 +372,7 @@ namespace Mandelbasic
 
             public EvtcAcidHighway(Form form, Controller controller) : base(form, controller) { }
 
-            protected override string StSong() => "dontletmedown.mp3";
+            protected override string StSong() => "faded.mp3";
 
             private Vector3 VkSpotlight() => new Vector3(-1, rand.NextFloat(-1, 1), rand.NextFloat(-1, 1)).Normalized();
             public override void Setup()
@@ -409,6 +414,8 @@ namespace Mandelbasic
                 }
 
                 camera.MoveTo(new Vector3(0.5f, -0.479544f, -0.5555527f));
+
+                railSf = new RailBounceBetween(rand.NextFloat(1, 2) * 7000, 2, 1.8f, 2.33f);
             }
 
             public override void DoEvents(float dtms)
@@ -422,11 +429,17 @@ namespace Mandelbasic
 
                 pointLightCamera.ptLight = camera.ptCamera;
                 railOrbitTrap?.UpdatePt(dtms);
-                ((Mandelbox) raytracer.scene.fractal)._mandelbox.ptTrap = ptOrbitTrap;
+                mandelbox._mandelbox.ptTrap = ptOrbitTrap;
 
                 foreach (StageMandelbulbAudioCloseup.Sptl sptl in rgsptl)
                 {
                     sptl.Update(du_dtms, camera.ptCamera);
+                }
+
+                if (fDrop)
+                {
+                    railSf.UpdateValue(dtms);
+                    mandelbox._mandelbox.sf = railSf.val;
                 }
 
                 base.DoEvents(dtms);

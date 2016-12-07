@@ -191,4 +191,29 @@ namespace Mandelbasic
             return (1 - fr)*ptStart + fr*ptEnd;
         }
     }
+
+    public class RailBounceBetween : Rail
+    {
+        private readonly float valMin, valMax, duval_dtms;
+        public float val { get; private set; }
+        public RailBounceBetween(float dtmsRevolution, float valInitial, float valMin, float valMax) : base(dtmsRevolution)
+        {
+            this.valMin = valMin;
+            this.valMax = valMax;
+            this.val = valInitial;
+            Debug.Assert(val >= valMin && val <= valMax);
+            duval_dtms = Math.Abs(valMax - valMin) / dtmsRevolution;
+        }
+
+        private int sign = 1;
+        public void UpdateValue(float dtms)
+        {
+            UpdateDtms(dtms);
+            if (val > valMax)
+                sign = -1;
+            else if (val < valMin)
+                sign = 1;
+            val += sign*duval_dtms*dtms;
+        }
+    }
 }
