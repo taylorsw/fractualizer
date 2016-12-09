@@ -29,7 +29,7 @@ namespace Mandelbasic
             }
         }
 
-        protected abstract string StSong();
+        public abstract string StSong();
         protected virtual void OnBeat() { }
         protected virtual void OnDropBegin() { }
         protected virtual void OnDropEnd() { }
