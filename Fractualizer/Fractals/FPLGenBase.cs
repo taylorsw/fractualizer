@@ -12,6 +12,7 @@ namespace Fractals
 
         protected virtual void InitializeBuffer(Device device, DeviceContext deviceContext) { }
         protected virtual void UpdateBuffer(Device device, DeviceContext deviceContext) { }
+        protected virtual bool FDirty() { return false; }
 
         public virtual void Initialize(Device device, DeviceContext deviceContext)
         {

@@ -203,7 +203,7 @@ namespace CodeGen
                         Losa losaInputClass = LosaInputClass(stRaytracerClassName, raytracer.inputs(), out stInputClassName, out stInputClassMemberName);
                         Losa losaStructMemberAndBuffer = LosaClassMemberAndBuffer(stInputClassName, stInputClassMemberName);
                         //Losa losaConstructor = LneNew("public " + stRaytracerClassName + "(Scene scene, int width, int height) : base(scene, width, height) { " + stInputClassMemberName + " = new " + stInputClassName + "(); }");
-                        Losa losaBufferMethods = LosaBufferMethods(stInputClassMemberName, GenU.ibufferRaytracer);
+                        Losa losaBufferMethods = LosaBufferMethods(stInputClassMemberName, GenU.ibufferRaytracer, fNeedDirtyCheck: false);
                         Losa losaGlobals = LosaGlobals(raytracer.global());
                         Losa losaTracer = VisitTracer(raytracer.tracer());
                         return losaInputClass + losaStructMemberAndBuffer + losaBufferMethods + LneNew() + losaGlobals + losaTracer;
@@ -255,13 +255,16 @@ namespace CodeGen
                    VisitIdentifier(input.identifier());
         }
 
+        private string StMarkChanged() => "fSynced = false;";
+
         private Losa LosaDefaultValueForInput(FPLParser.InputContext input)
         {
             FPLParser.ArrayDeclContext arrayDecl = input.arrayDecl();
             if (arrayDecl != null)
             {
                 Ipt ipt = _fplPreProcessor.mpinput_ipt[input];
-                return "new " + LosaPaddedArray(input) + "(rgbyte, " + ipt.ibyteOffset.ToString() + ", " + VisitExpr(arrayDecl.expr()) + ");";
+                return "new " + LosaPaddedArray(input) + "(rgbyte, " + ipt.ibyteOffset.ToString() + ", " +
+                       VisitExpr(arrayDecl.expr()) + ", dgDirty: () => {" + StMarkChanged() + "});";
             }
 
             return (input.literal() == null
@@ -286,7 +289,7 @@ namespace CodeGen
             using (idtrCur.New())
             {
                 losaField += LneNew("get { return ") + LosaPaddedArray(input) + ".ValFromRgbyte(rgbyte, " + ipt.ibyteOffset.ToString() + "); } ";
-                losaField += LneNew("set { ") + LosaPaddedArray(input) + ".SetVal(rgbyte, " + ipt.ibyteOffset.ToString() + ", value); } ";
+                losaField += LneNew("set { " + StMarkChanged() + " ") + LosaPaddedArray(input) + ".SetVal(rgbyte, " + ipt.ibyteOffset.ToString() + ", value); } ";
             }
             losaField += LneNew("}");
 
@@ -310,6 +313,8 @@ namespace CodeGen
                 LneNew("{");
             using (idtrCur.New())
             {
+                losaInputClass += LneNew("internal bool fDirty, fSynced;");
+
                 Losa losaRgbyte = LneNew("internal readonly byte[] rgbyte = new byte[" + _fplPreProcessor.cbyteInputsTotal + "];");
 
                 losaInputClass += losaRgbyte;
@@ -377,7 +382,7 @@ namespace CodeGen
             return losaClassMemberAndBuffer;
         }
 
-        private Losa LosaBufferMethods(string stStructMemberName, int ibuffer)
+        private Losa LosaBufferMethods(string stStructMemberName, int ibuffer, bool fNeedDirtyCheck)
         {
             Losa losaInitializeBuffer =
                 LneNew("protected override void InitializeBuffer(Device device, DeviceContext deviceContext)") +
@@ -394,10 +399,20 @@ namespace CodeGen
                 LneNew("protected override void UpdateBuffer(Device device, DeviceContext deviceContext)") + LneNew("{");
             using (idtrCur.New())
             {
+                losaUpdateBuffer += LneNew("if (" + stStructMemberName + ".fSynced) return;");
+                losaUpdateBuffer += LneNew(stStructMemberName + ".fSynced = true;");
                 losaUpdateBuffer +=
                     LneNew("U.UpdateBuffer(device, deviceContext, buffer, " + stStructMemberName + ".rgbyte);");
             }
             losaUpdateBuffer += LneNew("}");
+
+            if (fNeedDirtyCheck)
+            {
+                Losa losaFDirty =
+                    LneNew("protected override bool FDirty() { return " + stStructMemberName + ".fDirty; }");
+                losaBufferMethods += losaFDirty;
+            }
+
             losaBufferMethods += losaUpdateBuffer;
             return losaBufferMethods;
         }
@@ -432,7 +447,7 @@ namespace CodeGen
             losaClassConstructorVerbose += LneNew("}");
             losaClassBody += losaClassConstructorVerbose;
 
-            losaClassBody += LosaBufferMethods(stInputClassMemberName, GenU.ibufferFractal);
+            losaClassBody += LosaBufferMethods(stInputClassMemberName, GenU.ibufferFractal, fNeedDirtyCheck: true);
 
 
             Dictionary<string, List<FPLParser.InputContext>> mpstType_rginput = new Dictionary<string, List<FPLParser.InputContext>>(rginput.Length);
@@ -503,7 +518,7 @@ namespace CodeGen
 
         public override Losa VisitDistanceEstimator(FPLParser.DistanceEstimatorContext distanceEstimator)
         {
-            Losa losa = LneNew("protected internal override double DuDeFractal(Vector3d pos)") + VisitBlock(distanceEstimator.block());
+            Losa losa = LneNew("public override double DuDeFractal(Vector3d pos)") + VisitBlock(distanceEstimator.block());
             return losa;
         }
 

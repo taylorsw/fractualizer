@@ -8,36 +8,7 @@ namespace Fractals
     public abstract class Fractal3d : FPLGenBase
     {
         #region Distance Estimation
-        private const int cduCacheMax = 20;
-        private readonly Dictionary<Vector3d, double> mppt_duDe = new Dictionary<Vector3d, double>(cduCacheMax);
-        private Queue<Vector3d> rgpt = new Queue<Vector3d>(cduCacheMax);
-        private int cduCache = 0;
-        public double DuDeFractalOrCache(Vector3d pt)
-        {
-            //Debug.WriteLine("cache size: " + cduCache);
-            double duDeCached;
-            if (mppt_duDe.TryGetValue(pt, out duDeCached))
-            {
-                //Debug.WriteLine("cache hit");
-                return duDeCached;
-            }
-
-            if (cduCache == cduCacheMax)
-            {
-                cduCache--;
-                Vector3d ptRemoved = rgpt.Dequeue();
-                bool fRemoved = mppt_duDe.Remove(ptRemoved);
-                Debug.Assert(fRemoved);
-            }
-
-            double duDe = DuDeFractal(pt);
-            mppt_duDe[pt] = duDe;
-            rgpt.Enqueue(pt);
-            cduCache++;
-
-            return duDe;
-        }
-        protected internal abstract double DuDeFractal(Vector3d pt);
+        public abstract double DuDeFractal(Vector3d pt);
         #endregion
 
         #region Inputs

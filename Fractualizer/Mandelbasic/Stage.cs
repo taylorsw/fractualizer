@@ -51,7 +51,7 @@ namespace Mandelbasic
 
         public StageMandelbulbAudioFlyover(Form form, Controller controller, int width, int height)
         {
-            raytracer = new RaytracerFractal(new Scene(new Mandelbulb(), seed: 696969), width, height);
+            raytracer = new RaytracerFractal(new Scene(new Mandelbulb(), seed: 6969), width, height);
             evtc = new EvtcMandelbulbAnim(form, controller);
         }
 

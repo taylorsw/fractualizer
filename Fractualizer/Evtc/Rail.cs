@@ -146,7 +146,7 @@ namespace Mandelbasic
         public override Vector3 PtCur()
         {
             Vector3 ptCur = AdjustedTowardsCenter(PtFromDtms(dtmsCur), duAdjustPrev);
-            double duDE = fractal.DuDeFractalOrCache(ptCur);
+            double duDE = fractal.DuDeFractal(ptCur);
 
             // Calculate the maximum amount we should adjust the location towards the center of the fractal
             float duduAdjust = duHover - (float)duDE;

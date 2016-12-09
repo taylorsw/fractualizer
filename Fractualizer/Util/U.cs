@@ -136,11 +136,12 @@ namespace Util
 
     public class PaddedArray<T> where T : struct
     {
+        private Action dgDirty;
         private readonly byte[] rgbyte;
         private readonly int ibyteStart, cbyteTWithPad;
         public readonly int cvalArray;
 
-        public PaddedArray(byte[] rgbyte, int ibyteStart, int cvalArray, int cbytePaddedTo = 16)
+        public PaddedArray(byte[] rgbyte, int ibyteStart, int cvalArray, Action dgDirty = null, int cbytePaddedTo = 16)
         {
             this.rgbyte = rgbyte;
             this.ibyteStart = ibyteStart;
@@ -170,7 +171,7 @@ namespace Util
         public T this[int ival]
         {
             get { return ValFromRgbyte(rgbyte, IbyteIndex(ival)); }
-            set { SetVal(rgbyte, IbyteIndex(ival), value); }
+            set { dgDirty?.Invoke(); SetVal(rgbyte, IbyteIndex(ival), value); }
         }
 
         public static T ValFromRgbyte(byte[] rgbyte, int ibyteOffset)
