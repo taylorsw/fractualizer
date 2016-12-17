@@ -11,12 +11,6 @@ namespace Mandelbasic
 {
     public class EvtcExplorer : EvtcUserDecode
     {
-        const int cballlight = 20;
-        private RailHover[] rgrailHoverBallLight;
-        private RailSpotlight railSpotlight;
-        private SpotLight spotlight;
-
-        const float duCutoffBallLight = 0.3f;
         public EvtcExplorer(Form form, Controller controller) : base(form, controller)
         {
             Cursor.Hide();
@@ -42,31 +36,6 @@ namespace Mandelbasic
 
             lightManager.RemoveAllLights();
             lightManager.AddLight(new PointLight(new Vector3f(2, 0, -1), ColorU.rgbWhite, fVisualize: false));
-
-            rgrailHoverBallLight = new RailHover[cballlight];
-            for (int iballlight = 0; iballlight < cballlight; iballlight++)
-            {
-                BallLight ballLight = new BallLight(rand.VkUnitRand() * 2.0f, rand.VkUnitRand(), duCutoffBallLight);
-                lightManager.AddLight(ballLight);
-
-                RailHover railHover = new RailHover(
-                    dgUpdatePt: pt => ballLight.ptLight = pt,
-                    fractal: scene.fractal,
-                    ptCenter: Vector3.Zero,
-                    ptInitial: rand.VkUnitRand() * 2,
-                    vkNormal: rand.VkUnitRand(),
-                    dtmsRevolution: rand.NextFloat(5000, 10000),
-                    duHover: duCutoffBallLight/5);
-                rgrailHoverBallLight[iballlight] = railHover;
-            }
-
-//            spotlight = new SpotLight(camera.ptCamera, Vector3.One, Vector3.One, 4);
-//            lightManager.AddLight(spotlight);
-//            railSpotlight = new RailSpotlight(
-//                dgUpdateVkSpotlight: vk => spotlight.vkLight = vk,
-//                agdRadius: 50,
-//                vkNormal: camera.vkCamera,
-//                dtmsRevolution: 1500);
         }
 
         private void CenterCursor()
@@ -126,24 +95,12 @@ namespace Mandelbasic
             }
         }
 
-        private void DimBallLights(float dbrightness)
-        {
-            for (int iballlight = 0; iballlight < cballlight; iballlight++)
-                lightManager[iballlight + 1].brightness += dbrightness;
-        }
-
         private const float frMoveBase = 0.1f;
         private const float dagdRoll = (float)360/(60*4);
         public override void DoEvents(float dtms)
         {
             if (fLightFollows)
                 lightManager[0].ptLight = camera.ptCamera;
-
-            foreach (RailHover railHover in rgrailHoverBallLight)
-                railHover.UpdatePt(dtms);
-
-            //railSpotlight.UpdateVkSpotlight(dtms);
-            //spotlight.ptLight = camera.ptCamera;
 
             float frMove = frMoveBase;
             if (IsKeyDown(Keys.ShiftKey))
@@ -179,10 +136,6 @@ namespace Mandelbasic
                 lightManager[0].brightness -= dbrightnessDim;
             if (IsKeyDown(Keys.NumPad8))
                 lightManager[0].brightness += dbrightnessDim;
-            if (IsKeyDown(Keys.NumPad4))
-                DimBallLights(-0.01f);
-            if (IsKeyDown(Keys.NumPad5))
-                DimBallLights(0.01f);
 
             const float dsf = 0.01f;
             if (IsKeyDown(Keys.NumPad1))

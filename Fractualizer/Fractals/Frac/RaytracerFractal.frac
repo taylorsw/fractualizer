@@ -13,6 +13,9 @@ float fogA;
 v2 rsScreen;
 v2 rsViewPlane;
 
+// Marching
+int cmarch = 200;
+
 // Color
 float sfR = 0.0;
 float sfG = 1.0;
@@ -38,7 +41,6 @@ raytracer RaytracerFractal
 	global int LID_BALLLIGHT = 1;
 	global int LID_SPOTLIGHT = 2;
 
-	global int cmarch = 140;
 	global v3 ptOrigin = v3(0, 0, 0);
 
 	float DuDeSphere(v3 ptPos, v3 ptCenter, float duRadius)
@@ -119,7 +121,7 @@ raytracer RaytracerFractal
 		idHit = -1;
 		duEpsilon = -1;
 		float duTotal = 0;
-		for (int i = 0; i < cmarch; ++i)
+		for (int i = 0; i < inputs.cmarch; ++i)
 		{
 			idHit = ID_FRACTAL;
 			float du = 0.999 * 
@@ -153,10 +155,10 @@ raytracer RaytracerFractal
 	v3 ColorAO(v3 color, float steps)
 	{
 		// ambient occlusion
-		// return color * (1 - (0.5 * (1 - (steps / cmarch)))); // cool effect
-		// float base = cmarch;
+		// return color * (1 - (0.5 * (1 - (steps / inputs.cmarch)))); // cool effect
+		// float base = inputs.cmarch;
 		// v3 colorAO = color * (1 - 0.3 * (1 - (log(steps) / log(base)) / base));
-		v3 colorAO = color * (1 - (steps / cmarch));
+		v3 colorAO = color * (1 - (steps / inputs.cmarch));
 		return colorAO;
 	}
 

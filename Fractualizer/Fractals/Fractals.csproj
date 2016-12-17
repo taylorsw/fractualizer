@@ -42,6 +42,9 @@
     <Reference Include="SharpDX.D3DCompiler">
       <HintPath>..\..\Tools\SharpDX\Bin\Desktop\SharpDX.D3DCompiler.dll</HintPath>
     </Reference>
+    <Reference Include="SharpDX.Direct2D1">
+      <HintPath>..\..\Tools\SharpDX\Bin\Desktop\SharpDX.Direct2D1.dll</HintPath>
+    </Reference>
     <Reference Include="SharpDX.Direct3D11">
       <HintPath>..\..\Tools\SharpDX\Bin\Desktop\SharpDX.Direct3D11.dll</HintPath>
     </Reference>
@@ -113,6 +116,11 @@
     <EmbeddedResource Include="ShadersKludge\vertexShader.hlsl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Textures\skysphere.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Target Name="AfterClean">
     <Exec Command="rmdir /s /q $(OutDir)_gen" ContinueOnError="true" />

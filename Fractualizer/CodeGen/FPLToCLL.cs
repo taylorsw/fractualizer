@@ -161,6 +161,14 @@ namespace CodeGen
             return losaBlock;
         }
 
+        public virtual bool FCompilesOptionalBlocks() { return false; }
+        public sealed override Losa VisitOptionalBlock(FPLParser.OptionalBlockContext context)
+        {
+            if (!FCompilesOptionalBlocks())
+                return "";
+            return base.VisitOptionalBlock(context);
+        }
+
         public override Losa VisitStat(FPLParser.StatContext stat)
         {
             Losa losaStat = base.VisitStat(stat);

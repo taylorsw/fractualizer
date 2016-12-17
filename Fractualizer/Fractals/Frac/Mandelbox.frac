@@ -1,5 +1,15 @@
-﻿v3 ptTrap;
+﻿// Orbit trapping
+v3 ptTrap;
+
+// Morphing
 float sf = 2;
+
+// Additional morphing
+bool fAdjustAdditional;
+float duMirrorPlane = 1;
+float sfRollx = 1;
+float sfSin = 1;
+
 fractal Mandelbox
 {
 	void sphereFold(ref v3 z, ref float dz)
@@ -77,10 +87,18 @@ fractal Mandelbox
 		return DuPt(pt, inputs.ptTrap);
 	}
 
+	global float duAdjust = 1.0;
 	v3 PtAdjusted(v3 pt)
 	{
-		float duAdjust = 1.0;
- 		pt = v3(pt.x%duAdjust + duAdjust/2, pt.y, pt.z);
+		if (inputs.fAdjustAdditional)
+		{
+			pt.y = inputs.duMirrorPlane - abs(inputs.duMirrorPlane - pt.y);
+			pt = v3(pt.x%duAdjust + duAdjust/2, pt.y + sin(pt.x + inputs.sfRollx) * pt.z * inputs.sfSin, pt.z);
+		}
+		else
+		{
+			pt = v3(pt.x%duAdjust + duAdjust/2, pt.y, pt.z);
+		}
 		return pt * SfNormalizing();
 	}
 

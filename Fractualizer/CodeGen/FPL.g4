@@ -30,13 +30,15 @@ arglist : arg?
 		;
 arg : argMod? type identifier ;
 argMod : 'ref' | 'out' ;
-
 block : '{' blockStat* '}' ;
 
 blockStat 
 	: localDecl ';'
 	| stat
+	| optionalBlock
 	;
+	
+optionalBlock : 'OPTIONAL' '{' blockStat* '}' ;
 
 localDecl : (type identifier ('=' expr)?) | (type identifier arrayDecl+);
 arrayDecl : '[' expr ']' ;

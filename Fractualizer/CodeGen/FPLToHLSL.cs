@@ -76,6 +76,11 @@ namespace CodeGen
             return Visit(fractalAccess.children[fractalAccess.ChildCount - 1]);
         }
 
+        public override bool FCompilesOptionalBlocks()
+        {
+            return true;
+        }
+
         private Losa LosaVisitGlobals(FPLParser.GlobalContext[] rgglobal)
         {
             Losa losaGlobals = LneNew();

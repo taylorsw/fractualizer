@@ -35,9 +35,13 @@
     <Reference Include="SharpDX">
       <HintPath>..\..\Tools\SharpDX\Bin\Desktop\SharpDX.dll</HintPath>
     </Reference>
+    <Reference Include="SharpDX.Direct2D1">
+      <HintPath>..\..\Tools\SharpDX\Bin\Desktop\SharpDX.Direct2D1.dll</HintPath>
+    </Reference>
     <Reference Include="SharpDX.Direct3D11">
       <HintPath>..\..\Tools\SharpDX\Bin\Desktop\SharpDX.Direct3D11.dll</HintPath>
     </Reference>
+    <Reference Include="SharpDX.DXGI, Version=3.0.2.0, Culture=neutral, PublicKeyToken=b4dcf0f35e5521f1" />
     <Reference Include="SharpDX.Mathematics">
       <HintPath>..\..\Tools\SharpDX\Bin\Desktop\SharpDX.Mathematics.dll</HintPath>
     </Reference>

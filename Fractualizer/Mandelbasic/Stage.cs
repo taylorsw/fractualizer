@@ -42,6 +42,12 @@ namespace Mandelbasic
             raytracer = new RaytracerFractal(new Scene(new Mandelbox()), width, height);
             evtc = new EvtcExplorer(form, controller);
         }
+
+        public override void Setup()
+        {
+            raytracer._raytracerfractal.cmarch = 200;
+            base.Setup();
+        }
     }
 
     public class StageMandelbulbAudioFlyover : Stage
@@ -334,6 +340,78 @@ namespace Mandelbasic
         }
     }
 
+    public class StageMandelboxWaveFlythrough : Stage
+    {
+        public override RaytracerFractal raytracer { get; }
+        public override Evtc evtc { get; }
+
+        public StageMandelboxWaveFlythrough(Form form, Controller controller, int width, int height)
+        {
+            evtc = new EvtcWave(form, controller);
+            raytracer = new RaytracerFractal(new Scene(new Mandelbox(), ((EvtcAudio) evtc).StSong().GetHashCode()),
+                width, height);
+        }
+
+        private class EvtcWave : EvtcAudio
+        {
+            private PointLight pointLightCamera;
+            private RailBounceBetween railSf;
+            private Mandelbox mandelbox => scene.fractal as Mandelbox;
+            public EvtcWave(Form form, Controller controller) : base(form, controller)
+            {
+            }
+
+            public override string StSong() => "closer.mp3";
+
+            public override void Setup()
+            {
+                base.Setup();
+                raytracer._raytracerfractal.cmarch = 200;
+                camera.MoveTo(new Vector3(0, mandelbox._mandelbox.duMirrorPlane, 0));
+                camera.LookAt(camera.ptCamera - new Vector3(1, 0, 0));
+                pointLightCamera = new PointLight(camera.ptCamera, Vector3.One, 0.4f, false);
+                lightManager.AddLight(pointLightCamera);
+                railSf = new RailBounceBetween(rand.NextFloat(1, 2) * 3000, 2, 1.5f, 5f);
+            }
+
+            public override void DoEvents(float dtms)
+            {
+                base.DoEvents(dtms);
+                const float dxCamera_dtms = 2/3000f;
+                camera.MoveTo(camera.ptCamera - new Vector3(dxCamera_dtms * dtms, 0, 0));
+
+                const float dagRoll_dtms = 36f/2000;
+                camera.RollBy(dagRoll_dtms * dtms);
+
+                pointLightCamera.ptLight = camera.ptCamera;
+
+                const float duXroll_dtms = 1/3000f;
+                mandelbox._mandelbox.sfRollx -= duXroll_dtms*dtms;
+
+                if (fDrop)
+                {
+                    railSf.UpdateValue(dtms);
+                    mandelbox._mandelbox.sf = railSf.val;
+                }
+            }
+
+            protected override void OnDropBegin()
+            {
+                base.OnDropBegin();
+            }
+
+            protected override void OnDropEnd()
+            {
+                base.OnDropEnd();
+            }
+
+            protected override void OnBeat()
+            {
+                base.OnBeat();
+            }
+        }
+    }
+
     public class StageMandelboxFlythroughAudio: Stage
     {
         public override RaytracerFractal raytracer { get; }
@@ -358,34 +436,34 @@ namespace Mandelbasic
             private const float duOrbitTrap = 2f;
             private int iptOrbitTrap;
             private Vector3[] rgptOrbitTrap;
-//                =
-//            {
-//                duOrbitTrap * new Vector3(1, 1, 1),
-//                duOrbitTrap * new Vector3(1, 1, -1),
-//                duOrbitTrap * new Vector3(1, -1, -1),
-//                duOrbitTrap * new Vector3(-1, -1, -1),
-//                duOrbitTrap * new Vector3(-1, 1, -1),
-//                duOrbitTrap * new Vector3(-1, 1, 1),
-//                duOrbitTrap * new Vector3(-1, -1, 1),
-//                duOrbitTrap * new Vector3(1, -1, 1),
-//            };
 
 
             public EvtcAcidHighway(Form form, Controller controller) : base(form, controller) { }
 
-            public override string StSong() => "empiresun.mp3";
+            public override string StSong() => "faded.mp3";
 
             private Vector3 VkSpotlight() => new Vector3(-1, rand.NextFloat(-1, 1), rand.NextFloat(-1, 1)).Normalized();
             public override void Setup()
             {
                 base.Setup();
 
-                int ctrap = rand.Next(20, 30);
-                rgptOrbitTrap = new Vector3[ctrap];
-                for (int itrap = 0; itrap < ctrap; itrap++)
-                    rgptOrbitTrap[itrap] = new Vector3((rand.Next(0, 2) == 1 ? 1 : -1) + rand.NextFloat(-0.1f, 0.1f),
-                        (rand.Next(0, 2) == 1 ? 1 : -1) + rand.NextFloat(-0.1f, 0.1f),
-                        (rand.Next(0, 2) == 1 ? 1 : -1) + rand.NextFloat(-0.1f, 0.1f));
+                //                int ctrap = rand.Next(20, 30);
+                //                rgptOrbitTrap = new Vector3[ctrap];
+                //                for (int itrap = 0; itrap < ctrap; itrap++)
+                //                    rgptOrbitTrap[itrap] = new Vector3((rand.Next(0, 2) == 1 ? 1 : -1) + rand.NextFloat(-0.1f, 0.1f),
+                //                        (rand.Next(0, 2) == 1 ? 1 : -1) + rand.NextFloat(-0.1f, 0.1f),
+                //                        (rand.Next(0, 2) == 1 ? 1 : -1) + rand.NextFloat(-0.1f, 0.1f));
+                rgptOrbitTrap = new[]
+                {
+                    duOrbitTrap*new Vector3(1, 1, 1),
+                    duOrbitTrap*new Vector3(1, 1, -1),
+                    duOrbitTrap*new Vector3(1, -1, -1),
+                    duOrbitTrap*new Vector3(-1, -1, -1),
+                    duOrbitTrap*new Vector3(-1, 1, -1),
+                    duOrbitTrap*new Vector3(-1, 1, 1),
+                    duOrbitTrap*new Vector3(-1, -1, 1),
+                    duOrbitTrap*new Vector3(1, -1, 1),
+                };
 
                 mandelbox._mandelbox.ptTrap = rgptOrbitTrap[0];
 
