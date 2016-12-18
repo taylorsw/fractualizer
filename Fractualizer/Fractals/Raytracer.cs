@@ -48,14 +48,28 @@ namespace Fractals
         private PixelShader pixelShader;
         public readonly Scene scene;
         public abstract Camera camera { get; }
+        protected readonly Rgparam rgparam;
 
         protected Fractal3d fractal => scene.fractal;
 
-        protected Raytracer(Scene scene, int width, int height)
+        public class Rgparam
+        {
+            public static Rgparam Default = new Rgparam("Textures/skysphere.jpg");
+
+            public readonly string stPathSkysphere;
+
+            public Rgparam(string stPathSkysphere)
+            {
+                this.stPathSkysphere = stPathSkysphere;
+            }
+        }
+
+        protected Raytracer(Scene scene, int width, int height, Rgparam rgparam)
         {
             this.scene = scene;
             this.width = width;
             this.height = height;
+            this.rgparam = rgparam;
         }
 
         public override void Initialize(Device device, DeviceContext deviceContext)
@@ -75,7 +89,7 @@ namespace Fractals
         {
             string stShaderPath = StShaderPath();
             using (
-                var pixelShaderByteCode = ShaderBytecode.CompileFromFile(stShaderPath, "main", "ps_4_0",
+                var pixelShaderByteCode = ShaderBytecode.CompileFromFile(stShaderPath, "main", "ps_5_0",
                     ShaderFlags.Debug, include: new IncludeFX(fractal)))
             {
                 string stErr = pixelShaderByteCode.Message;

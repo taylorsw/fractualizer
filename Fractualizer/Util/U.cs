@@ -136,7 +136,7 @@ namespace Util
 
     public class PaddedArray<T> where T : struct
     {
-        private Action dgDirty;
+        private readonly Action dgDirty;
         private readonly byte[] rgbyte;
         private readonly int ibyteStart, cbyteTWithPad;
         public readonly int cvalArray;
@@ -146,6 +146,7 @@ namespace Util
             this.rgbyte = rgbyte;
             this.ibyteStart = ibyteStart;
             this.cvalArray = cvalArray;
+            this.dgDirty = dgDirty;
             this.cbyteTWithPad = U.RoundToByteOffset(Marshal.SizeOf(typeof(T)), cbytePaddedTo);
         }
 
@@ -159,6 +160,8 @@ namespace Util
 
             for (int ival = ivalStart; ival < ivalStart + cval; ival++)
                 this[ival - ivalStart] = rgval[ival];
+
+            dgDirty?.Invoke();
         }
 
         private int IbyteIndex(int ival)
@@ -251,9 +254,38 @@ namespace Util
                     Format = SharpDX.DXGI.Format.R8G8B8A8_UNorm,
                     MipLevels = 1,
                     OptionFlags = SharpDX.Direct3D11.ResourceOptionFlags.None,
-                    SampleDescription = new SharpDX.DXGI.SampleDescription(1, 0),
+                    SampleDescription = new SharpDX.DXGI.SampleDescription(1, 0)
                 }, new SharpDX.DataRectangle(buffer.DataPointer, stride));
             }
+        }
+    }
+
+    public class Texture : IDisposable
+    {
+        private readonly Texture2D tex;
+        private readonly ShaderResourceView srv;
+        private readonly SamplerState samplerState;
+
+        public Texture(Device device, DeviceContext deviceContext, string stPath, int slot)
+        {
+            tex = TextureLoader.CreateTexture2DFromBitmap(device, TextureLoader.LoadBitmap(new SharpDX.WIC.ImagingFactory2(), stPath));
+            srv = new ShaderResourceView(device, tex);
+            deviceContext.PixelShader.SetShaderResource(slot, srv);
+
+            samplerState = new SamplerState(device, SamplerStateDescription.Default());
+            deviceContext.PixelShader.SetSampler(slot, samplerState);
+        }
+
+        public Vector4d RgbaSample(Vector2d uv)
+        {
+            return new Vector4d(0, 0, 0, 1);
+        }
+
+        public void Dispose()
+        {
+            tex.Dispose();
+            srv.Dispose();
+            samplerState.Dispose();
         }
     }
 }

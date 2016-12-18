@@ -61,12 +61,6 @@ namespace Mandelbasic
             evtc = new EvtcMandelbulbAnim(form, controller);
         }
 
-        public override void Setup()
-        {
-            base.Setup();
-            raytracer._raytracerfractal.colorB = new Vector3(235, 227, 172).Normalized();
-        }
-
         private class EvtcMandelbulbAnim : EvtcAudio
         {
             private RailHover railCam;
@@ -180,12 +174,6 @@ namespace Mandelbasic
         {
             raytracer = new RaytracerFractal(new Scene(new Mandelbulb(), seed: 3002), width, height);
             evtc = new EvtcMandelbulbAnim(form, controller);
-        }
-
-        public override void Setup()
-        {
-            base.Setup();
-            raytracer._raytracerfractal.colorB = new Vector3(235, 227, 172).Normalized();
         }
 
         public class Sptl
@@ -361,12 +349,15 @@ namespace Mandelbasic
             {
             }
 
-            public override string StSong() => "closer.mp3";
+            public override string StSong() => "clocks.mp3";
 
             public override void Setup()
             {
                 base.Setup();
-                raytracer._raytracerfractal.cmarch = 200;
+                mandelbox._mandelbox.fAdjustAdditional = true;
+                mandelbox._mandelbox.sfRollx = 2;
+                mandelbox._mandelbox.duMirrorPlane = 1.0f;
+                mandelbox._mandelbox.sfSin = 1.0f;
                 camera.MoveTo(new Vector3(0, mandelbox._mandelbox.duMirrorPlane, 0));
                 camera.LookAt(camera.ptCamera - new Vector3(1, 0, 0));
                 pointLightCamera = new PointLight(camera.ptCamera, Vector3.One, 0.4f, false);

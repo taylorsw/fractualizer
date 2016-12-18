@@ -32,8 +32,7 @@ namespace CodeGen
         {
             Losa losaRaytracer = LosaInclude(GenU.stFractalInclude);
 
-            if (raytracer.inputs().input().Length > 0)
-                losaRaytracer += LosaInputs(raytracer.identifier(), raytracer.inputs(), GenU.ibufferRaytracer);
+            losaRaytracer += LosaInputsAndTextures(raytracer.identifier(), raytracer.inputs(), GenU.ibufferRaytracer);
 
             losaRaytracer += LosaVisitGlobals(raytracer.global());
 
@@ -52,11 +51,8 @@ namespace CodeGen
         {
             Losa losaProg = "";
             FPLParser.InputsContext inputs = fractal.inputs();
-            if (inputs.input().Length > 0)
-            {
-                Losa losaInputs = LosaInputs(fractal.identifier(), inputs, GenU.ibufferFractal);
-                losaProg += losaInputs;
-            }
+
+            losaProg += LosaInputsAndTextures(fractal.identifier(), inputs, GenU.ibufferFractal);
 
             losaProg += LosaVisitGlobals(fractal.global());
 
@@ -69,6 +65,13 @@ namespace CodeGen
         public override Losa VisitInputAccess(FPLParser.InputAccessContext inputAccess)
         {
             return VisitIdentifier(inputAccess.identifier());
+        }
+
+        public override Losa VisitSample(FPLParser.SampleContext sample)
+        {
+            FPLParser.InputAccessContext inputAccess = sample.inputAccess();
+            return VisitInputAccess(inputAccess) + ".Sample(" + LosaSampName(inputAccess.identifier()) + ", " +
+                   VisitExpr(sample.expr()) + ")";
         }
 
         public override Losa VisitFractalAccess(FPLParser.FractalAccessContext fractalAccess)
@@ -100,17 +103,43 @@ namespace CodeGen
                        input.arrayDecl() == null ? new FPLParser.ArrayDeclContext[0] : new[] {input.arrayDecl()}, null);
         }
 
-        private Losa LosaInputs(FPLParser.IdentifierContext identifier, FPLParser.InputsContext inputs, int cbuffer)
+        private Losa LosaSampName(FPLParser.IdentifierContext identifier)
         {
-            FPLParser.InputContext[] rginput = inputs.input();
-            Losa losaInputs = LneNew("cbuffer " + StNameFromIdentifier(identifier) + " : register(b" + cbuffer + ")") + LneNew("{");
-            using (idtrCur.New())
+            return "samp" + VisitIdentifier(identifier);
+        }
+
+        private Losa LosaInputsAndTextures(FPLParser.IdentifierContext identifier, FPLParser.InputsContext inputs, int cbuffer)
+        {
+            Losa losaInputsAndTextures = "";
+
+            FPLParser.TextureContext[] rgtexture = inputs.texture();
+            if (rgtexture.Length > 0)
             {
-                foreach (FPLParser.InputContext input in rginput)
-                    losaInputs += VisitInput(input);
+                for (int itexture = 0; itexture < rgtexture.Length; itexture++)
+                {
+                    FPLParser.TextureContext texture = rgtexture[itexture];
+                    losaInputsAndTextures += LneNew("Texture2D ") + VisitIdentifier(texture.identifier()) +
+                                             " : register(t" + itexture.ToString() + ");";
+                    losaInputsAndTextures += LneNew("SamplerState ") +
+                                             LosaSampName(texture.identifier()) +
+                                             " : register(s" + itexture.ToString() + ");";
+                }
             }
-            losaInputs += LneNew("}");
-            return losaInputs;
+
+            FPLParser.InputContext[] rginput = inputs.input();
+            if (rginput.Length > 0)
+            {
+                Losa losaInputs = LneNew("cbuffer " + StNameFromIdentifier(identifier) + " : register(b" + cbuffer + ")") + LneNew("{");
+                using (idtrCur.New())
+                {
+                    foreach (FPLParser.InputContext input in rginput)
+                        losaInputs += VisitInput(input);
+                }
+                losaInputs += LneNew("}");
+                losaInputsAndTextures += losaInputs;
+            }
+
+            return losaInputsAndTextures;
         }
 
         public override Losa VisitDistanceEstimator(FPLParser.DistanceEstimatorContext distanceEstimator)

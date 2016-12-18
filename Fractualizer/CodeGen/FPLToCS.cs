@@ -24,6 +24,7 @@ namespace CodeGen
         {
             public readonly Dictionary<string, List<FPLParser.ArgModContext>> mpstFunc_rgargmod;
             public readonly Dictionary<string, FPLParser.InputContext> mpstIdentifier_input;
+            public readonly Dictionary<string, FPLParser.TextureContext> mpstIdentifier_texture;
             public readonly Dictionary<FPLParser.InputContext, Ipt> mpinput_ipt;
             public int cbyteInputsTotal;
 
@@ -31,6 +32,7 @@ namespace CodeGen
             {
                 mpstFunc_rgargmod = new Dictionary<string, List<FPLParser.ArgModContext>>();
                 mpstIdentifier_input = new Dictionary<string, FPLParser.InputContext>();
+                mpstIdentifier_texture = new Dictionary<string, FPLParser.TextureContext>();
                 mpinput_ipt = new Dictionary<FPLParser.InputContext, Ipt>();
             }
 
@@ -56,6 +58,13 @@ namespace CodeGen
 
             public override int VisitInputs(FPLParser.InputsContext inputs)
             {
+                foreach (FPLParser.TextureContext texture in inputs.texture())
+                {
+                    FPLParser.IdentifierContext identifier = texture.identifier();
+                    string stIdentifier = StFromIdentifier(identifier);
+                    mpstIdentifier_texture[stIdentifier] = texture;
+                }
+
                 int cbyteMembers = 0;
                 int ibyteOffset = 0;
                 foreach (FPLParser.InputContext input in inputs.input())
@@ -200,10 +209,11 @@ namespace CodeGen
                     () =>
                     {
                         string stInputClassName, stInputClassMemberName;
-                        Losa losaInputClass = LosaInputClass(stRaytracerClassName, raytracer.inputs(), out stInputClassName, out stInputClassMemberName);
+                        FPLParser.InputsContext inputs = raytracer.inputs();
+                        Losa losaInputClass = LosaInputClass(raytracer.ProgRoot(), inputs, out stInputClassName, out stInputClassMemberName);
                         Losa losaStructMemberAndBuffer = LosaClassMemberAndBuffer(stInputClassName, stInputClassMemberName);
                         //Losa losaConstructor = LneNew("public " + stRaytracerClassName + "(Scene scene, int width, int height) : base(scene, width, height) { " + stInputClassMemberName + " = new " + stInputClassName + "(); }");
-                        Losa losaBufferMethods = LosaBufferMethods(stInputClassMemberName, GenU.ibufferRaytracer, fNeedDirtyCheck: false);
+                        Losa losaBufferMethods = LosaOverrides(inputs.texture(), stInputClassName, stInputClassMemberName, GenU.ibufferRaytracer, fNeedDirtyCheck: false);
                         Losa losaGlobals = LosaGlobals(raytracer.global());
                         Losa losaTracer = VisitTracer(raytracer.tracer());
                         return losaInputClass + losaStructMemberAndBuffer + losaBufferMethods + LneNew() + losaGlobals + losaTracer;
@@ -239,14 +249,19 @@ namespace CodeGen
             return losaFractal;
         }
 
-        private string StStructName(string stFractalName)
+        private string StProgName(FPLParser.ProgContext prog)
         {
-            return "_" + stFractalName;
+            return StNameFromIdentifier(prog.raytracer() == null ? prog.fractal().identifier() : prog.raytracer().identifier());
         }
 
-        private string StStructMemberName(string stFractalName)
+        private string StClassName(FPLParser.ProgContext prog)
         {
-            return StStructName(stFractalName).ToLower();
+            return "_" + StProgName(prog);
+        }
+
+        private string StClassMemberName(FPLParser.ProgContext prog)
+        {
+            return StClassName(prog).ToLower();
         }
 
         private Losa LosaInputDecl(FPLParser.InputContext input)
@@ -302,17 +317,52 @@ namespace CodeGen
             return losaField;
         }
 
-        private Losa LosaInputClass(string stProgName, FPLParser.InputsContext inputs, out string stClassName, out string stClassMemberName)
+        private Losa LosaTextureInitializationMethod(FPLParser.TextureContext texture)
+        {
+            return "CreateTexture_" + VisitIdentifier(texture.identifier());
+        }
+
+        private Losa LosaInputInterfaceName(string stClassName)
+        {
+            return "IInputs" + stClassName;
+        }
+
+        private Losa LosaInputInterface(string stClassName, FPLParser.TextureContext[] rgtexture)
+        {
+            Losa losaInterface = LneNew("public interface ") + LosaInputInterfaceName(stClassName)
+                                 + LneNew("{");
+            using (idtrCur.New())
+            {
+                foreach (FPLParser.TextureContext texture in rgtexture)
+                {
+                    losaInterface += LneNew("Texture ") + LosaTextureInitializationMethod(texture) +
+                                     "(" + StProgName(texture.ProgRoot()) + " raytracer, Device device, DeviceContext deviceContext, int slot);";
+                }
+            }
+            losaInterface += LneNew("}");
+            return losaInterface;
+        }
+
+        private Losa LosaInputClass(FPLParser.ProgContext prog, FPLParser.InputsContext inputs, out string stClassName, out string stClassMemberName)
         {
             FPLParser.InputContext[] rginput = inputs.input();
+            FPLParser.TextureContext[] rgtexture = inputs.texture();
+            bool fHasTextures = rgtexture.Length > 0;
 
-            stClassName = StStructName(stProgName);
-            stClassMemberName = StStructMemberName(stProgName);
+            stClassName = StClassName(prog);
+            stClassMemberName = StClassMemberName(prog);
             Losa losaInputClass =
-                LneNew("public partial class " + stClassName) +
+                (fHasTextures ? LosaInputInterface(stClassName, rgtexture) : "") +
+                LneNew("public partial class " + stClassName) + (fHasTextures ? " : " +  LosaInputInterfaceName(stClassName) : "") +
                 LneNew("{");
             using (idtrCur.New())
             {
+                Losa losaTextures = "";
+                foreach (FPLParser.TextureContext texture in rgtexture)
+                    losaTextures += LneNew("internal Texture ") + VisitIdentifier(texture.identifier()) + ";";
+
+                losaInputClass += losaTextures;
+
                 losaInputClass += LneNew("internal bool fDirty, fSynced;");
 
                 Losa losaRgbyte = LneNew("internal readonly byte[] rgbyte = new byte[" + _fplPreProcessor.cbyteInputsTotal + "];");
@@ -382,6 +432,34 @@ namespace CodeGen
             return losaClassMemberAndBuffer;
         }
 
+        private Losa LosaOverrides(FPLParser.TextureContext[] rgtexture, string stClassName, string stStructMemberName, int ibuffer, bool fNeedDirtyCheck)
+        {
+            Losa losaOverrides = LosaBufferMethods(stStructMemberName, ibuffer, fNeedDirtyCheck);
+            if (rgtexture.Length > 0)
+                losaOverrides += LosaTextureMethods(rgtexture, stClassName, stStructMemberName);
+            return losaOverrides;
+        }
+
+        private Losa LosaTextureMethods(FPLParser.TextureContext[] rgtexture, string stClassName, string stStructMemberName)
+        {
+            Losa losaInitializeTextures =
+                LneNew("protected override void InitializeTextures(Device device, DeviceContext deviceContext)") +
+                LneNew("{");
+            using (idtrCur.New())
+            {
+                for (int itexture = 0; itexture < rgtexture.Length; itexture++)
+                {
+                    FPLParser.TextureContext texture = rgtexture[itexture];
+                    losaInitializeTextures += LneNew(stStructMemberName + ".") + VisitIdentifier(texture.identifier()) +
+                                              " = ((" + LosaInputInterfaceName(stClassName) + ")" + stStructMemberName + ")." +
+                                              LosaTextureInitializationMethod(texture) +
+                                              "(this, device, deviceContext, " + itexture.ToString() + ");";
+                }
+            }
+            losaInitializeTextures += LneNew("}");
+            return losaInitializeTextures;
+        }
+
         private Losa LosaBufferMethods(string stStructMemberName, int ibuffer, bool fNeedDirtyCheck)
         {
             Losa losaInitializeBuffer =
@@ -420,12 +498,13 @@ namespace CodeGen
         public Losa LosaClassBodyInputsExtras(FPLParser.IdentifierContext identifier, FPLParser.InputsContext inputs)
         {
             FPLParser.InputContext[] rginput = inputs.input();
+            FPLParser.TextureContext[] rgtexture = inputs.texture();
             if (rginput.Length == 0)
                 return "";
             string stFractalName = StNameFromIdentifier(identifier);
 
             string stInputClassName, stInputClassMemberName;
-            Losa losaClassBody = LosaInputClass(stFractalName, inputs, out stInputClassName, out stInputClassMemberName);
+            Losa losaClassBody = LosaInputClass(inputs.ProgRoot(), inputs, out stInputClassName, out stInputClassMemberName);
 
             losaClassBody += LosaClassMemberAndBuffer(stInputClassName, stInputClassMemberName);
 
@@ -447,7 +526,7 @@ namespace CodeGen
             losaClassConstructorVerbose += LneNew("}");
             losaClassBody += losaClassConstructorVerbose;
 
-            losaClassBody += LosaBufferMethods(stInputClassMemberName, GenU.ibufferFractal, fNeedDirtyCheck: true);
+            losaClassBody += LosaOverrides(rgtexture, stInputClassName, stInputClassMemberName, GenU.ibufferFractal, fNeedDirtyCheck: true);
 
 
             Dictionary<string, List<FPLParser.InputContext>> mpstType_rginput = new Dictionary<string, List<FPLParser.InputContext>>(rginput.Length);
@@ -554,9 +633,17 @@ namespace CodeGen
             string stIdentifier = FPLPreProcessor.StFromIdentifier(identifier);
             FPLParser.InputContext input;
             if (_fplPreProcessor.mpstIdentifier_input.TryGetValue(stIdentifier, out input))
-                return LosaUseInputIdentifier(input);
+                return LosaUseInputIdentifier(input.ProgRoot(), identifier);
+            FPLParser.TextureContext texture;
+            if (_fplPreProcessor.mpstIdentifier_texture.TryGetValue(stIdentifier, out texture))
+                return LosaUseInputIdentifier(texture.ProgRoot(), identifier);
             Error("Unknown input " + identifier.GetText());
             throw new NotImplementedException();
+        }
+
+        public override Losa VisitSample(FPLParser.SampleContext context)
+        {
+            return VisitInputAccess(context.inputAccess()) + ".RgbaSample(" + VisitExpr(context.expr()) + ")";
         }
 
         public override Losa VisitFractalAccess(FPLParser.FractalAccessContext fractalAccess)
@@ -564,10 +651,10 @@ namespace CodeGen
             return "fractal." + Visit(fractalAccess.children[fractalAccess.ChildCount - 1]);
         }
 
-        private Losa LosaUseInputIdentifier(FPLParser.InputContext input)
+        private Losa LosaUseInputIdentifier(FPLParser.ProgContext prog, FPLParser.IdentifierContext identifier)
         {
-            Losa losaAccess = StStructMemberName(StNameFromProg((FPLParser.ProgContext) input.Root())) + "." +
-                              VisitIdentifier(input.identifier());
+            Losa losaAccess = StClassMemberName(prog) + "." +
+                              VisitIdentifier(identifier);
             return losaAccess;
         }
 

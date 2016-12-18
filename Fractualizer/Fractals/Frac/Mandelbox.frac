@@ -5,10 +5,10 @@ v3 ptTrap;
 float sf = 2;
 
 // Additional morphing
-bool fAdjustAdditional;
 float duMirrorPlane = 1;
 float sfRollx = 1;
 float sfSin = 1;
+bool fAdjustAdditional; // TODO: bug, must be at end.
 
 fractal Mandelbox
 {
@@ -38,7 +38,7 @@ fractal Mandelbox
 	{
 		float foldingLimit = 1;
 		z = clamp(z, -foldingLimit, foldingLimit) * 2.0 - z;
-	}
+	}	
 
 	float hash(float n)
 	{

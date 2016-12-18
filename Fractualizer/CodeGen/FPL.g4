@@ -10,9 +10,10 @@ fractal : inputs 'fractal' identifier '{' global* distanceEstimator colorFunc '}
 distanceEstimator : 'DE(v3 pos)' block ;
 colorFunc : 'v3 Color(v3 pt)' block ;
 
-inputs : input* ;
+inputs : (input | texture)* ;
 input : ((inputType identifier ('=' literal)?) | (inputType identifier arrayDecl)) ';' ;
 inputType : type ;
+texture : 'texture' identifier ';' ;
 
 global : globalVal | func ;
 globalVal : 'global' localDecl ';' ;
@@ -85,6 +86,7 @@ parExpr : '(' expr ')' ;
 expr 
 	: identifier
 	| inputAccess
+	| sample
 	| fractalAccess
 	| expr '.' identifier
 	| expr '[' expr ']'
@@ -98,6 +100,8 @@ expr
 	| expr ternary
 	| literal
 	;
+
+sample : 'sample' '(' inputAccess ',' expr ')' ;
 
 inputAccess : 'inputs.' identifier ;
 fractalAccess : 'fractal.' (identifier | funcCall) ;

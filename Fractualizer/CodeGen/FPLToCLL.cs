@@ -16,6 +16,11 @@ namespace CodeGen
                 node = node.Parent;
             return node;
         }
+
+        public static FPLParser.ProgContext ProgRoot(this RuleContext context)
+        {
+            return (FPLParser.ProgContext)Root(context);
+        }
     }
 
     internal abstract class FPLToCLL : FPLTranspilerBase

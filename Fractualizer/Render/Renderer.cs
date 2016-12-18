@@ -12,7 +12,7 @@ namespace Render
 {
     public class Renderer : IDisposable
     {
-        public static readonly bool fFullscreen = false;
+        public static readonly bool fFullscreen = true;
 
         private readonly Raytracer raytracer;
 
@@ -62,7 +62,7 @@ namespace Render
         {
             triangleVertexBuffer = D3D11.Buffer.Create<Vector3>(device, D3D11.BindFlags.VertexBuffer, vertices);
 
-            using (var vertexShaderByteCode = ShaderBytecode.CompileFromFile("ShadersKludge/vertexShader.hlsl", "main", "vs_4_0", ShaderFlags.Debug))
+            using (var vertexShaderByteCode = ShaderBytecode.CompileFromFile("ShadersKludge/vertexShader.hlsl", "main", "vs_5_0", ShaderFlags.Debug))
             {
                 inputSignature = ShaderSignature.GetInputSignature(vertexShaderByteCode);
                 vertexShader = new D3D11.VertexShader(device, vertexShaderByteCode);

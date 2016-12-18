@@ -22,8 +22,6 @@ namespace Mandelbasic
         {
             base.Setup();
 
-            raytracer._raytracerfractal.colorB = new Vector3f(0.1f, 0.2f, 0.1f);
-
             Mandelbulb mandelbulb = scene.fractal as Mandelbulb;
             if (mandelbulb != null)
             {
