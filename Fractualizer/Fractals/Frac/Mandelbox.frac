@@ -8,6 +8,7 @@ float sf = 2;
 float duMirrorPlane = 1;
 float sfRollx = 1;
 float sfSin = 1;
+int fGradientColor = 0;
 bool fAdjustAdditional; // TODO: bug, must be at end.
 
 fractal Mandelbox
@@ -102,6 +103,18 @@ fractal Mandelbox
 		return pt * SfNormalizing();
 	}
 
+	global float dxRange = 10;
+	global float PI2 = 3.14159265358979323;
+	float SinTrap(float u, float offset)
+	{
+		return 0.5*sin(((u + offset)%dxRange)/dxRange*2*PI2) + 0.5;
+	}
+
+	v3 ColorGradient(v3 ptOrig, v3 colorOrig)
+	{
+		return colorOrig * v3(SinTrap(ptOrig.x, 0), SinTrap(ptOrig.x, dxRange / 3), SinTrap(ptOrig.x, 2 * dxRange / 3));
+	}
+
 	DE(v3 pos)
 	{
 		pos = PtAdjusted(pos);
@@ -116,6 +129,8 @@ fractal Mandelbox
 
 	v3 Color(v3 pt)
 	{
+		v3 ptOrig = pt;
+
 		pt = PtAdjusted(pt);
 		v3 trap = v3(1e6, 1e6, 1e6);
 		v3 z = pt;
@@ -127,7 +142,12 @@ fractal Mandelbox
 				trap = z;
 		}
 
-		return v3(1, 1, 1) - trap;
+		v3 color = (v3(1, 1, 1) - trap);
+		if (inputs.fGradientColor != 0)
+		{
+			return ColorGradient(ptOrig, color);
+		}
+		return color;
 	)
 
 //	v3 Color(v3 pt)

@@ -12,6 +12,7 @@ namespace Mandelbasic
         protected RaytracerFractal raytracer => controller.raytracer;
         protected Scene scene => raytracer.scene;
         protected Camera camera => raytracer.camera;
+        protected readonly Amgr amgr;
         protected RaytracerFractal.LightManager lightManager => raytracer.lightManager;
         protected Random rand => scene.rand;
 
@@ -19,9 +20,16 @@ namespace Mandelbasic
         {
             this.form = form;
             this.controller = controller;
+            this.amgr = new Amgr();
         }
 
         public virtual void Setup() { }
+
+        public void HandleTime(float dtms)
+        {
+            DoEvents(dtms);
+            amgr.Update(dtms);
+        }
         public abstract void DoEvents(float dtms);
     }
 }

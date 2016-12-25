@@ -6,7 +6,7 @@ using SharpDX;
 
 namespace Mandelbasic
 {
-    public abstract class EvtcAudio : Evtc
+    public abstract class EvtcAudio : EvtcUserDecode
     {
         private readonly AudioProcessor processor;
 

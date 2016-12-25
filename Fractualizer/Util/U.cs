@@ -13,6 +13,9 @@ namespace Util
         public static Vector3d Lerp(Vector3d x, Vector3d y, double s)
             => new Vector3d(Lerp(x.x, y.x, s), Lerp(x.y, y.y, s), Lerp(x.z, y.z, s));
 
+        public static Vector3f Lerp(Vector3f x, Vector3f y, double s)
+            => new Vector3f((float)Lerp(x.x, y.x, s), (float)Lerp(x.y, y.y, s), (float)Lerp(x.z, y.z, s));
+
         public static double Frac(double d) => Math.Abs(d - Math.Truncate(d));
 
         public static Vector3d Frac(Vector3d v) => new Vector3d(Frac(v.x), Frac(v.y), Frac(v.z));

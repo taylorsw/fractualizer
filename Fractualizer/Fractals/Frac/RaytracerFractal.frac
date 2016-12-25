@@ -16,13 +16,12 @@ v2 rsViewPlane;
 // Marching
 int cmarch = 140;
 
-// Color
-float sfR = 0.0;
-float sfG = 1.0;
-float sfB = 1.0;
-
 // Skybox
+int fSkysphere = 0;
 texture skysphere;
+
+// Shadows
+float sfEpsilonShadow = 2.0;
 
 // Light
 int rglidLight[40];
@@ -144,6 +143,8 @@ raytracer RaytracerFractal
 	global float PI = 3.14159265358979323;
 	v3 ColorBG(v3 vkRay)
 	{
+		if (inputs.fSkysphere == 0)
+			return v3(0, 0, 0);
 		v3 d = -normalize(vkRay);
 		float u = 0.5 + (atan(d.z / d.x)) / (2 * PI);
 		float v = 0.5 - (asin(d.y)) / PI;
@@ -170,7 +171,6 @@ raytracer RaytracerFractal
 	}
 
 	global float shininess = 10.0;
-	global float sfEpsilonShadow = 2.0;
 	v3 ColorBP(v3 color, v3 ptSurface, int idHit, float duEpsilon)
 	{
 		if (idHit != ID_FRACTAL)
@@ -200,9 +200,9 @@ raytracer RaytracerFractal
 	#ifdef SHADOWS
 			float epsilonIgnore;
 			int idHitIgnore;
-			v3 ptShadowStart = ptSurface + vkCameraDir * 1.1 * DuEpsilon(sfEpsilonShadow, length(inputs.ptCamera - ptSurface));
+			v3 ptShadowStart = ptSurface + vkCameraDir * 1.1 * DuEpsilon(inputs.sfEpsilonShadow, length(inputs.ptCamera - ptSurface));
 			float duToLight = length(vkSurfaceToLight);
-			v4 shadow = PtMarch(ptShadowStart, vkLightDir, sfEpsilonShadow, duToLight, false, idHitIgnore, epsilonIgnore);
+			v4 shadow = PtMarch(ptShadowStart, vkLightDir, inputs.sfEpsilonShadow, duToLight, false, idHitIgnore, epsilonIgnore);
 
 			// TODO: Should probably check if marched at least dist to light
 			if (shadow.w != MARCHED_LIMIT)

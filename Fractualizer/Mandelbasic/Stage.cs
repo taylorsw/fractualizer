@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Windows.Forms;
 using Audio;
@@ -76,6 +77,7 @@ namespace Mandelbasic
             public override string StSong() => "callonme.mp3";
             public override void Setup()
             {
+                raytracer._raytracerfractal.fSkysphere = 1;
                 base.Setup();
                 camera.MoveTo(new Vector3(0, 0, -1.5f));
                 camera.LookAt(Vector3.Zero);
@@ -194,11 +196,16 @@ namespace Mandelbasic
                 this.dagd_dtmsRotation = dagd_dtmsRotation;
             }
 
+            public static void UpdateSpotlight(SpotLight spotlight, Vector3 ptCamera)
+            {
+                spotlight.ptLight = ptCamera - new Vector3(0.1f, 0, 0);
+            }
+
             private int signRadius = 1;
             private int signRotation = 1;
             public void Update(float dtms, Vector3 ptCamera)
             {
-                spotlight.ptLight = ptCamera;
+                UpdateSpotlight(spotlight, ptCamera);
                 rail.UpdateVkSpotlight(dtms);
 
                 if (spotlight.agdRadius > agdRadiusMax)
@@ -343,51 +350,96 @@ namespace Mandelbasic
         private class EvtcWave : EvtcAudio
         {
             private PointLight pointLightCamera;
+            private Vector3 ptRailLight;
+            private RailOrbit railOrbit;
+            private RailPt railOrbitTrap;
+            private Vector3 ptOrbitTrap;
             private RailBounceBetween railSf;
             private Mandelbox mandelbox => scene.fractal as Mandelbox;
             public EvtcWave(Form form, Controller controller) : base(form, controller)
             {
             }
 
-            public override string StSong() => "clocks.mp3";
+            public override string StSong() => "moby.mp3";
 
             public override void Setup()
             {
                 base.Setup();
+                raytracer._raytracerfractal.fSkysphere = 1;
+                raytracer._raytracerfractal.cmarch = 140;
+                mandelbox._mandelbox.fGradientColor = 1;
                 mandelbox._mandelbox.fAdjustAdditional = true;
-                mandelbox._mandelbox.sfRollx = 2;
+                mandelbox._mandelbox.sfRollx = 0;
                 mandelbox._mandelbox.duMirrorPlane = 1.0f;
-                mandelbox._mandelbox.sfSin = 1.0f;
+                mandelbox._mandelbox.sfSin = 0.0f;
+                ptOrbitTrap = new Vector3(0, 0, 0);
                 camera.MoveTo(new Vector3(0, mandelbox._mandelbox.duMirrorPlane, 0));
                 camera.LookAt(camera.ptCamera - new Vector3(1, 0, 0));
-                pointLightCamera = new PointLight(camera.ptCamera, Vector3.One, 0.4f, false);
+                pointLightCamera = new PointLight(camera.ptCamera, Vector3.One, 1.2f, false);
+                railOrbit = new RailOrbit(pt => ptRailLight = pt, Vector3.Zero, new Vector3(0, 0.2f, 0), new Vector3(1, 0, 0), 14.77f * 1000);
                 lightManager.AddLight(pointLightCamera);
-                railSf = new RailBounceBetween(rand.NextFloat(1, 2) * 3000, 2, 1.5f, 5f);
+                railSf = new RailBounceBetween(rand.NextFloat(1, 2) * 7000, 2, 1.9f, 4.5f);
             }
 
+            protected override void OnKeyUp(KeyEventArgs keyEventArgs)
+            {
+                if (keyEventArgs.KeyCode == Keys.N)
+                {
+                    railOrbitTrap = new RailLinear(
+                        ptOrbitTrap,
+                        rand.VkUnitRand(),
+                        500,
+                        pt => ptOrbitTrap = pt);
+                }
+                base.OnKeyUp(keyEventArgs);
+            }
+
+            const float sfSinMin = 0;
+            const float sfSinMax = 1.0f;
+            const float sfSin_dtms = sfSinMax/2000;
+            const float sfRollx_dtms = -(float)Math.PI/2000;
+            private bool fSwitch = false;
             public override void DoEvents(float dtms)
             {
                 base.DoEvents(dtms);
+
                 const float dxCamera_dtms = 2/3000f;
                 camera.MoveTo(camera.ptCamera - new Vector3(dxCamera_dtms * dtms, 0, 0));
 
-                const float dagRoll_dtms = 36f/2000;
-                camera.RollBy(dagRoll_dtms * dtms);
+                railOrbit.UpdatePt(dtms);
+                pointLightCamera.ptLight = camera.ptCamera + ptRailLight;
+                //pointLightCamera.ptLight = camera.ptCamera + new Vector3(-0.02f, 0, 0);
 
-                pointLightCamera.ptLight = camera.ptCamera;
+                railOrbitTrap?.UpdatePt(dtms);
+                mandelbox._mandelbox.ptTrap = ptOrbitTrap;
 
-                const float duXroll_dtms = 1/3000f;
-                mandelbox._mandelbox.sfRollx -= duXroll_dtms*dtms;
-
+                const float duXroll_dtms = -1/3000f;
+                const float dagdRoll_dtms = 36f/2000;
                 if (fDrop)
                 {
                     railSf.UpdateValue(dtms);
                     mandelbox._mandelbox.sf = railSf.val;
+                    camera.RollBy(2 * dagdRoll_dtms * dtms);
+                    mandelbox._mandelbox.sfRollx -= 2 * duXroll_dtms * dtms;
+
+                    if (mandelbox._mandelbox.sfSin < sfSinMax)
+                        mandelbox._mandelbox.sfSin += sfSin_dtms*dtms;
+                    mandelbox._mandelbox.sfRollx += sfRollx_dtms*dtms;
+                }
+                else
+                {
+                    railSf.UpdateValue(dtms / 8);
+                    camera.RollBy(dagdRoll_dtms * dtms);
+                    mandelbox._mandelbox.sfRollx -= duXroll_dtms * dtms;
+
+                    if (mandelbox._mandelbox.sfSin > sfSinMin)
+                        mandelbox._mandelbox.sfSin -= sfSin_dtms * dtms;
                 }
             }
 
             protected override void OnDropBegin()
             {
+                fSwitch = true;
                 base.OnDropBegin();
             }
 
@@ -416,24 +468,28 @@ namespace Mandelbasic
 
         private class EvtcAcidHighway : EvtcAudio
         {
-            private PointLight pointLightCamera;
-            private Vector3 ptOrbitTrap;
-            private RailPt railOrbitTrap;
-            private RailBounceBetween railSf;
             private Mandelbox mandelbox => (Mandelbox) scene.fractal;
+
+            private float sfBrightnessMin = 0.8f;
+            private float sfBrightnessMax = 1.2f;
+            private PointLight pointLightCamera;
+            private AvarLinearDiscrete<TavarNone> avarSf;
+            private AvarIndefinite<TavarNone> avarRollDrop;
+            private AvarIndefinite<TavarNone> avarRollNonDrop;
 
             private StageMandelbulbAudioCloseup.Sptl[] rgsptl;
 
             private const float duOrbitTrap = 2f;
             private int iptOrbitTrap;
             private Vector3[] rgptOrbitTrap;
-
-
+            
             public EvtcAcidHighway(Form form, Controller controller) : base(form, controller) { }
 
             public override string StSong() => "faded.mp3";
 
-            private Vector3 VkSpotlight() => new Vector3(-1, rand.NextFloat(-1, 1), rand.NextFloat(-1, 1)).Normalized();
+            const float dx_dtmsCamera = -1.0f / 10000;
+            const float duVkSpotlightRange = 1f;
+            private Vector3 VkSpotlight() => new Vector3(-0.5f, rand.NextFloat(-duVkSpotlightRange, duVkSpotlightRange), rand.NextFloat(-duVkSpotlightRange, duVkSpotlightRange)).Normalized();
             public override void Setup()
             {
                 base.Setup();
@@ -456,12 +512,18 @@ namespace Mandelbasic
                     duOrbitTrap*new Vector3(1, -1, 1),
                 };
 
+                raytracer._raytracerfractal.sfEpsilonShadow = 4.0f;
+                raytracer._raytracerfractal.fSkysphere = 0;
+                raytracer._raytracerfractal.cmarch = 140;
+                mandelbox._mandelbox.fGradientColor = 0;
+                mandelbox._mandelbox.fAdjustAdditional = false;
+
                 mandelbox._mandelbox.ptTrap = rgptOrbitTrap[0];
 
-                pointLightCamera = new PointLight(camera.ptCamera, Vector3.One, brightness: 0.3f, fVisualize: false);
+                pointLightCamera = new PointLight(camera.ptCamera, Vector3.One, brightness: sfBrightnessMin, fVisualize: false);
                 lightManager.AddLight(pointLightCamera);
 
-                const int cspotlight = 10;
+                const int cspotlight = 15;
                 rgsptl = new StageMandelbulbAudioCloseup.Sptl[cspotlight];
                 for (int ispotlight = 0; ispotlight < cspotlight; ispotlight++)
                 {
@@ -471,17 +533,18 @@ namespace Mandelbasic
                         vkLight: VkSpotlight(),
                         agdRadius: rand.NextFloat(0.7f, 1.5f),
                         brightness: rand.NextFloat(0.1f, 0.8f));
+                    StageMandelbulbAudioCloseup.Sptl.UpdateSpotlight(spotlight, camera.ptCamera);
                     lightManager.AddLight(spotlight);
 
                     RailSpotlight railSpotlight = new RailSpotlight(
                         dgUpdateVkSpotlight: vk => spotlight.vkLight = vk,
-                        agdRadius: rand.NextFloat(30, 40),
+                        agdRadius: rand.NextFloat(20, 70),
                         vkNormal: VkSpotlight(),
-                        dtmsRevolution: rand.NextFloat(1, 4) * 300);
+                        dtmsRevolution: rand.NextFloat(1, 4) * 10000);
                     float agdRadiusMin = rand.NextFloat(5, 10);
                     float agdRadiusMax = rand.NextFloat(11, 20);
-                    float agdRotationMin = rand.NextFloat(30, 45);
-                    float agdRotationMax = rand.NextFloat(45, 50);
+                    float agdRotationMin = rand.NextFloat(45, 60);
+                    float agdRotationMax = rand.NextFloat(70, 90);
                     rgsptl[ispotlight] = new StageMandelbulbAudioCloseup.Sptl(
                         spotlight,
                         railSpotlight,
@@ -494,36 +557,36 @@ namespace Mandelbasic
                 }
 
                 camera.MoveTo(new Vector3(0.5f, -0.479544f, -0.5555527f));
+                camera.LookAt(camera.ptCamera - new Vector3(1, 0, 0));
 
-                railSf = new RailBounceBetween(rand.NextFloat(1, 2) * 7000, 2, 1.8f, 2.33f);
+                double sfMin = 1.8;
+                double sfMax = 2.33;
+                double dval_dtms = (sfMax - sfMin) / (rand.NextFloat(1, 2)*7000);
+                avarSf = AvarLinearDiscrete<TavarNone>.BounceBetween(
+                    _ => mandelbox._mandelbox.sf,
+                    (_, sf) => mandelbox._mandelbox.sf = (float)sf,
+                    valMin: sfMin,
+                    valMax: sfMax,
+                    dval_dtms: dval_dtms);
+
+                const float dagd_dtms = 360 / 20000f;
+                avarRollDrop = new AvarIndefinite<TavarNone>((_, dtms) => camera.RollBy(-dagd_dtms * (float)dtms));
+                avarRollNonDrop = new AvarIndefinite<TavarNone>((_, dtms) => camera.RollBy(dagd_dtms / 3 * (float)dtms));
+                amgr.Tween(avarRollNonDrop);
+
+                amgr.Tween(
+                    new AvarIndefinite<TavarNone>(
+                        (_, dtms) => camera.MoveBy(new Vector3(dx_dtmsCamera * (float)dtms, 0, 0))));
             }
 
             public override void DoEvents(float dtms)
             {
-                const float du_dtms = 1.0f/10000;
-                camera.MoveBy(new Vector3(-du_dtms * dtms, 0, 0));
-                camera.LookAt(camera.ptCamera - new Vector3(1, 0, 0));
-
-                pointLightCamera.ptLight = camera.ptCamera;
-                railOrbitTrap?.UpdatePt(dtms);
-                mandelbox._mandelbox.ptTrap = ptOrbitTrap;
+                Debug.WriteLine(camera.ptCamera);
+                pointLightCamera.ptLight = camera.ptCamera;// - new Vector3(0.05f, 0f, 0);
 
                 foreach (StageMandelbulbAudioCloseup.Sptl sptl in rgsptl)
                 {
-                    sptl.Update(du_dtms, camera.ptCamera);
-                }
-
-                const float dagd_dtms = 360 / 20000f;
-                if (fDrop)
-                {
-                    railSf.UpdateValue(dtms);
-                    mandelbox._mandelbox.sf = railSf.val;
-
-                    camera.RollBy(-dagd_dtms * dtms);
-                }
-                else
-                {
-                    camera.RollBy(dagd_dtms * dtms / 3);
+                    sptl.Update(dtms, camera.ptCamera);
                 }
 
                 base.DoEvents(dtms);
@@ -531,13 +594,19 @@ namespace Mandelbasic
 
             protected override void OnDropBegin()
             {
-                pointLightCamera.brightness = 0.6f;
+                amgr.Tween(avarSf);
+                amgr.Cancel(avarRollNonDrop);
+                amgr.Tween(avarRollDrop);
+                pointLightCamera.brightness = sfBrightnessMax;
                 base.OnDropBegin();
             }
 
             protected override void OnDropEnd()
             {
-                pointLightCamera.brightness = 0.3f;
+                amgr.Cancel(avarSf);
+                amgr.Cancel(avarRollDrop);
+                amgr.Tween(avarRollNonDrop);
+                pointLightCamera.brightness = sfBrightnessMin;
                 base.OnDropEnd();
             }
 
@@ -549,11 +618,15 @@ namespace Mandelbasic
                     if (dtmsBeatInterval <= 0)
                         return;
 
-                    railOrbitTrap = new RailLinear(
-                        ptOrbitTrap,
-                        rgptOrbitTrap[iptOrbitTrap],
-                        dtmsBeatInterval / 8,
-                        pt => ptOrbitTrap = pt);
+                    float dtmsPeriod = dtmsBeatInterval / 8;
+                    Vector3f ptStart = mandelbox._mandelbox.ptTrap;
+                    Vector3f ptEnd = rgptOrbitTrap[iptOrbitTrap];
+                    amgr.Tween(
+                        new AvarLinearDiscrete<TavarNone>(
+                            0,
+                            1.0,
+                            (avar, fr) => mandelbox._mandelbox.ptTrap = U.Lerp(ptStart, ptEnd, fr),
+                            dtmsPeriod));
                     iptOrbitTrap = (iptOrbitTrap + 1) % rgptOrbitTrap.Length;
                 }
                 else

@@ -32,6 +32,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="PresentationCore" />
     <Reference Include="SharpDX.Mathematics">
       <HintPath>..\..\Tools\SharpDX\Bin\Desktop\SharpDX.Mathematics.dll</HintPath>
     </Reference>
@@ -47,6 +48,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Amgr.cs" />
     <Compile Include="Controller.cs" />
     <Compile Include="Evtc.cs" />
     <Compile Include="EvtcAnim.cs" />

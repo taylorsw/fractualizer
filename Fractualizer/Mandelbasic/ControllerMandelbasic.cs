@@ -50,7 +50,7 @@ namespace Mandelbasic
         private void RunI()
         {
             stopwatch.Stop(); // probably should remove
-            stage.evtc.DoEvents((float)stopwatch.ElapsedTicks / TimeSpan.TicksPerMillisecond);
+            stage.evtc.HandleTime((float)stopwatch.ElapsedTicks / TimeSpan.TicksPerMillisecond);
             stopwatch.Restart();
             renderer.Render();
         }
