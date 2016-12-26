@@ -21,13 +21,20 @@ namespace Mandelbasic
 
         private class EvtcWave : EvtcAudio
         {
+            private Mandelbox mandelbox => scene.fractal as Mandelbox;
+
             private PointLight pointLightCamera;
             private Vector3 ptRailLight;
             private RailOrbit railOrbit;
-            private RailPt railOrbitTrap;
-            private Vector3 ptOrbitTrap;
-            private RailBounceBetween railSf;
-            private Mandelbox mandelbox => scene.fractal as Mandelbox;
+
+            // Non-drop
+            private AvarIndefinite<TavarNone> avarRollNonDrop;
+            private AvarLinearDiscrete<TavarNone> avarBounceSfNonDrop;
+
+            // Drop
+            private AvarIndefinite<TavarNone> avarRollDrop;
+            private AvarLinearDiscrete<TavarNone> avarBounceSfDrop;
+
             public EvtcWave(Form form, Controller controller) : base(form, controller)
             {
             }
@@ -44,24 +51,52 @@ namespace Mandelbasic
                 mandelbox._mandelbox.sfRollx = 0;
                 mandelbox._mandelbox.duMirrorPlane = 1.0f;
                 mandelbox._mandelbox.sfSin = 0.0f;
-                ptOrbitTrap = new Vector3(0, 0, 0);
                 camera.MoveTo(new Vector3(0, mandelbox._mandelbox.duMirrorPlane, 0));
                 camera.LookAt(camera.ptCamera - new Vector3(1, 0, 0));
                 pointLightCamera = new PointLight(camera.ptCamera, Vector3.One, 1.2f, false);
                 railOrbit = new RailOrbit(pt => ptRailLight = pt, Vector3.Zero, new Vector3(0, 0.2f, 0), new Vector3(1, 0, 0), 14.77f * 1000);
                 lightManager.AddLight(pointLightCamera);
-                railSf = new RailBounceBetween(rand.NextFloat(1, 2) * 7000, 2, 1.9f, 4.5f);
+
+                // Avars
+                const float dagdRoll_dtms = 36f / 2000;
+                avarRollNonDrop = new AvarIndefinite<TavarNone>(
+                    (avar, dtms) => camera.RollBy(dagdRoll_dtms * (float)dtms));
+                avarRollDrop = new AvarIndefinite<TavarNone>(
+                    (avar, dtms) => camera.RollBy(2*dagdRoll_dtms*(float) dtms));
+                amgr.Tween(avarRollNonDrop);
+
+                double sfMin = 1.9;
+                double sfMax = 4.5;
+                double sf_dtms = (sfMax - sfMin)/17000;
+                avarBounceSfDrop = AvarLinearDiscrete<TavarNone>.BounceBetween(
+                    avar => mandelbox._mandelbox.sf,
+                    (avar, sf) => mandelbox._mandelbox.sf = (float)sf,
+                    1.9,
+                    4.5,
+                    3 * sf_dtms);
+                avarBounceSfNonDrop = AvarLinearDiscrete<TavarNone>.BounceBetween(
+                    avar => mandelbox._mandelbox.sf,
+                    (avar, sf) => mandelbox._mandelbox.sf = (float)sf,
+                    1.9,
+                    4.5,
+                    sf_dtms);
+                amgr.Tween(avarBounceSfNonDrop);
+
+                const float dxCamera_dtms = 2 / 3000f;
+                amgr.Tween(new AvarIndefinite<TavarNone>(
+                    (avar, dtms) => camera.MoveBy(new Vector3(-dxCamera_dtms * (float)dtms, 0, 0))));
             }
 
             protected override void OnKeyUp(KeyEventArgs keyEventArgs)
             {
                 if (keyEventArgs.KeyCode == Keys.N)
                 {
-                    railOrbitTrap = new RailLinear(
-                        ptOrbitTrap,
-                        rand.VkUnitRand(),
-                        500,
-                        pt => ptOrbitTrap = pt);
+                    amgr.Tween(
+                        AvarLinearDiscrete<TavarNone>.LerpPt(
+                            mandelbox._mandelbox.ptTrap, 
+                            rand.VkUnitRand(-2, 2), 
+                            500, 
+                            pt => mandelbox._mandelbox.ptTrap = pt));
                 }
                 base.OnKeyUp(keyEventArgs);
             }
@@ -75,33 +110,20 @@ namespace Mandelbasic
             {
                 base.DoEvents(dtms);
 
-                const float dxCamera_dtms = 2 / 3000f;
-                camera.MoveTo(camera.ptCamera - new Vector3(dxCamera_dtms * dtms, 0, 0));
-
                 railOrbit.UpdatePt(dtms);
                 pointLightCamera.ptLight = camera.ptCamera + ptRailLight;
                 //pointLightCamera.ptLight = camera.ptCamera + new Vector3(-0.02f, 0, 0);
 
-                railOrbitTrap?.UpdatePt(dtms);
-                mandelbox._mandelbox.ptTrap = ptOrbitTrap;
-
                 const float duXroll_dtms = -1 / 3000f;
-                const float dagdRoll_dtms = 36f / 2000;
                 if (fDrop)
                 {
-                    railSf.UpdateValue(dtms);
-                    mandelbox._mandelbox.sf = railSf.val;
-                    camera.RollBy(2 * dagdRoll_dtms * dtms);
-                    mandelbox._mandelbox.sfRollx -= 2 * duXroll_dtms * dtms;
 
                     if (mandelbox._mandelbox.sfSin < sfSinMax)
                         mandelbox._mandelbox.sfSin += sfSin_dtms * dtms;
-                    mandelbox._mandelbox.sfRollx += sfRollx_dtms * dtms;
+                    mandelbox._mandelbox.sfRollx -= 2* sfRollx_dtms * dtms;
                 }
                 else
                 {
-                    railSf.UpdateValue(dtms / 8);
-                    camera.RollBy(dagdRoll_dtms * dtms);
                     mandelbox._mandelbox.sfRollx -= duXroll_dtms * dtms;
 
                     if (mandelbox._mandelbox.sfSin > sfSinMin)
@@ -111,18 +133,28 @@ namespace Mandelbasic
 
             protected override void OnDropBegin()
             {
-                fSwitch = true;
+                amgr.Cancel(avarBounceSfNonDrop);
+                amgr.Tween(avarBounceSfDrop);
+
+                amgr.Cancel(avarRollNonDrop);
+                amgr.Tween(avarRollDrop);
+
+                amgr.Tween(new AvarLinearDiscrete<TavarNone>(mandelbox._mandelbox.sfSin, sfSinMax, sfSin_dtms,
+                    (avar, sfSin) => mandelbox._mandelbox.sfSin = (float) sfSin));
                 base.OnDropBegin();
             }
 
             protected override void OnDropEnd()
             {
-                base.OnDropEnd();
-            }
+                amgr.Cancel(avarBounceSfDrop);
+                amgr.Tween(avarBounceSfNonDrop);
 
-            protected override void OnBeat()
-            {
-                base.OnBeat();
+                amgr.Cancel(avarRollDrop);
+                amgr.Tween(avarRollNonDrop);
+
+                amgr.Tween(new AvarLinearDiscrete<TavarNone>(mandelbox._mandelbox.sfSin, sfSinMin, sfSin_dtms,
+                    (avar, sfSin) => mandelbox._mandelbox.sfSin = (float)sfSin));
+                base.OnDropEnd();
             }
         }
     }

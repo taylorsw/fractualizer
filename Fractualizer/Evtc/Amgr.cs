@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Util;
 
 namespace Evtc
 {
@@ -189,6 +190,9 @@ namespace Evtc
         private readonly double dtmsPeriod;
         private double dval_dtms = double.NaN;
 
+        private static double Dval_dtms(double dval_dtms, double val, double valDst)
+            => Math.Abs(dval_dtms)*Math.Sign(valDst - val);
+
         public AvarLinearDiscrete(DgReadVal dgReadVal, double valDst, DgWriteVal dgWriteVal, double dtmsPeriod, T tval = default(T), Avark avark = null, Kamgt kamgt = Kamgt.Overridable) : base(dgReadVal, avar => valDst, dgWriteVal, tval, avark, kamgt)
         {
             this.dtmsPeriod = dtmsPeriod;
@@ -210,19 +214,32 @@ namespace Evtc
 
         public static AvarLinearDiscrete<T> BounceBetween(DgReadVal dgReadVal, DgWriteVal dgWriteVal, double valMin, double valMax, double dval_dtms)
         {
-            double dval_dtmsAbs = Math.Abs(dval_dtms);
             Avark avark = Avark.New();
-            var avarBounceForward = new AvarLinearDiscrete<T>(dgReadVal: dgReadVal, valDst: valMax, dgWriteVal: dgWriteVal, dval_dtms: dval_dtmsAbs, avark: avark);
-            var avarBounceBackwards = new AvarLinearDiscrete<T>(dgReadVal: dgReadVal, valDst: valMin, dgWriteVal: dgWriteVal, dval_dtms: -dval_dtmsAbs, avark: avark);
+            var avarBounceForward = new AvarLinearDiscrete<T>(dgReadVal: dgReadVal, valDst: valMax, dgWriteVal: dgWriteVal, dval_dtms: dval_dtms, avark: avark);
+            var avarBounceBackwards = new AvarLinearDiscrete<T>(dgReadVal: dgReadVal, valDst: valMin, dgWriteVal: dgWriteVal, dval_dtms: dval_dtms, avark: avark);
             avarBounceForward.SetDgNext(avarPrev => avarBounceBackwards);
             avarBounceBackwards.SetDgNext(avarPrev => avarBounceForward);
             return avarBounceForward;
+        }
+
+        public delegate void DgSetPt(Vector3f pt);
+        public static AvarLinearDiscrete<T> LerpPt(Vector3f ptStart, Vector3f ptEnd, float dtmsPeriod, DgSetPt dgSetPt)
+        {
+            return new AvarLinearDiscrete<T>(
+                0,
+                1.0,
+                (avar, fr) => dgSetPt(U.Lerp(ptStart, ptEnd, fr)),
+                dtmsPeriod);
         }
 
         protected override void InitializeI()
         {
             if (!double.IsNaN(dtmsPeriod))
                 dval_dtms = (valDst - val)/dtmsPeriod;
+            else
+            {
+                dval_dtms = Dval_dtms(dval_dtms, val, valDst);
+            }
         }
 
         internal override bool FExpired()

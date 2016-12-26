@@ -218,12 +218,8 @@ namespace Mandelbasic
                     float dtmsPeriod = dtmsBeatInterval / 8;
                     Vector3f ptStart = mandelbox._mandelbox.ptTrap;
                     Vector3f ptEnd = rgptOrbitTrap[iptOrbitTrap];
-                    amgr.Tween(
-                        new AvarLinearDiscrete<TavarNone>(
-                            0,
-                            1.0,
-                            (avar, fr) => mandelbox._mandelbox.ptTrap = U.Lerp(ptStart, ptEnd, fr),
-                            dtmsPeriod));
+                    amgr.Tween(AvarLinearDiscrete<TavarNone>.LerpPt(ptStart, ptEnd, dtmsPeriod, pt => mandelbox._mandelbox.ptTrap = pt));
+
                     iptOrbitTrap = (iptOrbitTrap + 1) % rgptOrbitTrap.Length;
                 }
                 else
