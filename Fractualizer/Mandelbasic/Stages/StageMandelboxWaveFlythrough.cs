@@ -27,6 +27,14 @@ namespace Mandelbasic
             private Vector3 ptRailLight;
             private RailOrbit railOrbit;
 
+            // Avarks
+            private readonly Avark avarkRoll = Avark.New();
+            private readonly Avark avarkSf = Avark.New();
+            private readonly Avark avarkSfSin = Avark.New();
+            private readonly Avark avarkSfR = Avark.New();
+            private readonly Avark avarkSfG = Avark.New();
+            private readonly Avark avarkSfB = Avark.New();
+
             // Non-drop
             private AvarIndefinite<TavarNone> avarRollNonDrop;
             private AvarLinearDiscrete<TavarNone> avarBounceSfNonDrop;
@@ -39,8 +47,9 @@ namespace Mandelbasic
             {
             }
 
-            public override string StSong() => "moby.mp3";
+            public override string StSong() => "indiansummer.mp3";
 
+            const float brightnessCameraLight = 1.2f;
             public override void Setup()
             {
                 base.Setup();
@@ -53,16 +62,18 @@ namespace Mandelbasic
                 mandelbox._mandelbox.sfSin = 0.0f;
                 camera.MoveTo(new Vector3(0, mandelbox._mandelbox.duMirrorPlane, 0));
                 camera.LookAt(camera.ptCamera - new Vector3(1, 0, 0));
-                pointLightCamera = new PointLight(camera.ptCamera, Vector3.One, 1.2f, false);
+                pointLightCamera = new PointLight(camera.ptCamera, Vector3.One, brightnessCameraLight, false);
                 railOrbit = new RailOrbit(pt => ptRailLight = pt, Vector3.Zero, new Vector3(0, 0.2f, 0), new Vector3(1, 0, 0), 14.77f * 1000);
                 lightManager.AddLight(pointLightCamera);
 
                 // Avars
                 const float dagdRoll_dtms = 36f / 2000;
                 avarRollNonDrop = new AvarIndefinite<TavarNone>(
-                    (avar, dtms) => camera.RollBy(dagdRoll_dtms * (float)dtms));
+                    (avar, dtms) => camera.RollBy(dagdRoll_dtms * (float)dtms),
+                    avark: avarkRoll);
                 avarRollDrop = new AvarIndefinite<TavarNone>(
-                    (avar, dtms) => camera.RollBy(2*dagdRoll_dtms*(float) dtms));
+                    (avar, dtms) => camera.RollBy(2*dagdRoll_dtms*(float) dtms),
+                    avark: avarkRoll);
                 amgr.Tween(avarRollNonDrop);
 
                 double sfMin = 1.9;
@@ -73,13 +84,15 @@ namespace Mandelbasic
                     (avar, sf) => mandelbox._mandelbox.sf = (float)sf,
                     1.9,
                     4.5,
-                    3 * sf_dtms);
+                    3 * sf_dtms,
+                    avark: avarkSf);
                 avarBounceSfNonDrop = AvarLinearDiscrete<TavarNone>.BounceBetween(
                     avar => mandelbox._mandelbox.sf,
                     (avar, sf) => mandelbox._mandelbox.sf = (float)sf,
                     1.9,
                     4.5,
-                    sf_dtms);
+                    sf_dtms,
+                    avark: avarkSf);
                 amgr.Tween(avarBounceSfNonDrop);
 
                 const float dxCamera_dtms = 2 / 3000f;
@@ -89,14 +102,57 @@ namespace Mandelbasic
 
             protected override void OnKeyUp(KeyEventArgs keyEventArgs)
             {
-                if (keyEventArgs.KeyCode == Keys.N)
+                switch (keyEventArgs.KeyCode)
                 {
-                    amgr.Tween(
-                        AvarLinearDiscrete<TavarNone>.LerpPt(
-                            mandelbox._mandelbox.ptTrap, 
-                            rand.VkUnitRand(-2, 2), 
-                            500, 
-                            pt => mandelbox._mandelbox.ptTrap = pt));
+                    case Keys.N:
+                        amgr.Tween(
+                            AvarLinearDiscrete<TavarNone>.LerpPt(
+                                mandelbox._mandelbox.ptTrap,
+                                rand.VkUnitRand(-2, 2),
+                                500,
+                                pt => mandelbox._mandelbox.ptTrap = pt));
+                        break;
+                    case Keys.L:
+                        pointLightCamera.brightness = 2.0f;
+                        amgr.Tween(
+                            new AvarLinearDiscrete<TavarNone>(
+                                pointLightCamera.brightness,
+                                brightnessCameraLight,
+                                (avar, brightness) => pointLightCamera.brightness = (float)brightness,
+                                500));
+                        break;
+                    case Keys.NumPad0:
+                    case Keys.NumPad1:
+                        amgr.Tween(
+                            new AvarLinearDiscrete<TavarNone>(
+                                pointLightCamera.brightness,
+                                keyEventArgs.KeyCode == Keys.NumPad0 ? 0.5 : brightnessCameraLight,
+                                (avar, brightness) => pointLightCamera.brightness = (float) brightness,
+                                1000));
+                        break;
+                    case Keys.T:
+                        amgr.Tween(
+                            new AvarLinearDiscrete<TavarNone>(
+                                raytracer._raytracerfractal.sfR,
+                                rand.NextDouble(),
+                                (avar, sf) => raytracer._raytracerfractal.sfR = (float)sf,
+                                200,
+                                avark: avarkSfR));
+                        amgr.Tween(
+                            new AvarLinearDiscrete<TavarNone>(
+                                raytracer._raytracerfractal.sfG,
+                                rand.NextDouble(),
+                                (avar, sf) => raytracer._raytracerfractal.sfG = (float) sf,
+                                200,
+                                avark: avarkSfG));
+                        amgr.Tween(
+                            new AvarLinearDiscrete<TavarNone>(
+                                raytracer._raytracerfractal.sfB,
+                                rand.NextDouble(),
+                                (avar, sf) => raytracer._raytracerfractal.sfB = (float) sf,
+                                200,
+                                avark: avarkSfB));
+                        break;
                 }
                 base.OnKeyUp(keyEventArgs);
             }
@@ -117,17 +173,11 @@ namespace Mandelbasic
                 const float duXroll_dtms = -1 / 3000f;
                 if (fDrop)
                 {
-
-                    if (mandelbox._mandelbox.sfSin < sfSinMax)
-                        mandelbox._mandelbox.sfSin += sfSin_dtms * dtms;
                     mandelbox._mandelbox.sfRollx -= 2* sfRollx_dtms * dtms;
                 }
                 else
                 {
                     mandelbox._mandelbox.sfRollx -= duXroll_dtms * dtms;
-
-                    if (mandelbox._mandelbox.sfSin > sfSinMin)
-                        mandelbox._mandelbox.sfSin -= sfSin_dtms * dtms;
                 }
             }
 
@@ -140,7 +190,8 @@ namespace Mandelbasic
                 amgr.Tween(avarRollDrop);
 
                 amgr.Tween(new AvarLinearDiscrete<TavarNone>(mandelbox._mandelbox.sfSin, sfSinMax, sfSin_dtms,
-                    (avar, sfSin) => mandelbox._mandelbox.sfSin = (float) sfSin));
+                    (avar, sfSin) => mandelbox._mandelbox.sfSin = (float) sfSin,
+                    avark: avarkSfSin));
                 base.OnDropBegin();
             }
 
@@ -153,7 +204,8 @@ namespace Mandelbasic
                 amgr.Tween(avarRollNonDrop);
 
                 amgr.Tween(new AvarLinearDiscrete<TavarNone>(mandelbox._mandelbox.sfSin, sfSinMin, sfSin_dtms,
-                    (avar, sfSin) => mandelbox._mandelbox.sfSin = (float)sfSin));
+                    (avar, sfSin) => mandelbox._mandelbox.sfSin = (float)sfSin,
+                    avark: avarkSfSin));
                 base.OnDropEnd();
             }
         }

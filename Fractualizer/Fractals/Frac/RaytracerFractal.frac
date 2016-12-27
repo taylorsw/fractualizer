@@ -23,6 +23,11 @@ texture skysphere;
 // Shadows
 float sfEpsilonShadow = 2.0;
 
+// Colors
+float sfR = 1.0;
+float sfG = 1.0;
+float sfB = 1.0;
+
 // Light
 int rglidLight[40];
 v3 rgptLight[40];
@@ -266,6 +271,7 @@ raytracer RaytracerFractal
 			return v4(0, 0, 0, 1);
 
 		v3 color = fractal.Color(ptMarched);
+		color = color * v3(inputs.sfR, inputs.sfG, inputs.sfB);
 
 #ifndef SPHERE
 		color = ColorAO(color, ptMarched.w);

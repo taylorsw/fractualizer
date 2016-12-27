@@ -12,7 +12,7 @@ namespace Render
 {
     public class Renderer : IDisposable
     {
-        public static readonly bool fFullscreen = false;
+        public static readonly bool fFullscreen = true;
 
         private readonly Raytracer raytracer;
 

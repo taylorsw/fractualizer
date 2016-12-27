@@ -212,11 +212,11 @@ namespace Evtc
         {
         }
 
-        public static AvarLinearDiscrete<T> BounceBetween(DgReadVal dgReadVal, DgWriteVal dgWriteVal, double valMin, double valMax, double dval_dtms)
+        public static AvarLinearDiscrete<T> BounceBetween(DgReadVal dgReadVal, DgWriteVal dgWriteVal, double valMin, double valMax, double dval_dtms, Avark avark = null)
         {
-            Avark avark = Avark.New();
-            var avarBounceForward = new AvarLinearDiscrete<T>(dgReadVal: dgReadVal, valDst: valMax, dgWriteVal: dgWriteVal, dval_dtms: dval_dtms, avark: avark);
-            var avarBounceBackwards = new AvarLinearDiscrete<T>(dgReadVal: dgReadVal, valDst: valMin, dgWriteVal: dgWriteVal, dval_dtms: dval_dtms, avark: avark);
+            Avark avarkKey = avark ?? Avark.New();
+            var avarBounceForward = new AvarLinearDiscrete<T>(dgReadVal: dgReadVal, valDst: valMax, dgWriteVal: dgWriteVal, dval_dtms: dval_dtms, avark: avarkKey);
+            var avarBounceBackwards = new AvarLinearDiscrete<T>(dgReadVal: dgReadVal, valDst: valMin, dgWriteVal: dgWriteVal, dval_dtms: dval_dtms, avark: avarkKey);
             avarBounceForward.SetDgNext(avarPrev => avarBounceBackwards);
             avarBounceBackwards.SetDgNext(avarPrev => avarBounceForward);
             return avarBounceForward;
