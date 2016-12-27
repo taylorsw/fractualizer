@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Windows.Forms;
 using Evtc;
 using Fractals;
@@ -15,13 +16,15 @@ namespace Mandelbasic
         public StageMandelboxWaveFlythrough(Form form, Controller controller, int width, int height)
         {
             evtc = new EvtcWave(form, controller);
-            raytracer = new RaytracerFractal(new Scene(new Mandelbox(), ((EvtcAudio)evtc).StSong().GetHashCode()),
+            raytracer = new RaytracerFractal(new Scene(new Mandelbox(), 1932),
                 width, height);
         }
 
         private class EvtcWave : EvtcAudio
         {
             private Mandelbox mandelbox => scene.fractal as Mandelbox;
+
+            private float duSfRollx = 1.0f;
 
             private PointLight pointLightCamera;
             private Vector3 ptRailLight;
@@ -31,9 +34,11 @@ namespace Mandelbasic
             private readonly Avark avarkRoll = Avark.New();
             private readonly Avark avarkSf = Avark.New();
             private readonly Avark avarkSfSin = Avark.New();
+            private readonly Avark avarkSfRollx = Avark.New();
             private readonly Avark avarkSfR = Avark.New();
             private readonly Avark avarkSfG = Avark.New();
             private readonly Avark avarkSfB = Avark.New();
+            private readonly Avark avarkDuSfRollx = Avark.New();
 
             // Non-drop
             private AvarIndefinite<TavarNone> avarRollNonDrop;
@@ -77,20 +82,20 @@ namespace Mandelbasic
                 amgr.Tween(avarRollNonDrop);
 
                 double sfMin = 1.9;
-                double sfMax = 4.5;
+                double sfMax = 4.5 + rand.NextDouble(0, 1.0);
                 double sf_dtms = (sfMax - sfMin)/17000;
                 avarBounceSfDrop = AvarLinearDiscrete<TavarNone>.BounceBetween(
                     avar => mandelbox._mandelbox.sf,
                     (avar, sf) => mandelbox._mandelbox.sf = (float)sf,
-                    1.9,
-                    4.5,
+                    sfMin,
+                    sfMax,
                     3 * sf_dtms,
                     avark: avarkSf);
                 avarBounceSfNonDrop = AvarLinearDiscrete<TavarNone>.BounceBetween(
                     avar => mandelbox._mandelbox.sf,
                     (avar, sf) => mandelbox._mandelbox.sf = (float)sf,
-                    1.9,
-                    4.5,
+                    sfMin,
+                    sfMax,
                     sf_dtms,
                     avark: avarkSf);
                 amgr.Tween(avarBounceSfNonDrop);
@@ -153,6 +158,14 @@ namespace Mandelbasic
                                 200,
                                 avark: avarkSfB));
                         break;
+                    case Keys.R:
+                        amgr.Tween(new AvarLinearDiscrete<TavarNone>(
+                            duSfRollx,
+                            -duSfRollx,
+                            (avar, duduSfRollx) => duSfRollx = (float)duduSfRollx,
+                            1500,
+                            avark: avarkDuSfRollx));
+                        break;
                 }
                 base.OnKeyUp(keyEventArgs);
             }
@@ -169,16 +182,6 @@ namespace Mandelbasic
                 railOrbit.UpdatePt(dtms);
                 pointLightCamera.ptLight = camera.ptCamera + ptRailLight;
                 //pointLightCamera.ptLight = camera.ptCamera + new Vector3(-0.02f, 0, 0);
-
-                const float duXroll_dtms = -1 / 3000f;
-                if (fDrop)
-                {
-                    mandelbox._mandelbox.sfRollx -= 2* sfRollx_dtms * dtms;
-                }
-                else
-                {
-                    mandelbox._mandelbox.sfRollx -= duXroll_dtms * dtms;
-                }
             }
 
             protected override void OnDropBegin()
@@ -192,6 +195,8 @@ namespace Mandelbasic
                 amgr.Tween(new AvarLinearDiscrete<TavarNone>(mandelbox._mandelbox.sfSin, sfSinMax, sfSin_dtms,
                     (avar, sfSin) => mandelbox._mandelbox.sfSin = (float) sfSin,
                     avark: avarkSfSin));
+
+                amgr.Tween(new AvarIndefinite<TavarNone>((avar, dtms) => mandelbox._mandelbox.sfRollx -= 2*duSfRollx*sfRollx_dtms*(float)dtms, avark: avarkSfRollx));
                 base.OnDropBegin();
             }
 
@@ -206,6 +211,8 @@ namespace Mandelbasic
                 amgr.Tween(new AvarLinearDiscrete<TavarNone>(mandelbox._mandelbox.sfSin, sfSinMin, sfSin_dtms,
                     (avar, sfSin) => mandelbox._mandelbox.sfSin = (float)sfSin,
                     avark: avarkSfSin));
+
+                amgr.Tween(new AvarIndefinite<TavarNone>((avar, dtms) => mandelbox._mandelbox.sfRollx -= duSfRollx*sfRollx_dtms * (float)dtms, avark: avarkSfRollx));
                 base.OnDropEnd();
             }
         }
