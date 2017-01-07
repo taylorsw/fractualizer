@@ -58,7 +58,7 @@ namespace Mandelbasic
             public override void Setup()
             {
                 base.Setup();
-                raytracer._raytracerfractal.fSkysphere = 1;
+                raytracer._raytracerfractal.fSkysphere = true;
                 raytracer._raytracerfractal.cmarch = 140;
                 mandelbox._mandelbox.fGradientColor = 1;
                 mandelbox._mandelbox.fAdjustAdditional = true;

@@ -110,7 +110,7 @@ namespace Mandelbasic
                 };
 
                 raytracer._raytracerfractal.sfEpsilonShadow = 4.0f;
-                raytracer._raytracerfractal.fSkysphere = 0;
+                raytracer._raytracerfractal.fSkysphere = false;
                 raytracer._raytracerfractal.cmarch = 140;
                 mandelbox._mandelbox.fGradientColor = 0;
                 mandelbox._mandelbox.fAdjustAdditional = false;

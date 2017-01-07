@@ -32,7 +32,7 @@ namespace Mandelbasic
             public override string StSong() => "callonme.mp3";
             public override void Setup()
             {
-                raytracer._raytracerfractal.fSkysphere = 1;
+                raytracer._raytracerfractal.fSkysphere = true;
                 base.Setup();
                 camera.MoveTo(new Vector3(0, 0, -1.5f));
                 camera.LookAt(Vector3.Zero);
