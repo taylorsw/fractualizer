@@ -191,7 +191,7 @@ namespace Mandelbasic
                 const float dagd_dtms = 360 / 20000f;
                 avarRollDrop = new AvarIndefinite<TavarNone>((_, dtms) => camera.RollBy(-dagd_dtms * (float)dtms));
                 avarRollNonDrop = new AvarIndefinite<TavarNone>((_, dtms) => camera.RollBy(dagd_dtms / 3 * (float)dtms));
-                //amgr.Tween(avarRollNonDrop);
+                amgr.Tween(avarRollNonDrop);
 
                 amgr.Tween(
                     new AvarIndefinite<TavarNone>(
