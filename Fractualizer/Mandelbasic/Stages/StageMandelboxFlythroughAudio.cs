@@ -176,6 +176,25 @@ namespace Mandelbasic
                         (_, dtms) => camera.MoveBy(new Vector3(dx_dtmsCamera * (float)dtms, 0, 0))));
             }
 
+            readonly Avark avarkLight = Avark.New();
+            protected override void OnKeyUp(KeyEventArgs keyEventArgs)
+            {
+                switch (keyEventArgs.KeyCode)
+                {
+                    case Keys.L:
+                        pointLightCamera.brightness = 2.0f;
+                        amgr.Tween(
+                            new AvarLinearDiscrete<TavarNone>(
+                                pointLightCamera.brightness,
+                                sfBrightnessMin,
+                                (avar, brightness) => pointLightCamera.brightness = (float)brightness,
+                                500,
+                                avark: avarkLight));
+                        break;
+                }
+                base.OnKeyUp(keyEventArgs);
+            }
+
             public override void DoEvents(float dtms)
             {
                 Debug.WriteLine(camera.ptCamera);
