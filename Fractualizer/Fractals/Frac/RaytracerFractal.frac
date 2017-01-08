@@ -17,7 +17,7 @@ v2 rsViewPlane;
 int cmarch = 140;
 
 // Skybox
-int fSkysphere = 0;
+bool fSkysphere;
 texture skysphere;
 
 // Shadows
@@ -148,7 +148,7 @@ raytracer RaytracerFractal
 	global float PI = 3.14159265358979323;
 	v3 ColorBG(v3 vkRay)
 	{
-		if (inputs.fSkysphere == 0)
+		if (!inputs.fSkysphere)
 			return v3(0, 0, 0);
 		v3 d = -normalize(vkRay);
 		float u = 0.5 + (atan(d.z / d.x)) / (2 * PI);

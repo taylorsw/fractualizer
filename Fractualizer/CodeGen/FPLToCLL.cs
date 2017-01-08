@@ -62,7 +62,7 @@ namespace CodeGen
             FPLParser.TypeContext type = inputType.type();
             int cbyteType;
             if (type.BoolType() != null)
-                cbyteType = 1;
+                cbyteType = 4;
             else if (type.FloatType() != null || type.IntType() != null)
                 cbyteType = 4;
             else

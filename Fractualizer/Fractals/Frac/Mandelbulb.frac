@@ -1,4 +1,5 @@
-﻿float param = 8.0;
+﻿float sfTwist = 1;
+float param = 8.0;
 float param2 = 1.0;
 fractal Mandelbulb
 {
@@ -28,8 +29,22 @@ fractal Mandelbulb
 		return ptCur + inputs.param2 * ptInitial;
 	}
 
+	v3 PtTransformed(v3 pt)
+	{
+		float t = pt.z * inputs.sfTwist;
+		float c = cos(t);
+		float s = sin(t);
+		return v3(c * pt.x - s * pt.y, s * pt.x + c * pt.y, pt.z);
+	}
+
+	float SfTransformed(v3 pt)
+	{
+		return sqrt(8 * inputs.sfTwist * inputs.sfTwist + 1);
+	}
+
 	DE(v3 pos)
 	{
+		pos = PtTransformed(pos);
 		v3 z = pos;
 		float dr = 1.0;
 		float r = 0;
@@ -45,6 +60,7 @@ fractal Mandelbulb
 
 	v3 Color(v3 pt)
 	{
+		pt = PtTransformed(pt);
 		v3 trap = v3(1e6, 1e6, 1e6);
 		v3 z = pt;
 		float dr = 1.0;
