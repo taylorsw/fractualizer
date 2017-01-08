@@ -71,6 +71,7 @@ namespace Mandelbasic
             private float sfBrightnessMax = 1.2f;
             private PointLight pointLightCamera;
             private AvarLinearDiscrete<TavarNone> avarSf;
+            private AvarLinearDiscrete<TavarNone> avarTwist;
             private AvarIndefinite<TavarNone> avarRollDrop;
             private AvarIndefinite<TavarNone> avarRollNonDrop;
 
@@ -114,6 +115,27 @@ namespace Mandelbasic
                 raytracer._raytracerfractal.cmarch = 140;
                 mandelbox._mandelbox.fGradientColor = 0;
                 mandelbox._mandelbox.fAdjustAdditional = false;
+
+
+                mandelbox._mandelbox.sfTwist = 0;
+                mandelbox._mandelbox.xTwistStart = 0.17f;
+                double sfTwistMin = -50;
+                double sfTwistMax = 50;
+                double dtwist_dtms = (sfTwistMax - sfTwistMin) / 3000;
+                avarTwist = AvarLinearDiscrete<TavarNone>.BounceBetween(
+                    _ => mandelbox._mandelbox.sfTwist,
+                    (_, sf) =>
+                    {
+                        var xFixed = camera.ptCamera.X;
+                        float xStart = (float) (xFixed - mandelbox._mandelbox.sfTwist * (xFixed - mandelbox._mandelbox.xTwistStart) / sf);
+                        mandelbox._mandelbox.sfTwist = (float)sf;
+                        mandelbox._mandelbox.xTwistStart = xStart;
+                    },
+                    valMin: sfTwistMin,
+                    valMax: sfTwistMax,
+                    dval_dtms: dtwist_dtms);
+
+                amgr.Tween(avarTwist);
 
                 mandelbox._mandelbox.ptTrap = rgptOrbitTrap[0];
 
@@ -169,7 +191,7 @@ namespace Mandelbasic
                 const float dagd_dtms = 360 / 20000f;
                 avarRollDrop = new AvarIndefinite<TavarNone>((_, dtms) => camera.RollBy(-dagd_dtms * (float)dtms));
                 avarRollNonDrop = new AvarIndefinite<TavarNone>((_, dtms) => camera.RollBy(dagd_dtms / 3 * (float)dtms));
-                amgr.Tween(avarRollNonDrop);
+                //amgr.Tween(avarRollNonDrop);
 
                 amgr.Tween(
                     new AvarIndefinite<TavarNone>(

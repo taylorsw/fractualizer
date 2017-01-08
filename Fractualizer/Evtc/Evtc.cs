@@ -12,7 +12,7 @@ namespace Mandelbasic
         protected RaytracerFractal raytracer => controller.raytracer;
         protected Scene scene => raytracer.scene;
         protected Camera camera => raytracer.camera;
-        protected readonly Amgr amgr;
+        public readonly Amgr amgr;
         protected RaytracerFractal.LightManager lightManager => raytracer.lightManager;
         protected Random rand => scene.rand;
 

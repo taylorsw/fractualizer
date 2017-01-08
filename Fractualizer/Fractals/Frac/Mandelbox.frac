@@ -9,7 +9,9 @@ float duMirrorPlane = 1;
 float sfRollx = 1;
 float sfSin = 1;
 int fGradientColor = 0;
-bool fAdjustAdditional; // TODO: bug, must be at end.
+bool fAdjustAdditional;
+float sfTwist = 0;
+float xTwistStart = 0;
 
 fractal Mandelbox
 {
@@ -88,19 +90,50 @@ fractal Mandelbox
 		return DuPt(pt, inputs.ptTrap);
 	}
 
+	v3 PtTransformTwistX(v3 pt)
+	{
+		if (inputs.sfTwist == 0)
+			return pt;
+
+		float t = (pt.x - inputs.xTwistStart) * inputs.sfTwist;
+		float c = cos(t);
+		float s = sin(t);
+		float yCenter = -0.479544;
+		float zCenter = -0.5555527;
+		float dy = pt.y - yCenter;
+		float dz = pt.z - zCenter;
+		float yRot = c * dy - s * dz;
+		float zRot = s * dy + c * dz;
+		return v3(pt.x, yCenter + yRot, zCenter + zRot);
+	}
+
+	v3 PtTransformMirrorY(v3 pt)
+	{
+		return v3(pt.x, inputs.duMirrorPlane - abs(inputs.duMirrorPlane - pt.y), pt.z);
+	}
+
+	v3 PtTransformSine(v3 pt)
+	{
+		return v3(pt.x, pt.y + sin(pt.x + inputs.sfRollx) * pt.z * inputs.sfSin, pt.z);
+	}
+
 	global float duAdjust = 1.0;
+	v3 PtTransformRepeatX(v3 pt)
+	{
+		return v3(pt.x%duAdjust + duAdjust/2, pt.y, pt.z);
+	}
+
+	v3 PtTransformNormalizeScale(v3 pt)
+	{
+		return pt * SfNormalizing();
+	}
+
 	v3 PtAdjusted(v3 pt)
 	{
 		if (inputs.fAdjustAdditional)
-		{
-			pt.y = inputs.duMirrorPlane - abs(inputs.duMirrorPlane - pt.y);
-			pt = v3(pt.x%duAdjust + duAdjust/2, pt.y + sin(pt.x + inputs.sfRollx) * pt.z * inputs.sfSin, pt.z);
-		}
-		else
-		{
-			pt = v3(pt.x%duAdjust + duAdjust/2, pt.y, pt.z);
-		}
-		return pt * SfNormalizing();
+			pt = PtTransformSine(PtTransformMirrorY(pt));
+
+		return PtTransformNormalizeScale(PtTransformRepeatX(PtTransformTwistX(pt)));
 	}
 
 	global float dxRange = 10;

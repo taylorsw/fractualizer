@@ -20,8 +20,8 @@ namespace Mandelbasic
 
         public ControllerMandelbasic()
         {
-            int width = Renderer.fFullscreen ? Screen.PrimaryScreen.Bounds.Width : 1920;
-            int height = Renderer.fFullscreen ? Screen.PrimaryScreen.Bounds.Height : 1080;
+            int width = Renderer.fFullscreen ? Screen.PrimaryScreen.Bounds.Width : 1920 / 2;
+            int height = Renderer.fFullscreen ? Screen.PrimaryScreen.Bounds.Height : 1080 / 2;
             renderForm = new RenderForm("Fractualizer")
             {
                 ClientSize = new Size(width, height),
@@ -29,7 +29,7 @@ namespace Mandelbasic
                 IsFullscreen = Renderer.fFullscreen
             };
 
-            stage = new StageMandelbulbAudioFlyover(renderForm, this, width, height);
+            stage = new StageMandelboxFlythroughAudio(renderForm, this, width, height);
             stage.Setup();
 
             renderForm.Show();
