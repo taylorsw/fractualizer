@@ -7,7 +7,7 @@ using Util;
 
 namespace Mandelbasic
 {
-    public class StageMandelboxFlythroughAudio : Stage
+    public class StageMandelboxInnerFlythrough : Stage
     {
         public class Sptl
         {
@@ -57,13 +57,13 @@ namespace Mandelbasic
         public override RaytracerFractal raytracer { get; }
         public override Evtc evtc { get; }
 
-        public StageMandelboxFlythroughAudio(Form form, Controller controller, int width, int height)
+        public StageMandelboxInnerFlythrough(Form form, Controller controller, int width, int height)
         {
-            evtc = new EvtcAcidHighway(form, controller);
+            evtc = new EvtcInnerFlythrough(form, controller);
             raytracer = new RaytracerFractal(new Scene(new Mandelbox(), ((EvtcAudio)evtc).StSong().GetHashCode()), width, height);
         }
 
-        private class EvtcAcidHighway : EvtcAudio
+        private class EvtcInnerFlythrough : EvtcAudio
         {
             private Mandelbox mandelbox => (Mandelbox)scene.fractal;
 
@@ -71,7 +71,6 @@ namespace Mandelbasic
             private float sfBrightnessMax = 1.2f;
             private PointLight pointLightCamera;
             private AvarLinearDiscrete<TavarNone> avarSf;
-            private AvarLinearDiscrete<TavarNone> avarTwist;
             private AvarIndefinite<TavarNone> avarRollDrop;
             private AvarIndefinite<TavarNone> avarRollNonDrop;
 
@@ -81,7 +80,7 @@ namespace Mandelbasic
             private int iptOrbitTrap;
             private Vector3[] rgptOrbitTrap;
 
-            public EvtcAcidHighway(Form form, Controller controller) : base(form, controller) { }
+            public EvtcInnerFlythrough(Form form, Controller controller) : base(form, controller) { }
 
             public override string StSong() => "faded.mp3";
 
@@ -115,28 +114,6 @@ namespace Mandelbasic
                 raytracer._raytracerfractal.cmarch = 140;
                 mandelbox._mandelbox.fGradientColor = 0;
                 mandelbox._mandelbox.fAdjustAdditional = false;
-
-
-                mandelbox._mandelbox.sfTwist = 0;
-                mandelbox._mandelbox.xTwistStart = 0.17f;
-                double sfTwistMin = -50;
-                double sfTwistMax = 50;
-                double dtwist_dtms = (sfTwistMax - sfTwistMin) / 3000;
-                avarTwist = AvarLinearDiscrete<TavarNone>.BounceBetween(
-                    _ => mandelbox._mandelbox.sfTwist,
-                    (_, sf) =>
-                    {
-                        var xFixed = camera.ptCamera.X;
-                        float xStart = (float) (xFixed - mandelbox._mandelbox.sfTwist * (xFixed - mandelbox._mandelbox.xTwistStart) / sf);
-                        mandelbox._mandelbox.sfTwist = (float)sf;
-                        mandelbox._mandelbox.xTwistStart = xStart;
-                    },
-                    valMin: sfTwistMin,
-                    valMax: sfTwistMax,
-                    dval_dtms: dtwist_dtms);
-
-                amgr.Tween(avarTwist);
-
                 mandelbox._mandelbox.ptTrap = rgptOrbitTrap[0];
 
                 pointLightCamera = new PointLight(camera.ptCamera, Vector3.One, brightness: sfBrightnessMin, fVisualize: false);
@@ -199,6 +176,9 @@ namespace Mandelbasic
             }
 
             readonly Avark avarkLight = Avark.New();
+            readonly Avark avarkTwist = Avark.New();
+            const float sfTwistMax = 70;
+            const float sfTwistRangeStart = sfTwistMax * 0.8f;
             protected override void OnKeyUp(KeyEventArgs keyEventArgs)
             {
                 switch (keyEventArgs.KeyCode)
@@ -213,8 +193,44 @@ namespace Mandelbasic
                                 500,
                                 avark: avarkLight));
                         break;
+                    case Keys.D1:
+                        AnimateTwistTo(mandelbox._mandelbox.sfTwist < 0 ? rand.NextFloat(sfTwistRangeStart, sfTwistMax) : rand.NextFloat(-sfTwistMax, -sfTwistRangeStart));
+                        break;
+                    case Keys.D2:
+                        AnimateTwistTo(1);
+                        break;
                 }
                 base.OnKeyUp(keyEventArgs);
+            }
+
+            private void AnimateTwistTo(float sfTwist)
+            {
+                //mandelbox._mandelbox.xTwistStart = 0.17f;
+                AvarLinearDiscrete<TavarNone> avarTwist = new AvarLinearDiscrete<TavarNone>(
+                    _ => mandelbox._mandelbox.sfTwist,
+                    sfTwist,
+                    (_, sf) =>
+                    {
+                        var xFixed = camera.ptCamera.X;
+                        float xStart = (float)(xFixed - mandelbox._mandelbox.sfTwist * (xFixed - mandelbox._mandelbox.xTwistStart) / sf);
+                        mandelbox._mandelbox.sfTwist = (float)sf;
+                        mandelbox._mandelbox.xTwistStart = xStart + 0.17f;
+                    },
+                    1000,
+                    avark: avarkTwist);
+                if (sfTwist != 1)
+                {
+                    const float sfTwistBounceRange = sfTwistMax / 5;
+                    avarTwist.SetDgNext(
+                    prev => AvarLinearDiscrete<TavarNone>.BounceBetween(
+                        avar => mandelbox._mandelbox.sfTwist,
+                        (avar, sf) => mandelbox._mandelbox.sfTwist = (float)sf,
+                        mandelbox._mandelbox.sfTwist - sfTwistBounceRange,
+                        mandelbox._mandelbox.sfTwist + sfTwistBounceRange,
+                        2 * sfTwistBounceRange / 5000,
+                        avark: avarkTwist));
+                }
+                amgr.Tween(avarTwist);
             }
 
             public override void DoEvents(float dtms)
