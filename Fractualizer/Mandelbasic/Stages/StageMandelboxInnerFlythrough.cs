@@ -205,25 +205,24 @@ namespace Mandelbasic
 
             private void AnimateTwistTo(float sfTwist)
             {
-                //mandelbox._mandelbox.xTwistStart = 0.17f;
                 var avarTwist = new AvarLinearDiscreteQuadraticEaseIn<TavarNone>(
                     _ => mandelbox._mandelbox.sfTwist,
                     sfTwist,
                     (_, sf) => SetSfTwist(sf),
-                    500,
+                    5000,
                     avark: avarkTwist);
-                if (sfTwist != 1)
-                {
-                    const float sfTwistBounceRange = sfTwistMax / 5;
-                    avarTwist.SetDgNext(
-                    prev => AvarLinearDiscrete<TavarNone>.BounceBetween(
-                        avar => mandelbox._mandelbox.sfTwist,
-                        (avar, sf) => SetSfTwist(sf),
-                        mandelbox._mandelbox.sfTwist - sfTwistBounceRange,
-                        mandelbox._mandelbox.sfTwist + sfTwistBounceRange,
-                        2 * sfTwistBounceRange / 5000,
-                        avark: avarkTwist));
-                }
+//                if (sfTwist != 0)
+//                {
+//                    const float sfTwistBounceRange = sfTwistMax / 5;
+//                    avarTwist.SetDgNext(
+//                    prev => AvarLinearDiscrete<TavarNone>.BounceBetween(
+//                        avar => mandelbox._mandelbox.sfTwist,
+//                        (avar, sf) => SetSfTwist(sf),
+//                        mandelbox._mandelbox.sfTwist - sfTwistBounceRange,
+//                        mandelbox._mandelbox.sfTwist + sfTwistBounceRange,
+//                        2 * sfTwistBounceRange / 5000,
+//                        avark: avarkTwist));
+//                }
                 amgr.Tween(avarTwist);
             }
 
