@@ -187,8 +187,8 @@ namespace Evtc
 
     public class AvarLinearDiscrete<T> : Avar<T>
     {
-        private readonly double dtmsPeriod;
-        private double dval_dtms = double.NaN;
+        protected readonly double dtmsPeriod;
+        protected double dval_dtms = double.NaN;
 
         private static double Dval_dtms(double dval_dtms, double val, double valDst)
             => Math.Abs(dval_dtms)*Math.Sign(valDst - val);
@@ -250,6 +250,76 @@ namespace Evtc
         protected override double ValUpdated(double dtms)
         {
             return val + dval_dtms*dtms;
+        }
+    }
+
+    public abstract class AvarLinearDiscreteEasing<T> : Avar<T>
+    {
+        private double dtmsCur, valInitial;
+        private readonly double dtmsDuration;
+
+        protected AvarLinearDiscreteEasing(DgReadVal dgInitialValue, DgReadVal dgValDst, DgWriteVal dgWriteVal,
+            float dtmsDuration, T tval = default(T), Avark avark = null, Kamgt kamgt = Kamgt.Overridable)
+            : base(dgInitialValue, dgValDst, dgWriteVal, tval, avark, kamgt)
+        {
+            dtmsCur = 0;
+            this.dtmsDuration = dtmsDuration;
+        }
+
+        protected AvarLinearDiscreteEasing(DgReadVal dgInitialValue, double valDst, DgWriteVal dgWriteVal,
+            float dtmsDuration, T tval = default(T), Avark avark = null, Kamgt kamgt = Kamgt.Overridable)
+            : this(dgInitialValue, _ => valDst, dgWriteVal, dtmsDuration, tval, avark, kamgt)
+        {
+        }
+
+        internal override bool FExpired() => dtmsCur >= dtmsDuration;
+
+        protected override double ValUpdated(double dtms)
+        {
+            this.dtmsCur += Math.Min(dtms, dtmsDuration - dtmsCur);
+            double valUpdated = Ease(dtmsCur, dtmsDuration, valInitial, valDst - valInitial);
+            Debug.WriteLine(valUpdated);
+            return valUpdated;
+        }
+
+        protected abstract double Ease(double dtmsCur, double dtmsDuration, double valInitial, double dval);
+
+        protected override void InitializeI()
+        {
+            this.valInitial = val;
+        }
+    }
+
+    public class AvarLinearDiscreteQuadraticEaseIn<T> : AvarLinearDiscreteEasing<T>
+    {
+        public AvarLinearDiscreteQuadraticEaseIn(DgReadVal dgInitialValue, double valDst, DgWriteVal dgWriteVal,
+            float dtmsDuration, T tval = default(T), Avark avark = null, Kamgt kamgt = Kamgt.Overridable)
+            : base(dgInitialValue, valDst, dgWriteVal, dtmsDuration, tval, avark, kamgt)
+        {
+        }
+
+        protected override double Ease(double dtmsCur, double dtmsDuration, double valInitial, double dval)
+        {
+            dtmsCur /= dtmsDuration;
+            return dval*dtmsCur*dtmsCur + valInitial;
+        }
+    }
+
+    public class AvarLinearDiscreteQuadraticEaseInOut<T> : AvarLinearDiscreteEasing<T>
+    {
+        public AvarLinearDiscreteQuadraticEaseInOut(DgReadVal dgInitialValue, double valDst, DgWriteVal dgWriteVal,
+            float dtmsDuration, T tval = default(T), Avark avark = null, Kamgt kamgt = Kamgt.Overridable)
+            : base(dgInitialValue, valDst, dgWriteVal, dtmsDuration, tval, avark, kamgt)
+        {
+        }
+
+        protected override double Ease(double dtmsCur, double dtmsDuration, double valInitial, double dval)
+        {
+            dtmsCur /= dtmsDuration/2;
+            if (dtmsCur < 1)
+                return dval/2*dtmsCur*dtmsCur + valInitial;
+            dtmsCur--;
+            return -dval/2*(dtmsCur*(dtmsCur - 2) - 1) + valInitial;
         }
     }
 

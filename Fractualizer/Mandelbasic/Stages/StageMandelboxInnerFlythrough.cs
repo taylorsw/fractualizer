@@ -177,7 +177,7 @@ namespace Mandelbasic
 
             readonly Avark avarkLight = Avark.New();
             readonly Avark avarkTwist = Avark.New();
-            const float sfTwistMax = 70;
+            const float sfTwistMax = 40;
             const float sfTwistRangeStart = sfTwistMax * 0.8f;
             protected override void OnKeyUp(KeyEventArgs keyEventArgs)
             {
@@ -206,17 +206,11 @@ namespace Mandelbasic
             private void AnimateTwistTo(float sfTwist)
             {
                 //mandelbox._mandelbox.xTwistStart = 0.17f;
-                AvarLinearDiscrete<TavarNone> avarTwist = new AvarLinearDiscrete<TavarNone>(
+                var avarTwist = new AvarLinearDiscreteQuadraticEaseIn<TavarNone>(
                     _ => mandelbox._mandelbox.sfTwist,
                     sfTwist,
-                    (_, sf) =>
-                    {
-                        var xFixed = camera.ptCamera.X;
-                        float xStart = (float)(xFixed - mandelbox._mandelbox.sfTwist * (xFixed - mandelbox._mandelbox.xTwistStart) / sf);
-                        mandelbox._mandelbox.sfTwist = (float)sf;
-                        mandelbox._mandelbox.xTwistStart = xStart + 0.17f;
-                    },
-                    1000,
+                    (_, sf) => SetSfTwist(sf),
+                    500,
                     avark: avarkTwist);
                 if (sfTwist != 1)
                 {
@@ -224,7 +218,7 @@ namespace Mandelbasic
                     avarTwist.SetDgNext(
                     prev => AvarLinearDiscrete<TavarNone>.BounceBetween(
                         avar => mandelbox._mandelbox.sfTwist,
-                        (avar, sf) => mandelbox._mandelbox.sfTwist = (float)sf,
+                        (avar, sf) => SetSfTwist(sf),
                         mandelbox._mandelbox.sfTwist - sfTwistBounceRange,
                         mandelbox._mandelbox.sfTwist + sfTwistBounceRange,
                         2 * sfTwistBounceRange / 5000,
@@ -233,9 +227,16 @@ namespace Mandelbasic
                 amgr.Tween(avarTwist);
             }
 
+            private void SetSfTwist(double sfTwist)
+            {
+                var xFixed = camera.ptCamera.X;
+                float xStart = (float)(xFixed - mandelbox._mandelbox.sfTwist * (xFixed - mandelbox._mandelbox.xTwistStart) / sfTwist);
+                mandelbox._mandelbox.sfTwist = (float)sfTwist;
+                mandelbox._mandelbox.xTwistStart = xStart; // + 0.17f;
+            }
+
             public override void DoEvents(float dtms)
             {
-                Debug.WriteLine(camera.ptCamera);
                 pointLightCamera.ptLight = camera.ptCamera;// - new Vector3(0.05f, 0f, 0);
 
                 foreach (Sptl sptl in rgsptl)
