@@ -38,7 +38,10 @@ namespace Evtc
                     Remove(lln);
                     Avar avarNext = avar.dgNext?.Invoke(avar);
                     if (avarNext != null)
+                    {
+                        Debug.Assert(!avarNext.FExpired());
                         Add(avarNext);
+                    }
                 }
                 else
                 {
@@ -89,6 +92,11 @@ namespace Evtc
             {
                 Remove(llnavar);
             }
+        }
+
+        public bool FTweening(Avark avark)
+        {
+            return mpavark_avar.ContainsKey(avark);
         }
     }
 
@@ -217,8 +225,8 @@ namespace Evtc
             Avark avarkKey = avark ?? Avark.New();
             var avarBounceForward = new AvarLinearDiscrete<T>(dgReadVal: dgReadVal, valDst: valMax, dgWriteVal: dgWriteVal, dval_dtms: dval_dtms, avark: avarkKey);
             var avarBounceBackwards = new AvarLinearDiscrete<T>(dgReadVal: dgReadVal, valDst: valMin, dgWriteVal: dgWriteVal, dval_dtms: dval_dtms, avark: avarkKey);
-            avarBounceForward.SetDgNext(avarPrev => avarBounceBackwards);
-            avarBounceBackwards.SetDgNext(avarPrev => avarBounceForward);
+            avarBounceForward.SetDgNext(avarPrev => new AvarLinearDiscrete<T>(dgReadVal: dgReadVal, valDst: valMin, dgWriteVal: dgWriteVal, dval_dtms: dval_dtms, avark: avarkKey));
+            avarBounceBackwards.SetDgNext(avarPrev => new AvarLinearDiscrete<T>(dgReadVal: dgReadVal, valDst: valMax, dgWriteVal: dgWriteVal, dval_dtms: dval_dtms, avark: avarkKey));
             return avarBounceForward;
         }
 
@@ -259,7 +267,7 @@ namespace Evtc
         private readonly double dtmsDuration;
 
         protected AvarLinearDiscreteEasing(DgReadVal dgInitialValue, DgReadVal dgValDst, DgWriteVal dgWriteVal,
-            float dtmsDuration, T tval = default(T), Avark avark = null, Kamgt kamgt = Kamgt.Overridable)
+            double dtmsDuration, T tval = default(T), Avark avark = null, Kamgt kamgt = Kamgt.Overridable)
             : base(dgInitialValue, dgValDst, dgWriteVal, tval, avark, kamgt)
         {
             dtmsCur = 0;
@@ -267,7 +275,7 @@ namespace Evtc
         }
 
         protected AvarLinearDiscreteEasing(DgReadVal dgInitialValue, double valDst, DgWriteVal dgWriteVal,
-            float dtmsDuration, T tval = default(T), Avark avark = null, Kamgt kamgt = Kamgt.Overridable)
+            double dtmsDuration, T tval = default(T), Avark avark = null, Kamgt kamgt = Kamgt.Overridable)
             : this(dgInitialValue, _ => valDst, dgWriteVal, dtmsDuration, tval, avark, kamgt)
         {
         }
@@ -292,9 +300,9 @@ namespace Evtc
 
     public class AvarLinearDiscreteQuadraticEaseIn<T> : AvarLinearDiscreteEasing<T>
     {
-        public AvarLinearDiscreteQuadraticEaseIn(DgReadVal dgInitialValue, double valDst, DgWriteVal dgWriteVal,
-            float dtmsDuration, T tval = default(T), Avark avark = null, Kamgt kamgt = Kamgt.Overridable)
-            : base(dgInitialValue, valDst, dgWriteVal, dtmsDuration, tval, avark, kamgt)
+        public AvarLinearDiscreteQuadraticEaseIn(DgReadVal dgReadVal, double valDst, DgWriteVal dgWriteVal,
+            double dtmsDuration, T tval = default(T), Avark avark = null, Kamgt kamgt = Kamgt.Overridable)
+            : base(dgReadVal, valDst, dgWriteVal, dtmsDuration, tval, avark, kamgt)
         {
         }
 
@@ -307,9 +315,9 @@ namespace Evtc
 
     public class AvarLinearDiscreteQuadraticEaseInOut<T> : AvarLinearDiscreteEasing<T>
     {
-        public AvarLinearDiscreteQuadraticEaseInOut(DgReadVal dgInitialValue, double valDst, DgWriteVal dgWriteVal,
-            float dtmsDuration, T tval = default(T), Avark avark = null, Kamgt kamgt = Kamgt.Overridable)
-            : base(dgInitialValue, valDst, dgWriteVal, dtmsDuration, tval, avark, kamgt)
+        public AvarLinearDiscreteQuadraticEaseInOut(DgReadVal dgReadVal, double valDst, DgWriteVal dgWriteVal,
+            double dtmsDuration, T tval = default(T), Avark avark = null, Kamgt kamgt = Kamgt.Overridable)
+            : base(dgReadVal, valDst, dgWriteVal, dtmsDuration, tval, avark, kamgt)
         {
         }
 
@@ -320,6 +328,16 @@ namespace Evtc
                 return dval/2*dtmsCur*dtmsCur + valInitial;
             dtmsCur--;
             return -dval/2*(dtmsCur*(dtmsCur - 2) - 1) + valInitial;
+        }
+
+        public static AvarLinearDiscreteQuadraticEaseInOut<T> BounceBetween(DgReadVal dgReadVal, DgWriteVal dgWriteVal, double valMin, double valMax, double dtmsOneWay, Avark avark = null, bool fForward = true)
+        {
+            Avark avarkKey = avark ?? Avark.New();
+            var avar = fForward 
+                ? new AvarLinearDiscreteQuadraticEaseInOut<T>(dgReadVal: dgReadVal, valDst: valMax, dgWriteVal: dgWriteVal, dtmsDuration: dtmsOneWay, avark: avarkKey)
+                : new AvarLinearDiscreteQuadraticEaseInOut<T>(dgReadVal: dgReadVal, valDst: valMin, dgWriteVal: dgWriteVal, dtmsDuration: dtmsOneWay, avark: avarkKey);
+            avar.SetDgNext(avarPrev => BounceBetween(dgReadVal, dgWriteVal, valMin, valMax, dtmsOneWay, avark, !fForward));
+            return avar;
         }
     }
 

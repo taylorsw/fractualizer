@@ -173,6 +173,7 @@ namespace Mandelbasic
                 amgr.Tween(
                     new AvarIndefinite<TavarNone>(
                         (_, dtms) => camera.MoveBy(new Vector3(dx_dtmsCamera * (float)dtms, 0, 0))));
+                amgr.Tween(AvarTwistGentle(1.0 / 5, 10000));
             }
 
             readonly Avark avarkLight = Avark.New();
@@ -205,25 +206,30 @@ namespace Mandelbasic
 
             private void AnimateTwistTo(float sfTwist)
             {
-                var avarTwist = new AvarLinearDiscreteQuadraticEaseIn<TavarNone>(
+                var avarTwist = new AvarLinearDiscreteQuadraticEaseInOut<TavarNone>(
                     _ => mandelbox._mandelbox.sfTwist,
                     sfTwist,
                     (_, sf) => SetSfTwist(sf),
                     5000,
                     avark: avarkTwist);
-//                if (sfTwist != 0)
-//                {
-//                    const float sfTwistBounceRange = sfTwistMax / 5;
-//                    avarTwist.SetDgNext(
-//                    prev => AvarLinearDiscrete<TavarNone>.BounceBetween(
-//                        avar => mandelbox._mandelbox.sfTwist,
-//                        (avar, sf) => SetSfTwist(sf),
-//                        mandelbox._mandelbox.sfTwist - sfTwistBounceRange,
-//                        mandelbox._mandelbox.sfTwist + sfTwistBounceRange,
-//                        2 * sfTwistBounceRange / 5000,
-//                        avark: avarkTwist));
-//                }
+                if (sfTwist != 0)
+                {
+                    avarTwist.SetDgNext(
+                        prev => AvarTwistGentle(1.0 / 3, 5000));
+                }
                 amgr.Tween(avarTwist);
+            }
+
+            private Avar AvarTwistGentle(double sfTwistOfMax, double dtmsOneWay)
+            {
+                double sfTwistBounceRange = sfTwistMax * sfTwistOfMax;
+                return AvarLinearDiscreteQuadraticEaseInOut<TavarNone>.BounceBetween(
+                    avar => mandelbox._mandelbox.sfTwist,
+                    (avar, sf) => SetSfTwist(sf),
+                    mandelbox._mandelbox.sfTwist - sfTwistBounceRange,
+                    mandelbox._mandelbox.sfTwist + sfTwistBounceRange,
+                    dtmsOneWay,
+                    avark: avarkTwist);
             }
 
             private void SetSfTwist(double sfTwist)
@@ -250,7 +256,8 @@ namespace Mandelbasic
             {
                 amgr.Tween(avarSf);
                 amgr.Cancel(avarRollNonDrop);
-                amgr.Tween(avarRollDrop);
+                if (!amgr.FTweening(avarkTwist))
+                    amgr.Tween(avarRollDrop);
                 pointLightCamera.brightness = sfBrightnessMax;
                 base.OnDropBegin();
             }

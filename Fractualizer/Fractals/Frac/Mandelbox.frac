@@ -117,7 +117,7 @@ fractal Mandelbox
 		return v3(pt.x, pt.y + sin(pt.x + inputs.sfRollx) * pt.z * inputs.sfSin, pt.z);
 	}
 
-	global float duAdjust = 1.0;
+	global float duAdjust = 1.3;
 	v3 PtTransformRepeatX(v3 pt)
 	{
 		return v3(pt.x%duAdjust + duAdjust/2, pt.y, pt.z);

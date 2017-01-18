@@ -136,24 +136,25 @@ namespace Mandelbasic
                                 1000));
                         break;
                     case Keys.T:
+                        double val = rand.NextDouble();
                         amgr.Tween(
                             new AvarLinearDiscrete<TavarNone>(
                                 raytracer._raytracerfractal.sfR,
-                                rand.NextDouble(),
-                                (avar, sf) => raytracer._raytracerfractal.sfR = (float)sf,
+                                val < 1.0/3 ? 1.0 - raytracer._raytracerfractal.sfR : rand.NextDouble(),
+                                (avar, sf) => raytracer._raytracerfractal.sfR = (float) sf,
                                 200,
                                 avark: avarkSfR));
                         amgr.Tween(
                             new AvarLinearDiscrete<TavarNone>(
                                 raytracer._raytracerfractal.sfG,
-                                rand.NextDouble(),
+                                val > 1.0/3 && val < 2.0/3 ? 1.0 - raytracer._raytracerfractal.sfG : rand.NextDouble(),
                                 (avar, sf) => raytracer._raytracerfractal.sfG = (float) sf,
                                 200,
                                 avark: avarkSfG));
                         amgr.Tween(
                             new AvarLinearDiscrete<TavarNone>(
                                 raytracer._raytracerfractal.sfB,
-                                rand.NextDouble(),
+                                val > 2.0/3 ? 1.0 - raytracer._raytracerfractal.sfB : rand.NextDouble(),
                                 (avar, sf) => raytracer._raytracerfractal.sfB = (float) sf,
                                 200,
                                 avark: avarkSfB));
