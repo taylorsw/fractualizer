@@ -12,6 +12,8 @@ int fGradientColor = 0;
 bool fAdjustAdditional;
 float sfTwist = 0;
 float xTwistStart = 0;
+float vkTwistY = 0;
+float vkTwistZ = 0;
 
 fractal Mandelbox
 {
@@ -98,8 +100,8 @@ fractal Mandelbox
 		float t = (pt.x - inputs.xTwistStart) * inputs.sfTwist;
 		float c = cos(t);
 		float s = sin(t);
-		float yCenter = -0.479544;
-		float zCenter = -0.5555527;
+		float yCenter = inputs.vkTwistY;
+		float zCenter = inputs.vkTwistZ;
 		float dy = pt.y - yCenter;
 		float dz = pt.z - zCenter;
 		float yRot = c * dy - s * dz;

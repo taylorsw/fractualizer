@@ -28,7 +28,7 @@ namespace Mandelbasic
 
             private PointLight pointLightCamera;
             private Vector3 ptRailLight;
-            private RailOrbit railOrbit;
+            //private RailOrbit railOrbit;
 
             // Avarks
             private readonly Avark avarkRoll = Avark.New();
@@ -68,7 +68,7 @@ namespace Mandelbasic
                 camera.MoveTo(new Vector3(0, mandelbox._mandelbox.duMirrorPlane, 0));
                 camera.LookAt(camera.ptCamera - new Vector3(1, 0, 0));
                 pointLightCamera = new PointLight(camera.ptCamera, Vector3.One, brightnessCameraLight, false);
-                railOrbit = new RailOrbit(pt => ptRailLight = pt, Vector3.Zero, new Vector3(0, 0.2f, 0), new Vector3(1, 0, 0), 14.77f * 1000);
+                //railOrbit = new RailOrbit(pt => ptRailLight = pt, Vector3.Zero, new Vector3(0, 0.1f, 0), new Vector3(1, 0, 0), 14.77f * 1000);
                 lightManager.AddLight(pointLightCamera);
 
                 // Avars
@@ -103,6 +103,30 @@ namespace Mandelbasic
                 const float dxCamera_dtms = 2 / 3000f;
                 amgr.Tween(new AvarIndefinite<TavarNone>(
                     (avar, dtms) => camera.MoveBy(new Vector3(-dxCamera_dtms * (float)dtms, 0, 0))));
+
+                amgr.Tween(AvarTwistGentle(1.0 / 5, 20000));
+            }
+
+            private void SetSfTwist(double sfTwist)
+            {
+                var xFixed = camera.ptCamera.X;
+                float xStart = (float)(xFixed - mandelbox._mandelbox.sfTwist * (xFixed - mandelbox._mandelbox.xTwistStart) / sfTwist);
+                mandelbox._mandelbox.sfTwist = (float)sfTwist;
+                mandelbox._mandelbox.xTwistStart = xStart; // + 0.17f;
+            }
+
+            readonly Avark avarkTwist = Avark.New();
+            const float sfTwistMax = 10;
+            private Avar AvarTwistGentle(double sfTwistOfMax, double dtmsOneWay)
+            {
+                double sfTwistBounceRange = sfTwistMax * sfTwistOfMax;
+                return AvarLinearDiscreteQuadraticEaseInOut<TavarNone>.BounceBetween(
+                    avar => mandelbox._mandelbox.sfTwist,
+                    (avar, sf) => SetSfTwist(sf),
+                    mandelbox._mandelbox.sfTwist - sfTwistBounceRange,
+                    mandelbox._mandelbox.sfTwist + sfTwistBounceRange,
+                    dtmsOneWay,
+                    avark: avarkTwist);
             }
 
             protected override void OnKeyUp(KeyEventArgs keyEventArgs)
@@ -180,8 +204,8 @@ namespace Mandelbasic
             {
                 base.DoEvents(dtms);
 
-                railOrbit.UpdatePt(dtms);
-                pointLightCamera.ptLight = camera.ptCamera + ptRailLight;
+                //railOrbit.UpdatePt(dtms);
+                pointLightCamera.ptLight = camera.ptCamera + new Vector3(0.1f, 0, 0); //camera.ptCamera + ptRailLight + new Vector3(0.05f, 0, 0);
                 //pointLightCamera.ptLight = camera.ptCamera + new Vector3(-0.02f, 0, 0);
             }
 

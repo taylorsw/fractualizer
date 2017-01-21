@@ -152,6 +152,8 @@ namespace Mandelbasic
                         dagd_dtmsRotation: rand.NextFloat(1, 5) / 10);
                 }
 
+                mandelbox._mandelbox.vkTwistY = -0.479544f;
+                mandelbox._mandelbox.vkTwistZ = -0.5555527f;
                 camera.MoveTo(new Vector3(0.5f, -0.479544f, -0.5555527f));
                 camera.LookAt(camera.ptCamera - new Vector3(1, 0, 0));
 
