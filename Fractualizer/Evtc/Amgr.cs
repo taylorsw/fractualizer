@@ -286,7 +286,6 @@ namespace Evtc
         {
             this.dtmsCur += Math.Min(dtms, dtmsDuration - dtmsCur);
             double valUpdated = Ease(dtmsCur, dtmsDuration, valInitial, valDst - valInitial);
-            Debug.WriteLine(valUpdated);
             return valUpdated;
         }
 
