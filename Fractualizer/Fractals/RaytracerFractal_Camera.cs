@@ -109,6 +109,11 @@ namespace Fractals
                 raytracer._raytracerfractal.vkCameraOrtho = vkCameraOrthoNew.Normalized();
             }
 
+            public override void SetDuNear(float duNear)
+            {
+                raytracer._raytracerfractal.duNear = duNear;
+            }
+
             public override Vector3 ptCamera => raytracer._raytracerfractal.ptCamera;
 
             public override Vector3 vkCamera => raytracer._raytracerfractal.vkCamera;

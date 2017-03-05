@@ -27,8 +27,8 @@ namespace Mandelbasic
             private float duSfRollx = 1.0f;
 
             private PointLight pointLightCamera;
-            private Vector3 ptRailLight;
-            //private RailOrbit railOrbit;
+            private Vector3 vkRailCamera;
+            private RailOrbit railOrbitCamera;
 
             // Avarks
             private readonly Avark avarkRoll = Avark.New();
@@ -66,9 +66,8 @@ namespace Mandelbasic
                 mandelbox._mandelbox.duMirrorPlane = 1.0f;
                 mandelbox._mandelbox.sfSin = 0.0f;
                 camera.MoveTo(new Vector3(0, mandelbox._mandelbox.duMirrorPlane, 0));
-                camera.LookAt(camera.ptCamera - new Vector3(1, 0, 0));
                 pointLightCamera = new PointLight(camera.ptCamera, Vector3.One, brightnessCameraLight, false);
-                //railOrbit = new RailOrbit(pt => ptRailLight = pt, Vector3.Zero, new Vector3(0, 0.1f, 0), new Vector3(1, 0, 0), 14.77f * 1000);
+                railOrbitCamera = new RailOrbit(pt => vkRailCamera = pt, Vector3.Zero, new Vector3(0, 0.04f, 0), new Vector3(1, 0, 0), 20000);
                 lightManager.AddLight(pointLightCamera);
 
                 // Avars
@@ -103,8 +102,6 @@ namespace Mandelbasic
                 const float dxCamera_dtms = 2 / 3000f;
                 amgr.Tween(new AvarIndefinite<TavarNone>(
                     (avar, dtms) => camera.MoveBy(new Vector3(-dxCamera_dtms * (float)dtms, 0, 0))));
-
-                amgr.Tween(AvarTwistGentle(1.0 / 5, 20000));
             }
 
             private void SetSfTwist(double sfTwist)
@@ -133,6 +130,9 @@ namespace Mandelbasic
             {
                 switch (keyEventArgs.KeyCode)
                 {
+                    case Keys.Q:
+                        amgr.Tween(AvarTwistGentle(1.0 / 5, 20000));
+                        break;
                     case Keys.N:
                         amgr.Tween(
                             AvarLinearDiscrete<TavarNone>.LerpPt(
@@ -204,8 +204,9 @@ namespace Mandelbasic
             {
                 base.DoEvents(dtms);
 
-                //railOrbit.UpdatePt(dtms);
+                railOrbitCamera.UpdatePt(dtms);
                 pointLightCamera.ptLight = camera.ptCamera + new Vector3(0.1f, 0, 0); //camera.ptCamera + ptRailLight + new Vector3(0.05f, 0, 0);
+                camera.LookAt(camera.ptCamera + vkRailCamera + new Vector3(-0.1f, 0, 0));
                 //pointLightCamera.ptLight = camera.ptCamera + new Vector3(-0.02f, 0, 0);
             }
 
@@ -214,8 +215,8 @@ namespace Mandelbasic
                 amgr.Cancel(avarBounceSfNonDrop);
                 amgr.Tween(avarBounceSfDrop);
 
-                amgr.Cancel(avarRollNonDrop);
-                amgr.Tween(avarRollDrop);
+                //amgr.Cancel(avarRollNonDrop);
+                //amgr.Tween(avarRollDrop);
 
                 amgr.Tween(new AvarLinearDiscrete<TavarNone>(mandelbox._mandelbox.sfSin, sfSinMax, sfSin_dtms,
                     (avar, sfSin) => mandelbox._mandelbox.sfSin = (float) sfSin,
@@ -230,8 +231,8 @@ namespace Mandelbasic
                 amgr.Cancel(avarBounceSfDrop);
                 amgr.Tween(avarBounceSfNonDrop);
 
-                amgr.Cancel(avarRollDrop);
-                amgr.Tween(avarRollNonDrop);
+                //amgr.Cancel(avarRollDrop);
+                //amgr.Tween(avarRollNonDrop);
 
                 amgr.Tween(new AvarLinearDiscrete<TavarNone>(mandelbox._mandelbox.sfSin, sfSinMin, sfSin_dtms,
                     (avar, sfSin) => mandelbox._mandelbox.sfSin = (float)sfSin,

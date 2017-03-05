@@ -44,6 +44,9 @@
     <Compile Include="SampleAggregator.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Resources\bringbackthesummer.mp3">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Resources\callonme.mp3">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
@@ -52,6 +55,9 @@
     </Content>
     <Content Include="Resources\closer.mp3">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\deathandfriends.mp3">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Resources\dontletmedown.mp3">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

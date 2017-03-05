@@ -11,6 +11,7 @@ namespace Fractals
         public abstract void RollBy(float dagd);
         public abstract void Orbit(Vector3 axis, float dagd);
         public abstract void LookAt(Vector3 pt);
+        public abstract void SetDuNear(float duNear);
 
         public abstract Vector3 ptCamera { get; }
         public abstract Vector3 vkCamera { get; }
