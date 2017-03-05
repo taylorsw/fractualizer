@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows.Forms;
 using Audio;
-using Evtc;
+using EVTC;
 using SharpDX;
 
 namespace Mandelbasic

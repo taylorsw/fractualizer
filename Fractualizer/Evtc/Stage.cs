@@ -1,14 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Windows.Forms;
-using Audio;
-using Evtc;
-using Fractals;
-using SharpDX;
-using Util;
+﻿using Fractals;
 
-namespace Mandelbasic
+namespace EVTC
 {
     public abstract class Stage
     {

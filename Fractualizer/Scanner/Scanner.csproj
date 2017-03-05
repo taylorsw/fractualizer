@@ -4,16 +4,17 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{85645D8B-62C2-4069-B89B-216FF5887371}</ProjectGuid>
-    <OutputType>Library</OutputType>
+    <ProjectGuid>{9C31157D-3FFC-4D81-BAD5-CFF29F73EA19}</ProjectGuid>
+    <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Evtc</RootNamespace>
-    <AssemblyName>Evtc</AssemblyName>
+    <RootNamespace>Scanner</RootNamespace>
+    <AssemblyName>Scanner</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile />
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -21,9 +22,9 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <UseVSHostingProcess>true</UseVSHostingProcess>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
@@ -32,44 +33,36 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="SharpDX.Desktop">
-      <HintPath>..\..\Tools\SharpDX\Bin\Desktop\SharpDX.Desktop.dll</HintPath>
-    </Reference>
-    <Reference Include="SharpDX.Mathematics">
+    <Reference Include="SharpDX.Mathematics, Version=3.0.2.0, Culture=neutral, PublicKeyToken=b4dcf0f35e5521f1, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\Tools\SharpDX\Bin\Desktop\SharpDX.Mathematics.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
-    <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Amgr.cs" />
-    <Compile Include="Controller.cs" />
-    <Compile Include="Evtc.cs" />
-    <Compile Include="EvtcAudio.cs" />
-    <Compile Include="EvtcExplorer.cs" />
-    <Compile Include="EvtcUserDecode.cs" />
+    <Compile Include="ControllerScanner.cs" />
+    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Rail.cs" />
-    <Compile Include="Stage.cs" />
+    <Compile Include="StageScanner.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Audio\Audio.csproj">
-      <Project>{63100634-db24-46cf-b631-63590f99edd4}</Project>
-      <Name>Audio</Name>
+    <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Evtc\Evtc.csproj">
+      <Project>{85645d8b-62c2-4069-b89b-216ff5887371}</Project>
+      <Name>Evtc</Name>
     </ProjectReference>
     <ProjectReference Include="..\Fractals\Fractals.csproj">
-      <Project>{59B2A913-CE09-42FD-A7B0-4AB79CEF8E33}</Project>
+      <Project>{59b2a913-ce09-42fd-a7b0-4ab79cef8e33}</Project>
       <Name>Fractals</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Render\Render.csproj">
-      <Project>{5FD1E68E-47A1-402C-AB2E-285BD5ADE19A}</Project>
-      <Name>Render</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Util\Util.csproj">
-      <Project>{57A9458F-A94F-413D-B6B0-C7D3F8748AC4}</Project>
+      <Project>{57a9458f-a94f-413d-b6b0-c7d3f8748ac4}</Project>
       <Name>Util</Name>
     </ProjectReference>
   </ItemGroup>

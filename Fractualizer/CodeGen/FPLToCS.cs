@@ -606,6 +606,11 @@ namespace CodeGen
             return LneNew("protected internal override Vector3d Color(Vector3d pt)") + VisitBlock(context.block());
         }
 
+        public override Losa VisitFunc(FPLParser.FuncContext func)
+        {
+            return "public " + base.VisitFunc(func);
+        }
+
         public override Losa VisitFuncCall(FPLParser.FuncCallContext funcCall)
         {
             string stFuncNameFpl = VisitIdentifier(funcCall.identifier()).ToString();

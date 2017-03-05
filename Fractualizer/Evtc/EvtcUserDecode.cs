@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Windows.Forms;
-using Evtc;
+using EVTC;
 using Fractals;
 using SharpDX;
 using Point = System.Drawing.Point;
 
-namespace Mandelbasic
+namespace EVTC
 {
     public abstract class EvtcUserDecode : Evtc
     {

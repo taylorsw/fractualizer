@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Windows.Forms;
-using Evtc;
+using EVTC;
 using Fractals;
 using SharpDX;
 using Util;

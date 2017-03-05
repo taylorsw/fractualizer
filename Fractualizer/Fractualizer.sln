@@ -21,6 +21,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Util", "Util\Util.csproj", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AudioDemo", "..\AudioDemo\AudioDemo\AudioDemo.csproj", "{5C9160C5-5ACE-4CA8-A70D-F47E09AF8582}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Scanner", "Scanner\Scanner.csproj", "{9C31157D-3FFC-4D81-BAD5-CFF29F73EA19}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -63,6 +65,10 @@ Global
 		{5C9160C5-5ACE-4CA8-A70D-F47E09AF8582}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5C9160C5-5ACE-4CA8-A70D-F47E09AF8582}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5C9160C5-5ACE-4CA8-A70D-F47E09AF8582}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9C31157D-3FFC-4D81-BAD5-CFF29F73EA19}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9C31157D-3FFC-4D81-BAD5-CFF29F73EA19}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9C31157D-3FFC-4D81-BAD5-CFF29F73EA19}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9C31157D-3FFC-4D81-BAD5-CFF29F73EA19}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,5 +1,5 @@
 ﻿using System.Windows.Forms;
-using Evtc;
+using EVTC;
 using Fractals;
 
 namespace Mandelbasic

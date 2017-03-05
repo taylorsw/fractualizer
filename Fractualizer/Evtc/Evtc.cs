@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Windows.Forms;
-using Evtc;
 using Fractals;
 
-namespace Mandelbasic
+namespace EVTC
 {
     public abstract class Evtc
     {
@@ -11,6 +10,7 @@ namespace Mandelbasic
         protected Controller controller;
         protected RaytracerFractal raytracer => controller.raytracer;
         protected Scene scene => raytracer.scene;
+        protected Fractal3d fractal => scene.fractal;
         protected Camera camera => raytracer.camera;
         public readonly Amgr amgr;
         protected RaytracerFractal.LightManager lightManager => raytracer.lightManager;

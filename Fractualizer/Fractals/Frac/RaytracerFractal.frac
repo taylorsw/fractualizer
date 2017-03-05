@@ -233,11 +233,10 @@ raytracer RaytracerFractal
 		return color;
 	}
 
-	global float duMarchLimit = 20;
-	RgbaTrace(v4 pos)
+	v3 PtPlane(v2 ptPixelTL)
 	{
 		// position.x is from 0.5 to rsScreen.x + 6.5
-		v2 ptScreen = v2(pos.x, pos.y) - v2(0.5, 0.5);
+		v2 ptScreen = ptPixelTL - v2(0.5, 0.5);
 
 		v3 ptPlaneCenter = inputs.ptCamera + inputs.vkCamera * inputs.duNear;
 
@@ -251,7 +250,13 @@ raytracer RaytracerFractal
 		float fry = vkFromScreenCenter.y / inputs.rsScreen.y;
 
 		v3 ptPlane = ptPlaneCenter + vkRight * inputs.rsViewPlane.x * frx + vkDown * inputs.rsViewPlane.y * fry;
+		return ptPlane;
+	}
 
+	global float duMarchLimit = 20;
+	RgbaTrace(v4 pos)
+	{
+		v3 ptPlane = PtPlane(v2(pos.x, pos.y));
 		v3 vkRay = normalize(ptPlane - inputs.ptCamera);
 
 		float duEpsilon;

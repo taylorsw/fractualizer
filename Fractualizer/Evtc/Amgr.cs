@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Util;
 
-namespace Evtc
+namespace EVTC
 {
     // Kind of AniMation manaGmenT
     public enum Kamgt

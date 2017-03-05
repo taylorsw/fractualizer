@@ -4,7 +4,7 @@ using Fractals;
 using SharpDX;
 using Util;
 
-namespace Mandelbasic
+namespace EVTC
 {
     public abstract class Rail
     {

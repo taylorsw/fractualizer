@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Windows.Forms;
-using Evtc;
 using Fractals;
 using SharpDX;
 using Util;
 using Point = System.Drawing.Point;
 
-namespace Mandelbasic
+namespace EVTC
 {
     public class EvtcExplorer : EvtcUserDecode
     {
@@ -21,13 +20,6 @@ namespace Mandelbasic
         public override void Setup()
         {
             base.Setup();
-
-            Mandelbulb mandelbulb = scene.fractal as Mandelbulb;
-            if (mandelbulb != null)
-            {
-                mandelbulb._mandelbulb.param = 8.0f;
-                mandelbulb._mandelbulb.param2 = 1.0f;
-            }
 
             camera.MoveTo(new Vector3(0, 0, -1.5f));
             camera.LookAt(Vector3.Zero);
@@ -64,7 +56,7 @@ namespace Mandelbasic
             CenterCursor();
         }
 
-        private bool fLightFollows = false;
+        private bool fLightFollows = true;
         protected override void OnKeyUp(KeyEventArgs keyEventArgs)
         {
             switch (keyEventArgs.KeyCode)
@@ -86,9 +78,6 @@ namespace Mandelbasic
                         lightManager.RemoveLight(lightManager.clight - 1);
                     else
                         lightManager.AddLight(new PointLight(camera.ptCamera, Vector3.One, fVisualize: false));
-                    break;
-                case Keys.G:
-                    Debug.WriteLine(camera.ptCamera);
                     break;
             }
         }
@@ -141,10 +130,6 @@ namespace Mandelbasic
                 scene.fractal.SetInputFloat(0, scene.fractal.GetInputFloat(0) - dParam1);
             if (IsKeyDown(Keys.X) && scene.fractal.cinputFloat >= 1)
                 scene.fractal.SetInputFloat(0, scene.fractal.GetInputFloat(0) + dParam1);
-            if (IsKeyDown(Keys.C) && scene.fractal.cinputFloat >= 2)
-                scene.fractal.SetInputFloat(1, scene.fractal.GetInputFloat(1) - dParam2);
-            if (IsKeyDown(Keys.V) && scene.fractal.cinputFloat >= 2)
-                scene.fractal.SetInputFloat(1, scene.fractal.GetInputFloat(1) + dParam2);
         }
     }
 }
