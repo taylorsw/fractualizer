@@ -62,7 +62,7 @@ namespace EVTC
             switch (keyEventArgs.KeyCode)
             {
                 case Keys.P:
-                    controller.Exit();
+                    Debug.WriteLine("Camera: {0},{1},{2}", camera.ptCamera.X, camera.ptCamera.Y, camera.ptCamera.Z);
                     break;
                 case Keys.T:
                     Setup();

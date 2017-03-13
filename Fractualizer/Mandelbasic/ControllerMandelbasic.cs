@@ -7,7 +7,7 @@ namespace Mandelbasic
     {
         protected override Stage StageCreate(Form form)
         {
-            return new StageMandelbulbExplorer(form, this, width, height);
+            return new StageMandelboxExplorer(form, this, width, height);
         }
     }
 }

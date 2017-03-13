@@ -1,4 +1,4 @@
-﻿float sfTwist = 1;
+﻿float sfTwist = 0;
 float param = 8.0;
 float param2 = 1.0;
 fractal Mandelbulb
