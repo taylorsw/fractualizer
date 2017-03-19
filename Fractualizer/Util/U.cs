@@ -110,6 +110,8 @@ namespace Util
             return v;
         }
 
+        public static Vector3d Normalized(this Vector3d v) => v*(1f / Vector3d.Length(v));
+
         public static Vector3 PerspectiveDivide(this Vector4 v) => v.Xyz() / v.W;
         public static Vector3 Xyz(this Vector4 v) => new Vector3(v.X, v.Y, v.Z);
 

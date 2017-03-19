@@ -1,4 +1,5 @@
 ﻿using SharpDX;
+using Util;
 
 namespace Fractals
 {
@@ -11,6 +12,7 @@ namespace Fractals
         public abstract void RollBy(float dagd);
         public abstract void Orbit(Vector3 axis, float dagd);
         public abstract void LookAt(Vector3 pt);
+        public abstract Vector3d PtViewPlaneFromPixel(Point ptPixel);
         public abstract void SetDuNear(float duNear);
 
         public abstract Vector3 ptCamera { get; }

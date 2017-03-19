@@ -55,7 +55,9 @@ namespace Mandelbasic
                 for (int iballlight = 0; iballlight < cballlight; iballlight++)
                 {
                     BallLight ballLight = new BallLight(rand.VkUnitRand() * 2.0f,
-                        new Vector3(0, rand.NextFloat(0.2f, 1.0f), rand.NextFloat(0.2f, 1.0f)), duCutoffBallLight,
+                        new Vector3(0, rand.NextFloat(0.2f, 1.0f), rand.NextFloat(0.2f, 1.0f)), 
+                        duCutoff: duCutoffBallLight,
+                        duCutoffVisual: duCutoffBallLight,
                         brightness: rand.NextFloat(1.5f, 2.5f), fVisualize: false);
                     lightManager.AddLight(ballLight);
 

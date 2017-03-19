@@ -60,7 +60,7 @@ namespace Mandelbasic
                 base.Setup();
                 raytracer._raytracerfractal.fSkysphere = true;
                 raytracer._raytracerfractal.cmarch = 140;
-                mandelbox._mandelbox.fGradientColor = 1;
+                mandelbox._mandelbox.fGradientColor = true;
                 mandelbox._mandelbox.fAdjustAdditional = true;
                 mandelbox._mandelbox.sfRollx = 0;
                 mandelbox._mandelbox.duMirrorPlane = 1.0f;

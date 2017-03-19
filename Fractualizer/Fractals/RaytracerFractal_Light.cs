@@ -53,15 +53,18 @@ namespace Fractals
     public class BallLight : Light
     {
         public float duCutoff;
+        public float duCutoffVisual;
 
-        public BallLight(Vector3 ptLight, Vector3 rgbLight, float duCutoff, float brightness = 1.0f, bool fVisualize = true) : base(Klight.Ball, ptLight, rgbLight, brightness, fVisualize)
+        public BallLight(Vector3 ptLight, Vector3 rgbLight, float duCutoff, float duCutoffVisual, float brightness = 1.0f, bool fVisualize = true) : base(Klight.Ball, ptLight, rgbLight, brightness, fVisualize)
         {
             this.duCutoff = duCutoff;
+            this.duCutoffVisual = duCutoffVisual;
         }
 
         internal override void SyncWithBuffer(RaytracerFractal._RaytracerFractal _raytracerfractal, int ilight)
         {
-            _raytracerfractal.rgduCutoffLight[ilight] = duCutoff;
+            _raytracerfractal.rgduCutoffBallLight[ilight] = duCutoff;
+            _raytracerfractal.rgduCutoffBallVisual[ilight] = duCutoffVisual;
             base.SyncWithBuffer(_raytracerfractal, ilight);
         }
     }

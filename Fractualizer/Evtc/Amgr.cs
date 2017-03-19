@@ -152,9 +152,7 @@ namespace EVTC
         }
     }
 
-    public abstract class TavarNone
-    {
-    }
+    public abstract class TavarNone { }
 
     public abstract class Avar<T> : Avar
     {

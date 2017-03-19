@@ -77,7 +77,7 @@ namespace EVTC
                     if (IsKeyDown(Keys.ControlKey))
                         lightManager.RemoveLight(lightManager.clight - 1);
                     else
-                        lightManager.AddLight(new PointLight(camera.ptCamera, Vector3.One, fVisualize: false));
+                        lightManager.AddLight(new BallLight(camera.ptCamera, rand.VkUnitRand(), 0.3f, 0.3f, fVisualize: false));
                     break;
             }
         }
@@ -86,7 +86,7 @@ namespace EVTC
         private const float dagdRoll = (float)360/(60*4);
         public override void DoEvents(float dtms)
         {
-            if (fLightFollows)
+            if (fLightFollows && lightManager.clight > 0)
                 lightManager[0].ptLight = camera.ptCamera;
 
             float frMove = frMoveBase;

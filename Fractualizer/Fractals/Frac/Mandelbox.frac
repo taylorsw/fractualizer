@@ -8,7 +8,7 @@ float sf = 2;
 float duMirrorPlane = 1;
 float sfRollx = 1;
 float sfSin = 1;
-int fGradientColor = 0;
+bool fGradientColor;
 bool fAdjustAdditional;
 float sfTwist = 0;
 float xTwistStart = 0;
@@ -178,7 +178,7 @@ fractal Mandelbox
 		}
 
 		v3 color = (v3(1, 1, 1) - trap);
-		if (inputs.fGradientColor != 0)
+		if (inputs.fGradientColor)
 		{
 			return ColorGradient(ptOrig, color);
 		}

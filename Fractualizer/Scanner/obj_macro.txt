@@ -1,0 +1,5 @@
+args = split(getArgument(), " ");
+run("Image Sequence...", "open=" + args[0] + " sort use");
+run("Wavefront .OBJ ...", "stack=BMP threshold=50 resampling=2 red green blue save=" + args[1]);
+run("Close");
+run("Quit");

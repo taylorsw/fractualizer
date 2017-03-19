@@ -17,8 +17,8 @@ namespace EVTC
         public Stage stage { get; private set; }
         public RaytracerFractal raytracer => stage.raytracer;
 
-        protected int width => Renderer.fFullscreen ? Screen.PrimaryScreen.Bounds.Width : 1920;
-        protected int height => Renderer.fFullscreen ? Screen.PrimaryScreen.Bounds.Height : 1080;
+        protected virtual int width => Renderer.fFullscreen ? Screen.PrimaryScreen.Bounds.Width : 1920;
+        protected virtual int height => Renderer.fFullscreen ? Screen.PrimaryScreen.Bounds.Height : 1080;
 
         protected Controller()
         {

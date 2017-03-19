@@ -22,21 +22,27 @@ texture skysphere;
 
 // Shadows
 float sfEpsilonShadow = 2.0;
+float sfAmbient = 0.1;
 
-// Colors
+// General fractal coloring
 float sfR = 1.0;
 float sfG = 1.0;
 float sfB = 1.0;
 
-// Light
+// Lights
 int rglidLight[40];
 v3 rgptLight[40];
-v3 rgvkLight[40];
-float rgcosCutoffLight[40];
-float rgduCutoffLight[40];
 bool rgfVisualizeLight[40];
 v3 rgrgbLight[40];
 float rgbrightnessLight[40];
+
+// Ball Lights
+float rgduCutoffBallLight[40];
+float rgduCutoffBallVisual[40];
+
+// Spotlights
+v3 rgvkLight[40];
+float rgcosCutoffLight[40];
 
 raytracer RaytracerFractal
 {
@@ -49,12 +55,6 @@ raytracer RaytracerFractal
 	float DuDeSphere(v3 ptPos, v3 ptCenter, float duRadius)
 	{
 		return length(ptPos - ptCenter) - duRadius;
-	}
-
-	global float duRadiusLight = 0.01;
-	float DuDeLight(v3 ptPos, int ilight)
-	{
-		return DuDeSphere(ptPos, inputs.rgptLight[ilight], duRadiusLight);
 	}
 
 	float DuDeObject(v3 ptPos)
@@ -70,17 +70,17 @@ raytracer RaytracerFractal
 	{
 		idHit = ID_FRACTAL;
 		float du = DuDeObject(ptPos);
-		for (int ilight = 0; ilight < inputs.cLight; ilight++)
-		{
-			if (!inputs.rgfVisualizeLight[ilight])
-				continue;
-			float duDeLight = DuDeLight(ptPos, ilight);
-			if (duDeLight < du)
-			{
-				du = duDeLight;
-				idHit = ilight;
-			}
-		}
+//		for (int ilight = 0; ilight < inputs.cLight; ilight++)
+//		{
+//			if (!inputs.rgfVisualizeLight[ilight])
+//				continue;
+//			float duDeLight = DuDeLight(ptPos, ilight);
+//			if (duDeLight < du)
+//			{
+//				du = duDeLight;
+//				idHit = ilight;
+//			}
+//		}
 		return du;
 	}
 
@@ -111,6 +111,7 @@ raytracer RaytracerFractal
 #endif
 	}
 
+	// todo this makes zero sense
 	float DuEpsilon(float sfEpsilon, float duMarched)
 	{
 		float duPixelRadius = inputs.rsViewPlane.x / inputs.rsScreen.x;
@@ -143,6 +144,47 @@ raytracer RaytracerFractal
 				return v4(pt, i);
 		}
 		return v4(pt, MARCHED_TIMEOUT);
+	}
+
+	float FrQuadraticCutoff(v3 ptA, v3 ptB, float duTotal)
+	{
+		float frCutoff = (1 - length(ptA - ptB)/duTotal);
+		return frCutoff*frCutoff;
+	}
+
+	bool FIntersectsSphere(v3 ptRayStart, v3 vkRay, v3 ptSphere, float duRadius)
+	{
+		v3 vkDist = ptSphere - ptRayStart;
+		float c = length(vkDist);
+		float v = dot(vkDist, vkRay);
+		float d = duRadius*duRadius - (c*c - v*v);
+		return d >= 0;
+	}
+
+	v3 ColorPixel(v3 color, v3 ptMarchedTo, v3 vkRay)
+	{
+		v3 ptCam = inputs.ptCamera;
+		for (int ilight = 0; ilight < inputs.cLight; ilight++)
+		{
+			if (inputs.rglidLight[ilight] == LID_BALLLIGHT && inputs.rgfVisualizeLight[ilight])
+			{
+				v3 ptLight = inputs.rgptLight[ilight];
+				float duRadius = inputs.rgduCutoffBallVisual[ilight];
+				v3 vkCamToSurface = ptMarchedTo - ptCam;
+				v3 vkCamToLight = ptLight - ptCam;
+				if (FIntersectsSphere(ptCam, vkRay, ptLight, duRadius) 
+					&& (length(vkCamToLight) - duRadius < length(vkCamToSurface)))
+				{
+					float c1 = dot(vkCamToLight, vkCamToSurface);
+					float c2 = dot(vkCamToSurface, vkCamToSurface);
+					float b = c1 / c2;
+					v3 ptOrtho = ptCam + b*vkCamToSurface;
+					float frFade = FrQuadraticCutoff(ptLight, ptOrtho, duRadius);
+					color = color + inputs.rgrgbLight[ilight]*inputs.rgbrightnessLight[ilight]*frFade;
+				}
+			}
+		}
+		return color;
 	}
 
 	global float PI = 3.14159265358979323;
@@ -182,7 +224,7 @@ raytracer RaytracerFractal
 			return inputs.rgrgbLight[idHit];
 
 		v3 colorTexture = color;
-		color = 0.1 * color;
+		color = inputs.sfAmbient * color;
 
 		for (int ilight = 0; ilight < inputs.cLight; ilight++)
 		{
@@ -190,7 +232,7 @@ raytracer RaytracerFractal
 			v3 vkLightDir = normalize(vkSurfaceToLight);
 			if (inputs.rglidLight[ilight] == LID_BALLLIGHT)
 			{
-				if (length(vkSurfaceToLight) > inputs.rgduCutoffLight[ilight])
+				if (length(vkSurfaceToLight) > inputs.rgduCutoffBallLight[ilight])
 					continue;
 			}
 			else if (inputs.rglidLight[ilight] == LID_SPOTLIGHT)
@@ -269,11 +311,11 @@ raytracer RaytracerFractal
 		if (ptMarched.w == MARCHED_LIMIT)
 		{
 			v3 colorBG = ColorBG(vkRay);
-			return v4(colorBG, 1);
+			return v4(ColorPixel(colorBG, ptMarched, vkRay), 1);
 		}
 
 		if (ptMarched.w == MARCHED_TIMEOUT)
-			return v4(0, 0, 0, 1);
+			return v4(ColorPixel(v3(0, 0, 0), ptMarched, vkRay), 1);
 
 		v3 color = fractal.Color(ptMarched);
 		color = color * v3(inputs.sfR, inputs.sfG, inputs.sfB);
@@ -287,6 +329,8 @@ raytracer RaytracerFractal
 #ifdef LIGHTING
 		color = ColorBP(color, ptMarched, idHit, duEpsilon);
 #endif
+
+		color = ColorPixel(color, ptMarched, vkRay);
 
 		return v4(color.x, color.y, color.z, 1.0);
 	}

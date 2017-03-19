@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using EVTC;
@@ -37,6 +37,8 @@ namespace Scanner
                 camera.MoveTo(new Vector3(0, 0, -1.5f));
                 camera.LookAt(Vector3.Zero);
                 vkViewPlaneAdjust = raytracer._raytracerfractal.rsViewPlane*0.01;
+
+                //raytracer._raytracerfractal.duNear = 10; // approximate orthographic
             }
 
             protected override void OnKeyUp(KeyEventArgs keyEventArgs)
@@ -45,7 +47,7 @@ namespace Scanner
                 {
                     case Keys.R:
                         double duDepthSlice = raytracer._raytracerfractal.rsViewPlane.x/dxImgWidth;
-                        int cslice = (int)(3.0 / duDepthSlice);
+                        int cslice = (int)(5.0 / duDepthSlice);
                         Scan(cslice, duDepthSlice);
                         break;
                     default:
@@ -63,8 +65,21 @@ namespace Scanner
                 base.DoEvents(dtms);
             }
 
+            private static void ClearAndGenFolder(string stFolder)
+            {
+                if (Directory.Exists(stFolder))
+                    Directory.Delete(stFolder, recursive: true);
+                Directory.CreateDirectory(stFolder);
+            }
+
             private const int dxImgWidth = 700;
             private int cscan = 0;
+            private const string stSlicesFolder = "Slices";
+            private const string stSvgFolder = "SVG";
+            private const string stBmpFolder = "BMP";
+            private const string stObjFolder = "OBJ";
+            private static string StFileBmp(int islice) => "slice" + islice;
+            private static string StFileBmpAndPath(int islice) => stSlicesFolder + "\\" + stBmpFolder + "\\" + StFileBmp(islice) + ".bmp";
             private void Scan(int cslice, double duDepthPerSlice)
             {
                 double sfRatio = (double)camera.rsScreen.Y / camera.rsScreen.X;
@@ -77,7 +92,10 @@ namespace Scanner
                 parallelOptions.MaxDegreeOfParallelism = Environment.ProcessorCount;
                 double duEpsilon = raytracer._raytracerfractal.rsViewPlane.x / dxImgWidth;
 
-                Directory.CreateDirectory("Slices");
+                ClearAndGenFolder(stSlicesFolder);
+                ClearAndGenFolder(stSlicesFolder + "\\" + stSvgFolder);
+                ClearAndGenFolder(stSlicesFolder + "\\" + stBmpFolder);
+                ClearAndGenFolder(stSlicesFolder + "\\" + stObjFolder);
                 
                 Stopwatch stopwatch = new Stopwatch();
                 stopwatch.Start();
@@ -118,10 +136,67 @@ namespace Scanner
                         }
                     }
 
-                    bitmap.Save("Slices/slice " + cscan++ + ".bmp");
+                    bitmap.Save(StFileBmpAndPath(islice), ImageFormat.Bmp);
                     Debug.WriteLine(islice+1 + " / " + cslice + " -- estimated time remaining: " + TimeSpan.FromMilliseconds((stopwatch.ElapsedMilliseconds / (islice+1)) * (cslice - islice)));
+
+                    GenSvg(StFileBmp(islice));
                 }
                 Debug.WriteLine("Total time elapsed: " + TimeSpan.FromMilliseconds(stopwatch.ElapsedMilliseconds));
+                Debug.WriteLine("Generating obj file...");
+                if (cslice > 0)
+                    GenObj();
+            }
+
+            private static void GenSvg(string stSliceName)
+            {
+                string stBmpPathAndName = stSlicesFolder + "\\" + stBmpFolder + "\\" + stSliceName + ".bmp";
+                string stSvgPathAndName = stSlicesFolder + "\\" + stSvgFolder + "\\" + stSliceName + ".svg";
+                string stCommand = "Tools\\potrace -s " + stBmpPathAndName + " -o " + stSvgPathAndName;
+                ExecuteCommand(stCommand);
+            }
+
+            private static void GenObj()
+            {
+                //run("Image Sequence...", "open=C:\\Users\\Taylor\\Source\\Repos\\fractualizer\\Fractualizer\\Scanner\\bin\\Debug\\Slices\\BMP\\slice0.bmp sort use");
+                //run("Wavefront .OBJ ...", "stack=BMP threshold=50 resampling=2 red green blue save=C:\\Users\\Taylor\\Desktop\\batch.obj");
+                // java\win64\jdk1.8.0_66\jre\bin\java -jar -Xmx1024m jars\ij-1.51j.jar -eval "print('Hello world');"
+                // ..\..\..\..\Tools\fiji-win64\Fiji.app
+
+                string stFolderScanner = Environment.CurrentDirectory;
+                string stMacroPath = stFolderScanner + "\\" + "obj_macro.txt";
+                string stFijiFolder = Path.GetFullPath("..\\..\\..\\..\\Tools\\fiji-win64\\Fiji.app");
+                string stCommand = stFijiFolder + "\\java\\win64\\jdk1.8.0_66\\jre\\bin\\java -jar -Xmx1024m " +
+                                   stFijiFolder + "\\jars\\ij-1.51j.jar -ijpath " + stFijiFolder + " -macro " + stMacroPath + " " +
+                                   "\"" +
+                                   Path.GetFullPath(StFileBmpAndPath(0)) + " " +
+                                   Path.GetFullPath(Path.Combine(stSlicesFolder, stObjFolder, "slices.obj"))
+                                   + "\"";
+                Debug.Assert(Directory.Exists(stFijiFolder), "Did you screw up the folder structure and forget to tell me because I hard-coded this like a moron?");
+                ExecuteCommand(stCommand);
+            }
+
+            static void ExecuteCommand(string stCommand)
+            {
+                var processInfo = new ProcessStartInfo("cmd.exe", "/c " + stCommand);
+                processInfo.CreateNoWindow = true;
+                processInfo.UseShellExecute = false;
+                processInfo.RedirectStandardError = true;
+                processInfo.RedirectStandardOutput = true;
+                var process = Process.Start(processInfo);
+                process.OutputDataReceived += (object sender, DataReceivedEventArgs e) =>
+                {
+                    if (!string.IsNullOrEmpty(e.Data))
+                        Debug.WriteLine("output>>" + e.Data);
+                };
+                process.BeginOutputReadLine();
+                process.ErrorDataReceived += (object sender, DataReceivedEventArgs e) =>
+                {
+                    if (!string.IsNullOrEmpty(e.Data))
+                        Debug.WriteLine("error>>" + e.Data);
+                };
+                process.BeginErrorReadLine();
+                process.WaitForExit();
+                process.Close();
             }
         }
     }
