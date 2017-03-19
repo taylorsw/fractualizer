@@ -12,9 +12,24 @@ namespace EVTC
     {
         public EvtcExplorer(Form form, Controller controller) : base(form, controller)
         {
-            Cursor.Hide();
-            CenterCursor();
-            form.MouseMove += OnMouseMove;
+            ToggleMouseControl();
+        }
+
+        private bool fMouseControl = false;
+        private void ToggleMouseControl()
+        {
+            fMouseControl = !fMouseControl;
+            if (fMouseControl)
+            {
+                Cursor.Hide();
+                CenterCursor();
+                form.MouseMove += OnMouseMove;
+            }
+            else
+            {
+                Cursor.Show();
+                form.MouseMove -= OnMouseMove;
+            }
         }
 
         public override void Setup()
@@ -33,11 +48,11 @@ namespace EVTC
             Cursor.Position = form.PointToScreen(ptFormCenter);
         }
 
+        private Point PtMouseClient() => form.PointToClient(Cursor.Position);
         private const float frDamping = 1.0f;
         private void OnMouseMove(object sender, MouseEventArgs mouseEventArgs)
         {
-            Point ptMouseClient = form.PointToClient(Cursor.Position);
-
+            Point ptMouseClient = PtMouseClient();
             if (ptMouseClient == ptFormCenter)
                 return;
 
@@ -68,7 +83,17 @@ namespace EVTC
                     Setup();
                     break;
                 case Keys.Y:
-                    raytracer.CPUScreenshot();
+                    if (fMouseControl)
+                        raytracer.CPUScreenshot();
+                    else
+                    {
+                        Point ptMouseClient = PtMouseClient();
+                        Debugger.Break();
+                        raytracer.RgbaTrace(new Vector2d(ptMouseClient.X, ptMouseClient.Y));
+                    }
+                    break;
+                case Keys.M:
+                    ToggleMouseControl();
                     break;
                 case Keys.L:
                     fLightFollows = !fLightFollows;

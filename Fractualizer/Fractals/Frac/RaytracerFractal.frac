@@ -15,6 +15,7 @@ v2 rsViewPlane;
 
 // Marching
 int cmarch = 140;
+float duMarchLimit = 20;
 
 // Skybox
 bool fSkysphere;
@@ -113,25 +114,21 @@ raytracer RaytracerFractal
 
 	// todo this makes zero sense
 	float DuEpsilon(float sfEpsilon, float duMarched)
-	{
+	{		
 		float duPixelRadius = inputs.rsViewPlane.x / inputs.rsScreen.x;
 		return sfEpsilon * 0.8 * duMarched / inputs.duNear * duPixelRadius;
 	}
 
 	global float MARCHED_TIMEOUT = -1;
 	global float MARCHED_LIMIT = -2;
-	v4 PtMarch(v3 pt, v3 vk, float sfEpsilon, float duMax, bool fIncludeLights, out int idHit, out float duEpsilon)
+	v4 PtMarch(v3 pt, v3 vk, float sfEpsilon, float duMax, out int idHit, out float duEpsilon)
 	{
 		idHit = -1;
 		duEpsilon = -1;
 		float duTotal = 0;
 		for (int i = 0; i < inputs.cmarch; ++i)
 		{
-			idHit = ID_FRACTAL;
-			float du = 0.999 * 
-				(fIncludeLights
-					? DuDeScene(pt, idHit)
-					: DuDeObject(pt));
+			float du = 0.999 * DuDeScene(pt, idHit);
 
 			pt += du * vk;
 			duTotal += du;
@@ -144,6 +141,26 @@ raytracer RaytracerFractal
 				return v4(pt, i);
 		}
 		return v4(pt, MARCHED_TIMEOUT);
+	}
+
+	v3 PtPlane(v2 ptPixelTL)
+	{
+		// position.x is from 0.5 to rsScreen.x + 6.5
+		v2 ptScreen = ptPixelTL - v2(0.5, 0.5);
+
+		v3 ptPlaneCenter = inputs.ptCamera + inputs.vkCamera * inputs.duNear;
+
+		v3 vkDown = inputs.vkCameraOrtho;
+		v3 vkRight = cross(vkDown, inputs.vkCamera);
+
+		v2 vkFromScreenCenter = ptScreen - inputs.rsScreen / 2;
+
+		// -0.5 <= frx <= 0.5
+		float frx = vkFromScreenCenter.x / inputs.rsScreen.x;
+		float fry = vkFromScreenCenter.y / inputs.rsScreen.y;
+
+		v3 ptPlane = ptPlaneCenter + vkRight * inputs.rsViewPlane.x * frx + vkDown * inputs.rsViewPlane.y * fry;
+		return ptPlane;
 	}
 
 	float FrQuadraticCutoff(v3 ptA, v3 ptB, float duTotal)
@@ -249,7 +266,7 @@ raytracer RaytracerFractal
 			int idHitIgnore;
 			v3 ptShadowStart = ptSurface + vkCameraDir * 1.1 * DuEpsilon(inputs.sfEpsilonShadow, length(inputs.ptCamera - ptSurface));
 			float duToLight = length(vkSurfaceToLight);
-			v4 shadow = PtMarch(ptShadowStart, vkLightDir, inputs.sfEpsilonShadow, duToLight, false, idHitIgnore, epsilonIgnore);
+			v4 shadow = PtMarch(ptShadowStart, vkLightDir, inputs.sfEpsilonShadow, duToLight, idHitIgnore, epsilonIgnore);
 
 			// TODO: Should probably check if marched at least dist to light
 			if (shadow.w != MARCHED_LIMIT)
@@ -275,27 +292,6 @@ raytracer RaytracerFractal
 		return color;
 	}
 
-	v3 PtPlane(v2 ptPixelTL)
-	{
-		// position.x is from 0.5 to rsScreen.x + 6.5
-		v2 ptScreen = ptPixelTL - v2(0.5, 0.5);
-
-		v3 ptPlaneCenter = inputs.ptCamera + inputs.vkCamera * inputs.duNear;
-
-		v3 vkDown = inputs.vkCameraOrtho;
-		v3 vkRight = cross(vkDown, inputs.vkCamera);
-
-		v2 vkFromScreenCenter = ptScreen - inputs.rsScreen / 2;
-
-		// -0.5 <= frx <= 0.5
-		float frx = vkFromScreenCenter.x / inputs.rsScreen.x;
-		float fry = vkFromScreenCenter.y / inputs.rsScreen.y;
-
-		v3 ptPlane = ptPlaneCenter + vkRight * inputs.rsViewPlane.x * frx + vkDown * inputs.rsViewPlane.y * fry;
-		return ptPlane;
-	}
-
-	global float duMarchLimit = 20;
 	RgbaTrace(v4 pos)
 	{
 		v3 ptPlane = PtPlane(v2(pos.x, pos.y));
@@ -304,7 +300,7 @@ raytracer RaytracerFractal
 		float duEpsilon;
 		int idHit;
 		float sfEpsilon = 0.8;
-		v4 ptMarched = PtMarch(inputs.ptCamera, vkRay, sfEpsilon, duMarchLimit, true, idHit, duEpsilon);
+		v4 ptMarched = PtMarch(inputs.ptCamera, vkRay, sfEpsilon, inputs.duMarchLimit, idHit, duEpsilon);
 
 		float duMarched = length(v3(ptMarched.x, ptMarched.y, ptMarched.z) - inputs.ptCamera);
 
