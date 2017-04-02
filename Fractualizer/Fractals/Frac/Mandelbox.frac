@@ -2,6 +2,8 @@
 v3 ptTrap;
 
 // Morphing
+float duTurn;
+
 float sf = 2;
 
 // Additional morphing
@@ -128,6 +130,18 @@ fractal Mandelbox
 	v3 PtTransformNormalizeScale(v3 pt)
 	{
 		return pt * SfNormalizing();
+	}
+
+	v3 PtTransformTurn(v3 pt)
+	{
+		v3 ptCamera = v3(-1, -0.479544, 0);
+		v3 ptCenter = ptCamera + v3(0, inputs.duTurn, 0);
+
+		v3 vkSplit = normalize(ptCamera - ptCenter);
+		v3 ptRel = v3(pt.x - ptCenter.x, pt.y - ptCenter.y, 0);
+		float r = length(ptRel);
+		float theta = acos(dot(ptRel / r, vkSplit));
+		return v3(ptCenter.x + r * theta, ptCenter.y + r, pt.z);
 	}
 
 	v3 PtAdjusted(v3 pt)
