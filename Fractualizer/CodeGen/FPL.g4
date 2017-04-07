@@ -155,7 +155,7 @@ prefixUnaryOp :
 	;
 
 retType : type | 'void' ;
-type : FloatType | IntType | BoolType | V2Type | V3Type | V4Type;
+type : FloatType | IntType | BoolType | V2Type | V3Type | V4Type | MatType;
 
 V2Type : 'v2' ;
 V3Type : 'v3' ;
@@ -163,6 +163,7 @@ V4Type : 'v4' ;
 BoolType : 'bool' ;
 FloatType : 'float' ;
 IntType : 'int' ;
+MatType : 'matrix' ;
 
 literal :
 	literalInt

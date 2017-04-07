@@ -59,7 +59,7 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Antlr4" Version="4.5.3" />
+    <PackageReference Include="Antlr4" Version="4.6.1-beta002" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Util\Util.csproj">

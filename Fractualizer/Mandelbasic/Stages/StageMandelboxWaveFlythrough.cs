@@ -199,7 +199,6 @@ namespace Mandelbasic
             const float sfSinMax = 1.0f;
             const float sfSin_dtms = sfSinMax / 2000;
             const float sfRollx_dtms = -(float)Math.PI / 2000;
-            private bool fSwitch = false;
             public override void DoEvents(float dtms)
             {
                 base.DoEvents(dtms);
