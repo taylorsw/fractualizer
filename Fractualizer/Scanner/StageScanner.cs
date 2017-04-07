@@ -73,7 +73,6 @@ namespace Scanner
             }
 
             private const int dxImgWidth = 700;
-            private int cscan = 0;
             private const string stSlicesFolder = "Slices";
             private const string stSvgFolder = "SVG";
             private const string stBmpFolder = "BMP";

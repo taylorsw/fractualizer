@@ -150,7 +150,6 @@ namespace EVTC
                 lightManager[0].brightness += dbrightnessDim;
 
             float dParam1 = 0.01f;
-            float dParam2 = 0.005f;
             if (IsKeyDown(Keys.Z) && scene.fractal.cinputFloat >= 1)
                 scene.fractal.SetInputFloat(0, scene.fractal.GetInputFloat(0) - dParam1);
             if (IsKeyDown(Keys.X) && scene.fractal.cinputFloat >= 1)
