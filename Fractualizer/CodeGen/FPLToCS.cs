@@ -717,44 +717,33 @@ namespace CodeGen
 
         public override Losa VisitInputType(FPLParser.InputTypeContext inputType)
         {
-            return StTypeInput(inputType.type().GetText());
+            return StTypeInput(inputType.type());
         }
 
-        private string StTypeInput(string stType)
+        private string StTypeInput(FPLParser.TypeContext type)
         {
-            switch (stType)
-            {
-                case "v2":
-                    return "Vector2f";
-                case "v3":
-                    return "Vector3f";
-                case "v4":
-                    return "Vector4f";
-                default:
-                    return stType;
-            }
+            if (type.V2Type() != null)
+                return "Vector2f";
+            if (type.V3Type() != null)
+                return "Vector3f";
+            if (type.V4Type() != null)
+                return "Vector4f";
+            return type.GetText();
         }
 
         public override Losa VisitType(FPLParser.TypeContext type)
         {
-            return StTypeNonInput(type.GetText());
-        }
-
-        private string StTypeNonInput(string stType)
-        {
-            switch (stType)
-            {
-                case "v2":
-                    return "Vector2d";
-                case "v3":
-                    return "Vector3d";
-                case "v4":
-                    return "Vector4d";
-                case "float":
-                    return "double";
-                default:
-                    return stType;
-            }
+            if (type.V2Type() != null)
+                return "Vector2d";
+            if (type.V3Type() != null)
+                return "Vector3d";
+            if (type.V4Type() != null)
+                return "Vector4d";
+            if (type.FloatType() != null)
+                return "double";
+            if (type.MatType() != null)
+                return "Matrix";
+            return type.GetText();
         }
 
         protected override string StExtension() => "cs";

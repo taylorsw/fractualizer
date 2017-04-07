@@ -56,7 +56,6 @@
       <Generator>MSBuild:Compile</Generator>
       <CustomToolNamespace>FPL</CustomToolNamespace>
     </Antlr4>
-    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Antlr4" Version="4.6.1-beta002" />
