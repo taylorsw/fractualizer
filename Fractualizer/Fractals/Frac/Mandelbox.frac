@@ -1,21 +1,20 @@
-﻿// Orbit trapping
+﻿// Colors
 v3 ptTrap;
+bool fGradientColor;
 
 // Morphing
-float duTurn;
-
 float sf = 2;
 
 // Additional morphing
+bool fAdjustAdditional;
 float duMirrorPlane = 1;
 float sfRollx = 1;
 float sfSin = 1;
-bool fGradientColor;
-bool fAdjustAdditional;
 float sfTwist = 0;
 float xTwistStart = 0;
 float vkTwistY = 0;
 float vkTwistZ = 0;
+float duTurn;
 
 fractal Mandelbox
 {

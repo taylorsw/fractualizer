@@ -717,10 +717,10 @@ namespace CodeGen
 
         public override Losa VisitInputType(FPLParser.InputTypeContext inputType)
         {
-            return StTypeInput(inputType.type());
+            return LosaTypeInput(inputType.type());
         }
 
-        private string StTypeInput(FPLParser.TypeContext type)
+        private Losa LosaTypeInput(FPLParser.TypeContext type)
         {
             if (type.V2Type() != null)
                 return "Vector2f";
@@ -728,6 +728,8 @@ namespace CodeGen
                 return "Vector3f";
             if (type.V4Type() != null)
                 return "Vector4f";
+            if (type.MatType() != null)
+                return "Matrix";
             return type.GetText();
         }
 

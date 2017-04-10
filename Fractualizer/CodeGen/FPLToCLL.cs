@@ -67,20 +67,18 @@ namespace CodeGen
                 cbyteType = 4;
             else
             {
-                switch (inputType.type().GetText())
+                if (type.V2Type() != null)
+                    cbyteType = 2 * 4;
+                else if (type.V3Type() != null)
+                    cbyteType = 3 * 4;
+                else if (type.V4Type() != null)
+                    cbyteType = 4 * 4;
+                else if (type.MatType() != null)
+                    cbyteType = 4 * 4 * 4;
+                else
                 {
-                    case "v2":
-                        cbyteType = 2 * 4;
-                        break;
-                    case "v3":
-                        cbyteType = 3 * 4;
-                        break;
-                    case "v4":
-                        cbyteType = 4 * 4;
-                        break;
-                    default:
-                        Error("Size of type " + inputType.type().GetText() + " not defined.");
-                        throw new NotImplementedException();
+                    Error("Size of type " + inputType.type().GetText() + " not defined.");
+                    throw new NotImplementedException();
                 }
             }
             FPLParser.ArrayDeclContext arrayDecl = input.arrayDecl();
