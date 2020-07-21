@@ -7,7 +7,7 @@ namespace Mandelbasic
     {
         protected override Stage StageCreate(Form form)
         {
-            return new StageMandelboxInnerFirefly(form, this, width, height);
+            return new StageMandelboxInnerFlythrough(form, this, width, height);
         }
     }
 }

@@ -72,8 +72,8 @@ namespace EVTC
 
         public virtual void Dispose()
         {
-            renderer.Dispose();
-            renderForm.Dispose();
+            renderer?.Dispose();
+            renderForm?.Dispose();
         }
     }
 }

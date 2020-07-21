@@ -1,12 +1,23 @@
-﻿namespace Mandelbasic
+﻿using System;
+
+namespace Mandelbasic
 {
     class Program
     {
         static void Main(string[] args)
         {
-            using (ControllerMandelbasic controllerMandelbasic = new ControllerMandelbasic())
+            try
             {
-                controllerMandelbasic.Run();
+                using (ControllerMandelbasic controllerMandelbasic = new ControllerMandelbasic())
+                {
+                    controllerMandelbasic.Run();
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                Console.Read();
+                throw;
             }
         }
     }
